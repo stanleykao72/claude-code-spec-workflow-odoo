@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.2] - 2025-07-20
+
+### Fixed
+- **ESM Compatibility Issue**: Fixed `ERR_REQUIRE_ESM` error when running `npx @pimzino/claude-code-spec-workflow`
+  - Downgraded `chalk` from `^5.3.0` to `^4.1.2` (last CommonJS-compatible version)
+  - Downgraded `inquirer` from `^9.2.12` to `^8.2.6` (last CommonJS-compatible version)
+  - Downgraded `ora` from `^7.0.1` to `^5.4.1` (last CommonJS-compatible version)
+  - Updated `@types/inquirer` to match inquirer version `^8.2.10`
+  - This resolves the common installation error users were experiencing
+
+### Added
+- **Restart Notification**: Added prominent notifications in command generation scripts to inform users they need to restart Claude Code for new task commands to be visible
+  - Updated both Windows (`generate-commands.bat`) and Unix (`generate-commands.sh`) scripts
+  - Added restart instructions to workflow documentation and agent guidance
+  - Ensures users know to restart Claude Code after task command generation
+
 ## [1.2.1] - 2025-07-19
 
 ### Fixed
