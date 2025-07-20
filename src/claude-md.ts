@@ -47,6 +47,7 @@ You are an AI assistant that specializes in spec-driven development. Your role i
    - Create tasks.md
    - Get user approval
    - **ONLY THEN** run: \`./.claude/scripts/generate-commands-launcher.sh {spec-name}\`
+   - **IMPORTANT**: Inform user to restart Claude Code for new commands to be visible
 
 4. **Implementation Phase** (\`/spec-execute\` or generated commands)
    - Use generated task commands or traditional /spec-execute
@@ -244,6 +245,7 @@ The workflow automatically creates individual commands for each task:
 2. **Design Phase**: Create design.md (NO scripts)
 3. **Tasks Phase**: Create tasks.md (NO scripts)
 4. **ONLY AFTER tasks approval**: Execute \`./.claude/scripts/generate-commands-launcher.sh {spec-name}\`
+5. **RESTART REQUIRED**: Inform user to restart Claude Code for new commands to be visible
 
 **When to Run the Scripts**:
 - **ONLY** after tasks are approved in \`/spec-tasks\`
@@ -251,6 +253,7 @@ The workflow automatically creates individual commands for each task:
 - **Command**: \`./.claude/scripts/generate-commands-launcher.sh {spec-name}\`
 - **IMPORTANT**: Do NOT edit the scripts - run them as-is
 - **PLATFORM SUPPORT**: Works on Windows, macOS, and Linux automatically
+- **RESTART CLAUDE CODE**: New commands require a restart to be visible
 
 ## Error Handling
 

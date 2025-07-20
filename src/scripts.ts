@@ -56,6 +56,17 @@ for /f "usebackq delims=" %%a in ("%TASKS_FILE%") do (
     set "LINE=%%a"
     call :ShowTaskCommand "!LINE!"
 )
+echo.
+echo ============================================================
+echo IMPORTANT: Please restart Claude Code for the new commands to be visible
+echo ============================================================
+echo.
+echo The task commands have been generated successfully.
+echo After restarting Claude Code, you can use commands like:
+echo   /%SPEC_NAME%-task-1
+echo   /%SPEC_NAME%-task-2
+echo   etc.
+echo.
 
 goto :eof
 
@@ -301,6 +312,18 @@ while IFS= read -r line; do
         echo "  /$SPEC_NAME-task-$task_id - $task_desc"
     fi
 done < "$TASKS_FILE"
+
+echo
+echo "============================================================"
+echo "IMPORTANT: Please restart Claude Code for the new commands to be visible"
+echo "============================================================"
+echo
+echo "The task commands have been generated successfully."
+echo "After restarting Claude Code, you can use commands like:"
+echo "  /$SPEC_NAME-task-1"
+echo "  /$SPEC_NAME-task-2"
+echo "  etc."
+echo
 `;
 }
 
@@ -410,6 +433,8 @@ The command generation system now uses platform-specific scripts instead of Java
    \`\`\`bash
    ./.claude/scripts/generate-commands.sh {spec-name}
    \`\`\`
+
+2. **IMPORTANT**: After script completion, inform the user to restart Claude Code for the new commands to be visible.
 
 2. **OS Detection**: The launcher script automatically detects the operating system and runs the appropriate platform-specific script.
 

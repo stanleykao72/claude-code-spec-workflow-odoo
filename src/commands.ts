@@ -255,6 +255,7 @@ You are working on the tasks phase of the spec workflow.
    - **EXAMPLE**: Creates \`/{feature-name}-task-1\`, \`/{feature-name}-task-2.1\`, etc.
    - **IMPORTANT**: Do NOT edit the scripts - just run them as-is
    - **PLATFORM**: Automatically detects OS and runs appropriate script (Windows/macOS/Linux)
+   - **RESTART REQUIRED**: Inform user to restart Claude Code for new commands to be visible
 
 ## Task Structure
 \`\`\`markdown
@@ -273,10 +274,12 @@ You are working on the tasks phase of the spec workflow.
 \`\`\`
 
 ## Next Phase
-After approval and command generation, you can:
-- Use \`/spec-execute\` to implement tasks
-- Use individual task commands: \`/{feature-name}-task-1\`, \`/{feature-name}-task-2\`, etc.
-- Check progress with \`/spec-status {feature-name}\`
+After approval and command generation:
+1. **RESTART Claude Code** for new commands to be visible
+2. Then you can:
+   - Use \`/spec-execute\` to implement tasks
+   - Use individual task commands: \`/{feature-name}-task-1\`, \`/{feature-name}-task-2\`, etc.
+   - Check progress with \`/spec-status {feature-name}\`
 `;
 }
 
