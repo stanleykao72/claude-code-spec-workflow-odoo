@@ -40,11 +40,24 @@ if not exist "%COMMANDS_SPEC_DIR%" mkdir "%COMMANDS_SPEC_DIR%"
 
 REM Parse tasks and generate commands
 set "TASK_COUNT=0"
+set "CURRENT_TASK_ID="
+set "CURRENT_TASK_DESC="
+set "CURRENT_LEVERAGE="
+set "CURRENT_REQUIREMENTS="
+set "IN_TASK=0"
 echo Parsing tasks from %TASKS_FILE%...
 
 for /f "usebackq delims=" %%a in ("%TASKS_FILE%") do (
     set "LINE=%%a"
     call :ParseTaskLine "!LINE!"
+)
+
+REM Handle the last task if we were in one
+if !IN_TASK!==1 (
+    if not "!CURRENT_TASK_ID!"=="" (
+        call :GenerateTaskCommand "!CURRENT_TASK_ID!" "!CURRENT_TASK_DESC!" "!CURRENT_LEVERAGE!" "!CURRENT_REQUIREMENTS!"
+        set /a TASK_COUNT+=1
+    )
 )
 
 echo.
@@ -73,12 +86,44 @@ goto :eof
 :ParseTaskLine
 set "TASK_LINE=%~1"
 REM Match task lines like "- [ ] 1. Task description" or "- [ ] 2.1 Task description"
-REM Use a simpler approach - check if line starts with "- [ ]" and contains a number
 echo !TASK_LINE! | findstr /b /c:"- [ ]" >nul
 if !errorlevel! equ 0 (
+    REM If we were processing a previous task, generate its command first
+    if !IN_TASK!==1 (
+        if not "!CURRENT_TASK_ID!"=="" (
+            call :GenerateTaskCommand "!CURRENT_TASK_ID!" "!CURRENT_TASK_DESC!" "!CURRENT_LEVERAGE!" "!CURRENT_REQUIREMENTS!"
+            set /a TASK_COUNT+=1
+        )
+    )
+    
     REM Extract everything after "- [ ] "
     set "AFTER_CHECKBOX=!TASK_LINE:~6!"
     call :ExtractTaskInfo "!AFTER_CHECKBOX!"
+    set "IN_TASK=1"
+    set "CURRENT_LEVERAGE="
+    set "CURRENT_REQUIREMENTS="
+) else if !IN_TASK!==1 (
+    REM Check for _Leverage: lines
+    echo !TASK_LINE! | findstr /c:"_Leverage:" >nul
+    if !errorlevel! equ 0 (
+        for /f "tokens=1,* delims=:" %%x in ("!TASK_LINE!") do (
+            set "LEVERAGE_PART=%%y"
+            REM Remove leading spaces and dashes
+            set "LEVERAGE_PART=!LEVERAGE_PART:~1!"
+            set "CURRENT_LEVERAGE=!LEVERAGE_PART!"
+        )
+    )
+    
+    REM Check for _Requirements: lines
+    echo !TASK_LINE! | findstr /c:"_Requirements:" >nul
+    if !errorlevel! equ 0 (
+        for /f "tokens=1,* delims=:" %%x in ("!TASK_LINE!") do (
+            set "REQUIREMENTS_PART=%%y"
+            REM Remove leading spaces and dashes
+            set "REQUIREMENTS_PART=!REQUIREMENTS_PART:~1!"
+            set "CURRENT_REQUIREMENTS=!REQUIREMENTS_PART!"
+        )
+    )
 )
 goto :eof
 
@@ -105,10 +150,8 @@ for /f "tokens=1,* delims= " %%x in ("!REMAINING!") do (
             if !errorlevel! neq 0 set "VALID_ID=0"
         )
         if !VALID_ID! equ 1 (
-            set "TASK_ID=!POTENTIAL_ID!"
-            set "TASK_DESC=!REST!"
-            call :GenerateTaskCommand "!TASK_ID!" "!TASK_DESC!"
-            set /a TASK_COUNT+=1
+            set "CURRENT_TASK_ID=!POTENTIAL_ID!"
+            set "CURRENT_TASK_DESC=!REST!"
         )
     )
 )
@@ -117,6 +160,8 @@ goto :eof
 :GenerateTaskCommand
 set "TASK_ID=%~1"
 set "TASK_DESC=%~2"
+set "LEVERAGE_INFO=%~3"
+set "REQUIREMENTS_INFO=%~4"
 set "COMMAND_FILE=%COMMANDS_SPEC_DIR%\\task-%TASK_ID%.md"
 
 (
@@ -127,6 +172,16 @@ echo.
 echo ## Task Description
 echo %TASK_DESC%
 echo.
+if not "%LEVERAGE_INFO%"=="" (
+    echo ## Code Reuse
+    echo **Leverage existing code**: %LEVERAGE_INFO%
+    echo.
+)
+if not "%REQUIREMENTS_INFO%"=="" (
+    echo ## Requirements Reference  
+    echo **Requirements**: %REQUIREMENTS_INFO%
+    echo.
+)
 echo ## Usage
 echo \`\`\`
 echo /%SPEC_NAME%-task-%TASK_ID%
@@ -143,12 +198,14 @@ echo.
 echo **Process**:
 echo 1. Load the %SPEC_NAME% specification context ^(requirements.md, design.md, tasks.md^)
 echo 2. Execute task %TASK_ID%: "%TASK_DESC%"
-echo 3. Follow all implementation guidelines from the main /spec-execute command
-echo 4. Mark the task as complete in tasks.md
-echo 5. Stop and wait for user review
+echo 3. **Prioritize code reuse**: Use existing components and utilities identified above
+echo 4. Follow all implementation guidelines from the main /spec-execute command
+echo 5. Mark the task as complete in tasks.md
+echo 6. Stop and wait for user review
 echo.
 echo **Important**: This command follows the same rules as /spec-execute:
 echo - Execute ONLY this specific task
+echo - **Leverage existing code** whenever possible to avoid rebuilding functionality
 echo - Mark task as complete by changing [ ] to [x] in tasks.md
 echo - Stop after completion and wait for user approval
 echo - Do not automatically proceed to the next task
@@ -241,6 +298,8 @@ echo "Parsing tasks from $TASKS_FILE..."
 generate_task_command() {
     local task_id="$1"
     local task_desc="$2"
+    local leverage_info="$3"
+    local requirements_info="$4"
     local command_file="$COMMANDS_SPEC_DIR/task-$task_id.md"
 
     cat > "$command_file" << EOF
@@ -251,6 +310,27 @@ Execute task $task_id for the $SPEC_NAME specification.
 ## Task Description
 $task_desc
 
+EOF
+
+    # Add Leverage section if present
+    if [ -n "$leverage_info" ]; then
+        cat >> "$command_file" << EOF
+## Code Reuse
+**Leverage existing code**: $leverage_info
+
+EOF
+    fi
+
+    # Add Requirements section if present
+    if [ -n "$requirements_info" ]; then
+        cat >> "$command_file" << EOF
+## Requirements Reference
+**Requirements**: $requirements_info
+
+EOF
+    fi
+
+    cat >> "$command_file" << EOF
 ## Usage
 \`\`\`
 /$SPEC_NAME-task-$task_id
@@ -267,12 +347,14 @@ This command executes a specific task from the $SPEC_NAME specification.
 **Process**:
 1. Load the $SPEC_NAME specification context (requirements.md, design.md, tasks.md)
 2. Execute task $task_id: "$task_desc"
-3. Follow all implementation guidelines from the main /spec-execute command
-4. Mark the task as complete in tasks.md
-5. Stop and wait for user review
+3. **Prioritize code reuse**: Use existing components and utilities identified above
+4. Follow all implementation guidelines from the main /spec-execute command
+5. Mark the task as complete in tasks.md
+6. Stop and wait for user review
 
 **Important**: This command follows the same rules as /spec-execute:
 - Execute ONLY this specific task
+- **Leverage existing code** whenever possible to avoid rebuilding functionality
 - Mark task as complete by changing [ ] to [x] in tasks.md
 - Stop after completion and wait for user approval
 - Do not automatically proceed to the next task
@@ -287,16 +369,47 @@ EOF
 }
 
 # Parse tasks from markdown
+current_task_id=""
+current_task_desc=""
+current_leverage=""
+current_requirements=""
+in_task=false
+
 while IFS= read -r line; do
     # Match task lines like "- [ ] 1. Task description" or "- [ ] 2.1 Task description"
     if [[ $line =~ ^[[:space:]]*-[[:space:]]*\\[[[:space:]]*\\][[:space:]]*([0-9]+(\.[0-9]+)*)[[:space:]]*\\.?[[:space:]]*(.+)$ ]]; then
-        task_id="\${BASH_REMATCH[1]}"
-        task_desc="\${BASH_REMATCH[3]}"
-
-        generate_task_command "$task_id" "$task_desc"
-        ((TASK_COUNT++))
+        # If we were processing a previous task, generate its command
+        if [ "$in_task" = true ] && [ -n "$current_task_id" ]; then
+            generate_task_command "$current_task_id" "$current_task_desc" "$current_leverage" "$current_requirements"
+            ((TASK_COUNT++))
+        fi
+        
+        # Start new task
+        current_task_id="\${BASH_REMATCH[1]}"
+        current_task_desc="\${BASH_REMATCH[3]}"
+        current_leverage=""
+        current_requirements=""
+        in_task=true
+    elif [ "$in_task" = true ]; then
+        # Look for _Leverage: lines
+        if [[ $line =~ ^[[:space:]]*-[[:space:]]*_Leverage:[[:space:]]*(.+)$ ]]; then
+            current_leverage="\${BASH_REMATCH[1]}"
+        # Look for _Requirements: lines
+        elif [[ $line =~ ^[[:space:]]*-[[:space:]]*_Requirements:[[:space:]]*(.+)$ ]]; then
+            current_requirements="\${BASH_REMATCH[1]}"
+        # If we hit another checkbox or end of task context, stop collecting for this task
+        elif [[ $line =~ ^[[:space:]]*-[[:space:]]*\\[ ]]; then
+            # This might be the start of a new task or sub-task, let the main parser handle it
+            continue
+        fi
     fi
 done < "$TASKS_FILE"
+
+# Don't forget the last task
+if [ "$in_task" = true ] && [ -n "$current_task_id" ]; then
+    generate_task_command "$current_task_id" "$current_task_desc" "$current_leverage" "$current_requirements"
+    ((TASK_COUNT++))
+fi
 
 echo
 echo "Generated $TASK_COUNT task commands for spec: $SPEC_NAME"
@@ -304,7 +417,7 @@ echo "Commands created in: .claude/commands/$SPEC_NAME/"
 echo
 echo "Generated commands:"
 
-# Show generated commands
+# Show generated commands  
 while IFS= read -r line; do
     if [[ $line =~ ^[[:space:]]*-[[:space:]]*\\[[[:space:]]*\\][[:space:]]*([0-9]+(\.[0-9]+)*)[[:space:]]*\\.?[[:space:]]*(.+)$ ]]; then
         task_id="\${BASH_REMATCH[1]}"

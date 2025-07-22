@@ -23,26 +23,35 @@ You are helping create a new feature specification. Follow these steps:
    - Begin the requirements gathering phase immediately
    - Do not ask sequential questions - generate initial requirements
 
-3. **Generate Initial Requirements**
+3. **Analyze Existing Codebase** (BEFORE writing requirements)
+   - **Search for similar features**: Look for existing authentication, data handling, UI patterns, etc.
+   - **Identify reusable components**: Find utilities, services, hooks, or modules that can be leveraged
+   - **Review architecture patterns**: Understand current project structure, naming conventions, and design patterns
+   - **Find integration points**: Locate where new feature will connect with existing systems
+   - **Document findings**: Note what can be reused vs. what needs to be built from scratch
+
+4. **Generate Initial Requirements**
    - Use the requirements template from \`.claude/templates/requirements-template.md\`
    - Create user stories in "As a [role], I want [feature], so that [benefit]" format
    - Write acceptance criteria in EARS format (WHEN/IF/THEN statements)
    - Consider edge cases and technical constraints
 
-4. **Request User Approval**
+5. **Request User Approval**
    - Present the requirements document
+   - **Include codebase analysis summary**: Briefly note what existing code can be leveraged
    - Ask: "Do the requirements look good? If so, we can move on to the design."
    - Wait for explicit approval before proceeding
 
-5. **Complete Requirements Phase**
-   - Present the requirements document
+6. **Complete Requirements Phase**
+   - Present the requirements document with reuse opportunities highlighted
    - Wait for explicit approval
    - **DO NOT** run any scripts yet
    - **NEXT STEP**: Proceed to \`/spec-design\` phase
 
-6. **Rules**
+7. **Rules**
    - Only create ONE spec at a time
    - Always use kebab-case for feature names
+   - **MANDATORY**: Always analyze existing codebase before writing requirements
    - Follow the exact EARS format for acceptance criteria
    - Do not proceed without explicit user approval
    - **DO NOT** run scripts during /spec-create - only create requirements
@@ -144,21 +153,26 @@ You are working on the design phase of the spec workflow.
      - Error Handling
      - Testing Strategy
 
-3. **Research Phase**
-   - Analyze existing codebase for patterns
-   - Identify integration points
-   - Research technical dependencies
-   - Consider scalability and maintainability
+3. **Codebase Research Phase** (MANDATORY)
+   - **Map existing patterns**: Identify data models, API patterns, component structures that match your needs
+   - **Catalog reusable utilities**: Find validation functions, helpers, middleware, hooks that can be leveraged
+   - **Document architectural decisions**: Note existing tech stack, state management, routing patterns to follow
+   - **Identify integration points**: Map how new feature connects to existing auth, database, APIs
+   - **Find similar implementations**: Look for features with similar requirements already implemented
+   - **Note gaps**: Document what needs to be built vs. what can be reused or extended
 
-4. **Design Content**
+4. **Design Content** (leverage codebase research)
+   - **Reuse Architecture**: Build on existing patterns rather than creating new ones
+   - **Extend Components**: Design to leverage and extend existing utilities, services, components
    - Use Mermaid diagrams for visual representations
-   - Define clear interfaces and contracts
-   - Specify data models and validation rules
-   - Plan error handling and edge cases
-   - Outline testing approach
+   - Define clear interfaces that integrate with existing systems
+   - Specify data models that follow established patterns
+   - Plan error handling consistent with current approach
+   - Outline testing approach using existing test utilities
 
 5. **Approval Process**
    - Present the complete design document
+   - **Highlight code reuse**: Clearly show what existing code will be leveraged
    - Ask: "Does the design look good? If so, we can move on to the implementation plan."
    - Incorporate feedback and revisions
    - Continue until explicit approval
@@ -170,20 +184,23 @@ You are working on the design phase of the spec workflow.
 ## Overview
 [High-level description]
 
+## Code Reuse Analysis
+[What existing code will be leveraged, extended, or integrated]
+
 ## Architecture
-[System architecture and patterns]
+[System architecture building on existing patterns]
 
 ## Components and Interfaces
-[Detailed component specifications]
+[Detailed component specifications with reuse opportunities]
 
 ## Data Models
-[Data structures and validation]
+[Data structures following established patterns]
 
 ## Error Handling
-[Error scenarios and responses]
+[Error scenarios consistent with current approach]
 
 ## Testing Strategy
-[Testing approach and coverage]
+[Testing approach using existing utilities and patterns]
 \`\`\`
 
 ## Next Phase
@@ -213,24 +230,27 @@ You are working on the tasks phase of the spec workflow.
    - Load both requirements.md and design.md for context
    - Understand the complete feature scope
 
-2. **Generate Task List**
+2. **Generate Task List** (prioritize code reuse)
    - Break design into atomic, executable coding tasks
+   - **Prioritize extending/adapting existing code** over building from scratch
    - Use checkbox format with numbered hierarchy
-   - Each task should reference specific requirements
+   - Each task should reference specific requirements AND existing code to leverage
    - Focus ONLY on coding tasks (no deployment, user testing, etc.)
 
 3. **Task Guidelines**
    - Tasks should be concrete and actionable
+   - **Reference existing code to reuse**: Include specific files/components to extend or adapt
    - Include specific file names and components
    - Build incrementally (each task builds on previous)
    - Reference requirements using _Requirements: X.Y_ format
-   - Use test-driven development approach
+   - Use test-driven development approach leveraging existing test patterns
 
 4. **Task Format**
    \`\`\`markdown
    - [ ] 1. Task description
      - Sub-bullet with details
      - Specific files to create/modify
+     - _Leverage: existing-component.ts, utils/helpers.js_
      - _Requirements: 1.1, 2.3_
    \`\`\`
 
@@ -262,14 +282,16 @@ You are working on the tasks phase of the spec workflow.
 # Implementation Plan
 
 - [ ] 1. Setup project structure
-  - Create directory structure
-  - Define core interfaces
+  - Create directory structure following existing patterns
+  - Define core interfaces extending existing base classes
+  - _Leverage: src/types/base.ts, src/models/BaseModel.ts_
   - _Requirements: 1.1_
 
 - [ ] 2. Implement data models
 - [ ] 2.1 Create base model classes
-  - Define validation methods
-  - Write unit tests
+  - Extend existing validation utilities
+  - Write unit tests using existing test helpers
+  - _Leverage: src/utils/validation.ts, tests/helpers/testUtils.ts_
   - _Requirements: 2.1, 2.2_
 \`\`\`
 

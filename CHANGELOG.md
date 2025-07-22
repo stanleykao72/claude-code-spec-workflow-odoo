@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.3] - 2025-07-22
+
+### Added
+- **Code Reuse First Approach**: Enhanced workflow to prioritize analyzing existing codebase and leveraging existing components
+  - Added mandatory codebase exploration step in `/spec-create` command before writing requirements
+  - Enhanced `/spec-design` command with specific codebase research phase and "Code Reuse Analysis" section
+  - Improved `/spec-tasks` command to prioritize extending/adapting existing code over building from scratch
+  - New `_Leverage:` format in task definitions to reference specific existing code alongside `_Requirements:`
+  - Updated core principles in CLAUDE.md template to include "Code Reuse First"
+
+### Enhanced
+- **Command Generation Scripts**: Updated both Windows (.bat) and Unix (.sh) scripts to parse and include `_Leverage:` information
+  - Generated task commands now include "Code Reuse" sections when leverage information is present
+  - Enhanced command templates emphasize using existing components and utilities
+  - Improved task execution guidance to prioritize leveraging existing code
+
 ## [1.2.2] - 2025-07-20
 
 ### Fixed
