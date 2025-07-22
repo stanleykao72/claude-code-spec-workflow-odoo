@@ -7,12 +7,16 @@ import {
   getSpecTasksCommand,
   getSpecExecuteCommand,
   getSpecStatusCommand,
-  getSpecListCommand
+  getSpecListCommand,
+  getSpecSteeringSetupCommand
 } from './commands';
 import {
   getRequirementsTemplate,
   getDesignTemplate,
-  getTasksTemplate
+  getTasksTemplate,
+  getProductTemplate,
+  getTechTemplate,
+  getStructureTemplate
 } from './templates';
 import { getClaudeMdContent } from './claude-md';
 import {
@@ -29,6 +33,7 @@ export class SpecWorkflowSetup {
   private specsDir: string;
   private templatesDir: string;
   private scriptsDir: string;
+  private steeringDir: string;
 
   constructor(projectRoot: string = process.cwd()) {
     this.projectRoot = projectRoot;
@@ -37,6 +42,7 @@ export class SpecWorkflowSetup {
     this.specsDir = join(this.claudeDir, 'specs');
     this.templatesDir = join(this.claudeDir, 'templates');
     this.scriptsDir = join(this.claudeDir, 'scripts');
+    this.steeringDir = join(this.claudeDir, 'steering');
   }
 
   async claudeDirectoryExists(): Promise<boolean> {
@@ -54,7 +60,8 @@ export class SpecWorkflowSetup {
       this.commandsDir,
       this.specsDir,
       this.templatesDir,
-      this.scriptsDir
+      this.scriptsDir,
+      this.steeringDir
     ];
 
     for (const dir of directories) {
@@ -70,7 +77,8 @@ export class SpecWorkflowSetup {
       'spec-tasks': getSpecTasksCommand(),
       'spec-execute': getSpecExecuteCommand(),
       'spec-status': getSpecStatusCommand(),
-      'spec-list': getSpecListCommand()
+      'spec-list': getSpecListCommand(),
+      'spec-steering-setup': getSpecSteeringSetupCommand()
     };
 
     for (const [commandName, commandContent] of Object.entries(commands)) {
