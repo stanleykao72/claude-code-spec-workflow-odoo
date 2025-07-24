@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.4] - 2025-07-22
+
+### Added
+- **Steering Documents Feature**: Integrated persistent project context inspired by Kiro's steering concept
+  - New `/spec-steering-setup` command to create and manage steering documents
+  - Three steering document templates: `product.md`, `tech.md`, and `structure.md`
+  - Steering document loader utility for seamless integration
+  - New `.claude/steering/` directory for persistent project context
+  - All spec commands now reference and utilize steering documents when available
+
+### Enhanced
+- **Language-Agnostic Templates**: Refactored all templates to be truly language and project-type agnostic
+  - Removed TypeScript-specific syntax from design templates
+  - Made tech template generic for all project types (CLI tools, desktop apps, libraries, etc.)
+  - Updated structure template with flexible examples instead of web-centric assumptions
+  - Templates now work for any programming language or project type
+
+### Technical Details
+- Added `src/steering.ts` with `SteeringLoader` class for document management
+- Updated all command functions to reference steering documents
+  - `/spec-create` loads and aligns with product vision
+  - `/spec-requirements` references product.md for alignment
+  - `/spec-design` follows tech.md and structure.md patterns
+  - `/spec-tasks` respects structure.md conventions
+  - `/spec-execute` implements following all steering guidelines
+- Added comprehensive test coverage for steering features
+- Fixed template string escaping issues in `claude-md.ts`
+- All 35 tests passing including new steering and template tests
+
 ## [1.2.3] - 2025-07-22
 
 ### Added

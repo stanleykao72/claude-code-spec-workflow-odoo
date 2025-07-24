@@ -48,8 +48,9 @@ npx claude-spec-setup
 
 The setup automatically creates:
 - **📁 .claude/ directory structure** with all necessary files
-- **📝 7 slash commands** for the complete workflow
-- **🤖 Auto-generated task commands** for each spec (NEW!)
+- **📝 8 slash commands** for the complete workflow (including steering setup!)
+- **🎯 Steering documents** for persistent project context (NEW!)
+- **🤖 Auto-generated task commands** for each spec
 - **📋 Document templates** for consistent formatting
 - **⚙️ Configuration files** for workflow automation
 - **🔧 Command generation scripts** for dynamic task commands
@@ -57,23 +58,33 @@ The setup automatically creates:
 
 ## 🔄 Workflow Overview
 
+### 0. **Steering Setup** (`/spec-steering-setup`) - NEW!
+- Creates persistent project context documents
+- Analyzes your codebase and gathers project information
+- Generates product.md, tech.md, and structure.md
+- Ensures all specs align with your project's vision and standards
+
 ### 1. **Requirements Phase** (`/spec-requirements`)
 - Generates user stories and acceptance criteria
 - Uses EARS format (WHEN/IF/THEN statements)
+- Aligns with product vision from steering documents
 - Ensures comprehensive requirement coverage
 
 ### 2. **Design Phase** (`/spec-design`)
 - Creates technical architecture and design
+- Follows technical standards from steering documents
 - Includes Mermaid diagrams for visualization
 - Plans components, interfaces, and data models
 
 ### 3. **Tasks Phase** (`/spec-tasks`)
 - Breaks design into atomic coding tasks
+- Respects project structure conventions
 - References specific requirements
 - Focuses on test-driven development
 
 ### 4. **Implementation Phase** (`/spec-execute`)
 - Executes tasks systematically
+- Follows all steering document guidelines
 - Validates against requirements
 - Ensures quality and consistency
 
@@ -82,6 +93,9 @@ The setup automatically creates:
 After setup, use these commands in Claude Code:
 
 ```bash
+# Set up steering documents (recommended first step!)
+/spec-steering-setup
+
 # Create a new feature spec
 /spec-create user-authentication "Secure login system"
 
@@ -135,6 +149,30 @@ npx @pimzino/claude-code-spec-workflow --yes
 npx @pimzino/claude-code-spec-workflow test
 ```
 
+## 🎯 Steering Documents (NEW!)
+
+Steering documents provide persistent project context that guides all spec development:
+
+### **Product Document** (`product.md`)
+- Product vision and purpose
+- Target users and their needs
+- Key features and objectives
+- Success metrics
+
+### **Technology Document** (`tech.md`)
+- Technology stack and frameworks
+- Development tools and practices
+- Technical constraints and requirements
+- Third-party integrations
+
+### **Structure Document** (`structure.md`)
+- File organization patterns
+- Naming conventions
+- Import patterns
+- Code organization principles
+
+Run `/spec-steering-setup` to create these documents. Claude will analyze your project and help you define these standards.
+
 ## 🎨 Features
 
 ### ✅ **Zero Configuration**
@@ -157,6 +195,12 @@ npx @pimzino/claude-code-spec-workflow test
 - Comprehensive error handling
 - Follows npm best practices
 
+### ✅ **Steering Document Integration**
+- Persistent project context across all specs
+- Automatic alignment with project standards
+- Consistent code generation
+- Reduced need for repetitive explanations
+
 ## 🏗️ Project Structure After Setup
 
 ```
@@ -170,11 +214,16 @@ your-project/
 │   │   ├── spec-execute.md
 │   │   ├── spec-status.md
 │   │   ├── spec-list.md
-│   │   └── {spec-name}/              # Auto-generated (NEW!)
+│   │   ├── spec-steering-setup.md    # NEW!
+│   │   └── {spec-name}/              # Auto-generated
 │   │       ├── task-1.md
 │   │       ├── task-2.md
 │   │       └── task-2.1.md
-│   ├── scripts/                      # NEW!
+│   ├── steering/                     # NEW!
+│   │   ├── product.md               # Product vision & goals
+│   │   ├── tech.md                  # Technical standards
+│   │   └── structure.md             # Project conventions
+│   ├── scripts/
 │   │   ├── generate-commands.bat     # Windows script
 │   │   ├── generate-commands.sh      # macOS/Linux script
 │   │   ├── generate-commands-launcher.sh  # OS detection launcher

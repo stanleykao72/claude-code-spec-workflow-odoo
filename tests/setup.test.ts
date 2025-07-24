@@ -24,12 +24,14 @@ describe('SpecWorkflowSetup', () => {
     const specsDir = join(claudeDir, 'specs');
     const templatesDir = join(claudeDir, 'templates');
     const scriptsDir = join(claudeDir, 'scripts');
+    const steeringDir = join(claudeDir, 'steering');
 
     await expect(fs.access(claudeDir)).resolves.not.toThrow();
     await expect(fs.access(commandsDir)).resolves.not.toThrow();
     await expect(fs.access(specsDir)).resolves.not.toThrow();
     await expect(fs.access(templatesDir)).resolves.not.toThrow();
     await expect(fs.access(scriptsDir)).resolves.not.toThrow();
+    await expect(fs.access(steeringDir)).resolves.not.toThrow();
   });
 
   test('should detect existing claude directory', async () => {
@@ -52,7 +54,8 @@ describe('SpecWorkflowSetup', () => {
       'spec-tasks.md',
       'spec-execute.md',
       'spec-status.md',
-      'spec-list.md'
+      'spec-list.md',
+      'spec-steering-setup.md'
     ];
 
     for (const command of expectedCommands) {
@@ -146,7 +149,12 @@ describe('SpecWorkflowSetup', () => {
     const content = await fs.readFile(claudeMdPath, 'utf-8');
     expect(content).toContain('# Spec Workflow');
     expect(content).toContain('/spec-create');
+    expect(content).toContain('/spec-steering-setup');
     expect(content).toContain('Requirements → Design → Tasks → Implementation');
+    expect(content).toContain('Steering Documents');
+    expect(content).toContain('product.md');
+    expect(content).toContain('tech.md');
+    expect(content).toContain('structure.md');
   });
 
   test('should run complete setup', async () => {
