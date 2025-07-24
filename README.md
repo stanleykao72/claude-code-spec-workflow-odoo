@@ -326,6 +326,10 @@ See [CHANGELOG.md](https://github.com/pimzino/claude-code-spec-workflow/blob/mai
 
 Made with ❤️ by [Pimzino](https://github.com/pimzino)
 
+## Special Thanks
+@pimzino - for the initial setup
+@boundless-oss - Adding steering documents
+
 ## Acknowledgments
 
 - [Claude Code](https://docs.anthropic.com/claude-code)
