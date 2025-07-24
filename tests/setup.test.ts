@@ -23,14 +23,12 @@ describe('SpecWorkflowSetup', () => {
     const commandsDir = join(claudeDir, 'commands');
     const specsDir = join(claudeDir, 'specs');
     const templatesDir = join(claudeDir, 'templates');
-    const scriptsDir = join(claudeDir, 'scripts');
     const steeringDir = join(claudeDir, 'steering');
 
     await expect(fs.access(claudeDir)).resolves.not.toThrow();
     await expect(fs.access(commandsDir)).resolves.not.toThrow();
     await expect(fs.access(specsDir)).resolves.not.toThrow();
     await expect(fs.access(templatesDir)).resolves.not.toThrow();
-    await expect(fs.access(scriptsDir)).resolves.not.toThrow();
     await expect(fs.access(steeringDir)).resolves.not.toThrow();
   });
 
@@ -88,41 +86,7 @@ describe('SpecWorkflowSetup', () => {
     }
   });
 
-  test('should create scripts', async () => {
-    await setup.setupDirectories();
-    await setup.createScripts();
-
-    const scriptsDir = join(tempDir, '.claude', 'scripts');
-    const expectedScripts = [
-      'generate-commands.bat',
-      'generate-commands.sh',
-      'generate-commands-launcher.sh',
-      'README.md'
-    ];
-
-    for (const script of expectedScripts) {
-      const scriptPath = join(scriptsDir, script);
-      await expect(fs.access(scriptPath)).resolves.not.toThrow();
-
-      const content = await fs.readFile(scriptPath, 'utf-8');
-      expect(content.length).toBeGreaterThan(0);
-
-      // Check for appropriate content based on script type
-      if (script === 'generate-commands.bat') {
-        expect(content).toContain('@echo off');
-        expect(content).toContain('Command Generation Script for Claude Code Spec Workflow (Windows)');
-      } else if (script === 'generate-commands.sh') {
-        expect(content).toContain('#!/bin/bash');
-        expect(content).toContain('Command Generation Script for Claude Code Spec Workflow (Unix/Linux/macOS)');
-      } else if (script === 'generate-commands-launcher.sh') {
-        expect(content).toContain('#!/bin/bash');
-        expect(content).toContain('OS Detection and Command Generation Launcher');
-      } else if (script === 'README.md') {
-        expect(content).toContain('Command Generation Instructions');
-        expect(content).toContain('Platform-Specific Script Execution');
-      }
-    }
-  });
+  // NOTE: Scripts test removed in v1.2.5 - task command generation now uses NPX command
 
   test('should create config file', async () => {
     await setup.setupDirectories();

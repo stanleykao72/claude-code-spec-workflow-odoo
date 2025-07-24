@@ -12,7 +12,7 @@ Create a new feature specification following the spec-driven workflow.
 You are helping create a new feature specification. Follow these steps:
 
 **WORKFLOW SEQUENCE**: Requirements → Design → Tasks → Generate Commands
-**DO NOT** run any scripts until the tasks phase is complete and approved.
+**DO NOT** run task command generation until the tasks phase is complete and approved.
 
 1. **Create Directory Structure**
    - Create \`.claude/specs/{feature-name}/\` directory
@@ -54,7 +54,7 @@ You are helping create a new feature specification. Follow these steps:
 7. **Complete Requirements Phase**
    - Present the requirements document with reuse opportunities highlighted
    - Wait for explicit approval
-   - **DO NOT** run any scripts yet
+   - **DO NOT** run task command generation yet
    - **NEXT STEP**: Proceed to \`/spec-design\` phase
 
 8. **Rules**
@@ -63,7 +63,7 @@ You are helping create a new feature specification. Follow these steps:
    - **MANDATORY**: Always analyze existing codebase before writing requirements
    - Follow the exact EARS format for acceptance criteria
    - Do not proceed without explicit user approval
-   - **DO NOT** run scripts during /spec-create - only create requirements
+   - **DO NOT** run task command generation during /spec-create - only create requirements
 
 ## Example
 \`\`\`
@@ -240,8 +240,8 @@ Generate implementation task list based on approved design.
 You are working on the tasks phase of the spec workflow.
 
 **WORKFLOW**: This is the FINAL step before command generation.
-**SEQUENCE**: Create Tasks → Get Approval → THEN run script
-**DO NOT** run any scripts until tasks are approved.
+**SEQUENCE**: Create Tasks → Get Approval → Ask User → Generate Commands
+**DO NOT** run task command generation until tasks are approved.
 
 1. **Prerequisites**
    - Ensure design.md exists and is approved
@@ -288,13 +288,14 @@ You are working on the tasks phase of the spec workflow.
    - Continue until explicit approval
 
 7. **Generate Task Commands** (ONLY after tasks approval)
-   - **WAIT**: Do not run script until user explicitly approves tasks
-   - **THEN EXECUTE**: \`./.claude/scripts/generate-commands-launcher.sh {feature-name}\`
+   - **WAIT**: Do not run command generation until user explicitly approves tasks
+   - **ASK USER**: "Would you like me to generate individual task commands for easier execution? (yes/no)"
+   - **IF YES**: Execute \`npx @pimzino/claude-code-spec-workflow@latest generate-task-commands {feature-name}\`
+   - **IF NO**: Continue with traditional \`/spec-execute\` approach
    - **PURPOSE**: Creates individual task commands in \`.claude/commands/{feature-name}/\`
    - **RESULT**: Each task gets its own command: \`/{feature-name}-task-{task-id}\`
    - **EXAMPLE**: Creates \`/{feature-name}-task-1\`, \`/{feature-name}-task-2.1\`, etc.
-   - **IMPORTANT**: Do NOT edit the scripts - just run them as-is
-   - **PLATFORM**: Automatically detects OS and runs appropriate script (Windows/macOS/Linux)
+   - **CROSS-PLATFORM**: Works automatically on Windows, macOS, and Linux
    - **RESTART REQUIRED**: Inform user to restart Claude Code for new commands to be visible
 
 ## Task Structure

@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.5] - 2025-07-24
+
+### Changed
+- **Replaced Script-Based Task Command Generation**: Removed finicky platform-specific scripts (`.bat`, `.sh`, launcher) in favor of clean NPX command
+  - New approach: `npx @pimzino/claude-code-spec-workflow@latest generate-task-commands {spec-name}`
+  - Added user choice: Agent now asks "Would you like me to generate individual task commands? (yes/no)"
+  - Cross-platform compatibility: Works automatically on Windows, macOS, and Linux
+  - Cleaner workflow: No more script maintenance or platform detection issues
+
+### Added
+- **New CLI Command**: Added `generate-task-commands` command to the package CLI
+- **Task Parsing Logic**: Implemented robust task parsing that correctly handles the template format
+- **User-Friendly Approach**: Optional task command generation based on user preference
+
+### Technical Details
+- Added `src/task-generator.ts` with parsing and generation logic
+- Updated `src/cli.ts` with new `generate-task-commands` command
+- Updated `src/claude-md.ts` workflow instructions to use NPX approach
+- Updated `src/commands.ts` slash command definitions to use new workflow
+- Maintains backward compatibility with traditional `/spec-execute` approach
+
 ## [1.2.4] - 2025-07-22
 
 ### Added

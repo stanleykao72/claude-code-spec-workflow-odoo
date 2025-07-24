@@ -66,24 +66,23 @@ Before starting your first spec, consider setting up steering documents:
 
 ## Workflow Sequence
 
-**CRITICAL**: Follow this exact sequence - do NOT skip steps or run scripts early:
+**CRITICAL**: Follow this exact sequence - do NOT skip steps:
 
 1. **Requirements Phase** (\`/spec-create\`)
    - Create requirements.md
    - Get user approval
-   - **DO NOT** run any scripts
    - Proceed to design phase
 
 2. **Design Phase** (\`/spec-design\`)
    - Create design.md
    - Get user approval
-   - **DO NOT** run any scripts
    - Proceed to tasks phase
 
 3. **Tasks Phase** (\`/spec-tasks\`)
    - Create tasks.md
    - Get user approval
-   - **ONLY THEN** run: \`./.claude/scripts/generate-commands-launcher.sh {spec-name}\`
+   - **Ask user if they want task commands generated** (yes/no)
+   - If yes: run \`npx @pimzino/claude-code-spec-workflow@latest generate-task-commands {spec-name}\`
    - **IMPORTANT**: Inform user to restart Claude Code for new commands to be visible
 
 4. **Implementation Phase** (\`/spec-execute\` or generated commands)
@@ -173,8 +172,9 @@ Before starting your first spec, consider setting up steering documents:
    - Compliance with structure.md organization
 6. Ask: "Do the tasks look good?"
 7. **CRITICAL**: Wait for explicit approval before proceeding
-8. **AFTER APPROVAL**: Execute \`./.claude/scripts/generate-commands-launcher.sh {feature-name}\`
-9. **IMPORTANT**: Do NOT edit the scripts - run them exactly as provided
+8. **AFTER APPROVAL**: Ask "Would you like me to generate individual task commands for easier execution? (yes/no)"
+9. **IF YES**: Execute \`npx @pimzino/claude-code-spec-workflow@latest generate-task-commands {feature-name}\`
+10. **IF NO**: Continue with traditional \`/spec-execute\` approach
 
 **Task Format**:
 \`\`\`markdown
@@ -224,14 +224,13 @@ Before starting your first spec, consider setting up steering documents:
 - Follow existing code patterns
 - Confirm task completion status to user
 
-## CRITICAL: Script Usage Rules
+## CRITICAL: Task Command Generation Rules
 
-**DO NOT EDIT THE SCRIPTS**: The platform-specific scripts in \`.claude/scripts/\` are complete and functional.
-- **DO NOT** modify any script content
-- **DO NOT** try to "improve" or "customize" the scripts
-- **JUST RUN THE LAUNCHER**: \`./.claude/scripts/generate-commands-launcher.sh {spec-name}\`
-- **TIMING**: Only run after tasks.md is approved
-- **PLATFORM DETECTION**: The launcher automatically detects your OS and runs the appropriate script
+**Use NPX Command for Task Generation**: Task commands are now generated using the package's CLI command.
+- **COMMAND**: \`npx @pimzino/claude-code-spec-workflow@latest generate-task-commands {spec-name}\`
+- **TIMING**: Only run after tasks.md is approved AND user confirms they want task commands
+- **USER CHOICE**: Always ask the user if they want task commands generated (yes/no)
+- **CROSS-PLATFORM**: Works automatically on Windows, macOS, and Linux
 
 ## Critical Workflow Rules
 
@@ -286,8 +285,6 @@ The workflow automatically creates and manages:
 │       ├── task-1.md
 │       ├── task-2.md
 │       └── task-2.1.md
-├── scripts/                 # Command generation scripts (NEW!)
-│   └── generate-commands.js
 ├── templates/
 │   └── *-template.md        # Document templates
 └── spec-config.json         # Workflow configuration
@@ -304,18 +301,19 @@ The workflow automatically creates individual commands for each task:
 - **Clear purpose**: Each command shows exactly what task it executes
 
 **Generation Process**:
-1. **Requirements Phase**: Create requirements.md (NO scripts)
-2. **Design Phase**: Create design.md (NO scripts)
-3. **Tasks Phase**: Create tasks.md (NO scripts)
-4. **ONLY AFTER tasks approval**: Execute \`./.claude/scripts/generate-commands-launcher.sh {spec-name}\`
-5. **RESTART REQUIRED**: Inform user to restart Claude Code for new commands to be visible
+1. **Requirements Phase**: Create requirements.md 
+2. **Design Phase**: Create design.md 
+3. **Tasks Phase**: Create tasks.md 
+4. **AFTER tasks approval**: Ask user if they want task commands generated
+5. **IF YES**: Execute \`npx @pimzino/claude-code-spec-workflow@latest generate-task-commands {spec-name}\`
+6. **RESTART REQUIRED**: Inform user to restart Claude Code for new commands to be visible
 
-**When to Run the Scripts**:
+**When to Generate Task Commands**:
 - **ONLY** after tasks are approved in \`/spec-tasks\`
-- **NOT** during requirements or design phases
-- **Command**: \`./.claude/scripts/generate-commands-launcher.sh {spec-name}\`
-- **IMPORTANT**: Do NOT edit the scripts - run them as-is
-- **PLATFORM SUPPORT**: Works on Windows, macOS, and Linux automatically
+- **ONLY** if user confirms they want individual task commands
+- **Command**: \`npx @pimzino/claude-code-spec-workflow@latest generate-task-commands {spec-name}\`
+- **BENEFIT**: Easier task execution with commands like \`/{spec-name}-task-1\`
+- **OPTIONAL**: User can decline and use traditional \`/spec-execute\` approach
 - **RESTART CLAUDE CODE**: New commands require a restart to be visible
 
 ## Error Handling
