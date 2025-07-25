@@ -552,7 +552,10 @@ PetiteVue.createApp({
 
   copyTaskCommand(specName, taskId) {
     const command = `/spec-exec ${specName} ${taskId}`;
-    
+    this.copyCommand(command);
+  },
+
+  copyCommand(command) {
     if (navigator.clipboard) {
       navigator.clipboard.writeText(command).then(() => {
         // Could add a toast notification here
