@@ -505,7 +505,7 @@
                       Req: {{ activeTask.task.requirements.join(', ') }}
                     </span>
                     <span v-if="activeTask.task.leverage" class="text-gray-600 dark:text-gray-400">
-                      <i class="fas fa-code-branch mr-1"></i>
+                      <i class="fas fa-screwdriver mr-1"></i>
                       Leverage: {{ activeTask.task.leverage }}
                     </span>
                   </div>
@@ -866,7 +866,7 @@
 
                   <!-- Task list -->
                   <div v-if="spec.tasks && spec.tasks.taskList.length > 0" class="mt-4">
-                    <div class="mb-2">
+                    <div class="mb-2 flex items-center justify-between">
                       <h4 class="font-medium text-gray-700 dark:text-gray-300">
                         <i class="fas fa-tasks mr-1"></i> Tasks ({{ spec.tasks.total }} tasks -
                         <i
@@ -882,10 +882,18 @@
                           <i class="fas fa-search"></i>
                         </button>
                       </h4>
+                      <button
+                        v-if="getCompletedTaskCount(spec) > 0"
+                        @click.stop="toggleCompletedTasks(spec.name)"
+                        class="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex items-center gap-1"
+                      >
+                        <i class="fas" :class="areCompletedTasksCollapsed(spec.name) ? 'fa-eye' : 'fa-eye-slash'"></i>
+                        <span>{{ areCompletedTasksCollapsed(spec.name) ? 'Show' : 'Hide' }} {{ getCompletedTaskCount(spec) }} completed</span>
+                      </button>
                     </div>
                     <div class="space-y-1">
                       <div
-                        v-for="task in spec.tasks.taskList"
+                        v-for="task in getVisibleTasks(spec)"
                         :key="task.id"
                         class="flex items-start p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-opacity"
                         :class="{
@@ -911,8 +919,17 @@
                               v-if="spec.tasks.inProgress === task.id"
                               class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-500 dark:text-yellow-900"
                             >
-                              <i class="fas fa-play mr-1"></i> In Progress
+                              In Progress
                             </span>
+                            <button
+                              v-if="!task.completed"
+                              @click.stop="copyTaskCommand(spec.name, task.id)"
+                              class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
+                              :title="`Copy command: /spec-exec ${spec.name} ${task.id}`"
+                            >
+                              <i class="fas fa-copy"></i>
+                              <span>Exec</span>
+                            </button>
                             <span
                               v-if="task.requirements && task.requirements.length > 0"
                               class="text-xs text-gray-500 dark:text-gray-400"
@@ -923,7 +940,7 @@
                               v-if="task.leverage"
                               class="text-xs text-gray-500 dark:text-gray-400"
                             >
-                              <i class="fas fa-code-branch mr-1"></i> {{ task.leverage }}
+                              <i class="fas fa-screwdriver mr-1"></i> {{ task.leverage }}
                             </span>
                           </div>
                         </div>
