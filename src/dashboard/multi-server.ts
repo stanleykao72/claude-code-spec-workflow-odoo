@@ -186,13 +186,22 @@ export class MultiProjectDashboardServer {
 
     // Set up watcher events
     watcher.on('change', async (event) => {
+      // Transform the watcher event into the format expected by the client
+      const projectUpdateEvent = {
+        type: 'spec-update',
+        spec: event.spec,
+        file: event.file,
+        data: event.data,
+      };
+      
       // Broadcast update with project context
       const message = JSON.stringify({
         type: 'project-update',
         projectPath: project.path,
-        data: event,
+        data: projectUpdateEvent,
       });
 
+      debug(`[Multi-server] Sending spec update for ${project.name}/${event.spec} to ${this.clients.size} clients`);
       this.clients.forEach((client) => {
         if (client.readyState === 1) {
           client.send(message);

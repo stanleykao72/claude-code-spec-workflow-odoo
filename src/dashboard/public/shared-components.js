@@ -94,6 +94,32 @@ function renderMarkdown(content) {
 }
 
 /**
+ * Format acceptance criteria with EARS keywords as pills
+ */
+function formatAcceptanceCriteria(criteria) {
+  // Define EARS keywords and their styles
+  const earsKeywords = {
+    'WHEN': 'ears-when',
+    'THEN': 'ears-then',
+    'IF': 'ears-if',
+    'SHALL': 'ears-shall',
+    'SHALL NOT': 'ears-shall-not'
+  };
+  
+  let formattedCriteria = criteria;
+  
+  // Replace EARS keywords with pill HTML
+  Object.entries(earsKeywords).forEach(([keyword, className]) => {
+    const regex = new RegExp(`\\b(${keyword})\\b`, 'g');
+    formattedCriteria = formattedCriteria.replace(regex, 
+      `<span class="ears-pill ${className}">${keyword}</span>`
+    );
+  });
+  
+  return formattedCriteria;
+}
+
+/**
  * Initialize theme handling
  */
 function initTheme() {
@@ -156,6 +182,7 @@ const BaseAppState = {
   getStatusLabel,
   copyCommand,
   renderMarkdown,
+  formatAcceptanceCriteria,
   
   // Task management methods
   getCompletedTaskCount(spec) {
@@ -315,5 +342,6 @@ window.DashboardShared = {
   getStatusClass,
   getStatusLabel,
   copyCommand,
-  renderMarkdown
+  renderMarkdown,
+  formatAcceptanceCriteria
 };
