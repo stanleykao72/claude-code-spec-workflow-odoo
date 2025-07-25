@@ -278,8 +278,14 @@ export class SpecWatcher extends EventEmitter {
       debug(`Emitting change for spec: ${specName}, file: ${parts[1]}`);
 
       // Log approval status for debugging
-      if (parts[1] === 'tasks.md' && spec && spec.tasks) {
-        debug(`Tasks approved: ${spec.tasks.approved}`);
+      if (spec) {
+        if (parts[1] === 'requirements.md' && spec.requirements) {
+          debug(`Requirements approved: ${spec.requirements.approved}`);
+        } else if (parts[1] === 'design.md' && spec.design) {
+          debug(`Design approved: ${spec.design.approved}`);
+        } else if (parts[1] === 'tasks.md' && spec.tasks) {
+          debug(`Tasks approved: ${spec.tasks.approved}`);
+        }
       }
 
       this.emit('change', {

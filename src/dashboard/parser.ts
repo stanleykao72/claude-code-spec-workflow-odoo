@@ -393,6 +393,13 @@ export class SpecParser {
         else if (currentRequirement && inAcceptanceCriteria && line.match(/^\d+\. /)) {
           currentRequirement.acceptanceCriteria.push(line.replace(/^\d+\. /, '').trim());
         }
+        // Also collect bullet point acceptance criteria (- WHEN...)
+        else if (currentRequirement && inAcceptanceCriteria && line.match(/^[-•]\s+/)) {
+          const criterion = line.replace(/^[-•]\s+/, '').trim();
+          if (criterion) {
+            currentRequirement.acceptanceCriteria.push(criterion);
+          }
+        }
         // Stop at next major section
         else if (line.startsWith('### Requirement') || line.startsWith('### ') || line.startsWith('## ')) {
           inAcceptanceCriteria = false;
