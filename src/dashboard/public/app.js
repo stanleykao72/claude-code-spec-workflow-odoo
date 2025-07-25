@@ -1,6 +1,9 @@
-// Initialize petite-vue app
+// Initialize petite-vue app using shared components
 PetiteVue.createApp({
-  // State
+  // Extend the base state from shared components
+  ...window.DashboardShared.BaseAppState,
+  
+  // Single dashboard specific state
   specs: [],
   selectedSpec: null,
   connected: false,
@@ -8,16 +11,9 @@ PetiteVue.createApp({
   projectName: 'Project',
   branch: null,
   githubUrl: null,
-  theme: 'system', // 'light', 'dark', or 'system'
   steeringStatus: null,
-  markdownPreview: {
-    show: false,
-    title: '',
-    content: '',
-    loading: false
-  },
 
-  // Computed
+  // Computed properties
   get specsInProgress() {
     return this.specs.filter((s) => s.status === 'in-progress').length;
   },
@@ -32,7 +28,7 @@ PetiteVue.createApp({
     }, 0);
   },
 
-  // Methods
+  // Initialize the dashboard
   async init() {
     console.log('Dashboard initializing...');
     this.initTheme();
@@ -42,60 +38,66 @@ PetiteVue.createApp({
     this.connectWebSocket();
   },
 
-  setupKeyboardHandlers() {
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && this.markdownPreview.show) {
-        this.closeMarkdownPreview();
-      }
-    });
-  },
-
+  // Fetch project info
   async fetchProjectInfo() {
     try {
-      const response = await fetch('/api/info');
-      const info = await response.json();
-      this.projectName = info.projectName;
-      this.branch = info.branch || null;
-      this.githubUrl = info.githubUrl || null;
-      this.steeringStatus = info.steering || null;
-      document.title = `${info.projectName} - Spec Dashboard`;
+      const response = await fetch('/api/project-info');
+      const data = await response.json();
+      
+      this.projectName = data.name || 'Project';
+      this.branch = data.branch || null;
+      this.githubUrl = data.githubUrl || null;
+      this.steeringStatus = data.steeringStatus || null;
+      
+      console.log('Project info:', data);
     } catch (error) {
       console.error('Error fetching project info:', error);
     }
   },
 
+  // Fetch specs from API
   async fetchSpecs() {
     try {
       console.log('Fetching specs from API...');
       const response = await fetch('/api/specs');
       this.specs = await response.json();
       console.log('Fetched specs:', this.specs);
+      
+      // Initialize completed tasks as collapsed by default
+      this.specs.forEach(spec => {
+        if (spec.tasks && this.getCompletedTaskCount(spec) > 0) {
+          this.collapsedCompletedTasks[spec.name] = true;
+        }
+      });
     } catch (error) {
       console.error('Error fetching specs:', error);
     }
   },
 
+  // Connect to WebSocket for real-time updates
   connectWebSocket() {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${window.location.host}/ws`;
 
+    console.log('Connecting to WebSocket:', wsUrl);
     this.ws = new WebSocket(wsUrl);
 
     this.ws.onopen = () => {
-      this.connected = true;
       console.log('WebSocket connected');
+      this.connected = true;
     };
 
     this.ws.onmessage = (event) => {
       const message = JSON.parse(event.data);
+      console.log('WebSocket message:', message);
       this.handleWebSocketMessage(message);
     };
 
     this.ws.onclose = () => {
-      this.connected = false;
       console.log('WebSocket disconnected');
-      // Reconnect after 3 seconds
-      setTimeout(() => this.connectWebSocket(), 3000);
+      this.connected = false;
+      // Attempt to reconnect after 2 seconds
+      setTimeout(() => this.connectWebSocket(), 2000);
     };
 
     this.ws.onerror = (error) => {
@@ -103,246 +105,48 @@ PetiteVue.createApp({
     };
   },
 
+  // Handle incoming WebSocket messages
   handleWebSocketMessage(message) {
     switch (message.type) {
-      case 'initial':
-        this.specs = message.data;
+      case 'spec-update':
+        this.updateSpec(message.data);
         break;
-
-      case 'update':
-        const event = message.data;
-        if (event.type === 'removed') {
-          this.specs = this.specs.filter((s) => s.name !== event.spec);
-        } else {
-          // Update or add the spec
-          const index = this.specs.findIndex((s) => s.name === event.spec);
-          if (index >= 0 && event.data) {
-            this.specs[index] = event.data;
-          } else if (event.data) {
-            this.specs.push(event.data);
-          }
-        }
-        // Sort by last modified
-        this.specs.sort((a, b) => new Date(b.lastModified) - new Date(a.lastModified));
+      case 'project-info-update':
+        this.projectName = message.data.name || this.projectName;
+        this.branch = message.data.branch || this.branch;
+        this.githubUrl = message.data.githubUrl || this.githubUrl;
+        this.steeringStatus = message.data.steeringStatus || this.steeringStatus;
         break;
+      default:
+        console.log('Unknown message type:', message.type);
     }
   },
 
+  // Update a single spec
+  updateSpec(updatedSpec) {
+    const index = this.specs.findIndex((s) => s.name === updatedSpec.name);
+    if (index >= 0) {
+      this.specs[index] = updatedSpec;
+    } else {
+      this.specs.push(updatedSpec);
+    }
+  },
+
+  // Refresh data manually
   refresh() {
+    console.log('Refreshing data...');
     this.fetchSpecs();
   },
 
-  getStatusClass(status) {
-    const classes = {
-      'not-started': 'bg-gray-100 text-gray-800',
-      requirements: 'bg-blue-100 text-blue-800',
-      design: 'bg-purple-100 text-purple-800',
-      tasks: 'bg-yellow-100 text-yellow-800',
-      'in-progress': 'bg-indigo-100 text-indigo-800',
-      completed: 'bg-green-100 text-green-800',
-    };
-    return classes[status] || 'bg-gray-100 text-gray-800';
-  },
-
-  getStatusLabel(status) {
-    const labels = {
-      'not-started': 'Not Started',
-      requirements: 'Requirements',
-      design: 'Design',
-      tasks: 'Tasks',
-      'in-progress': 'In Progress',
-      completed: 'Completed',
-    };
-    return labels[status] || status;
-  },
-
-  formatDate(date) {
-    if (!date) return 'Never';
-    const d = new Date(date);
-    const now = new Date();
-    const diff = now - d;
-
-    // Less than 1 minute
-    if (diff < 60000) {
-      return 'Just now';
-    }
-
-    // Less than 1 hour
-    if (diff < 3600000) {
-      const minutes = Math.floor(diff / 60000);
-      return `${minutes} minute${minutes === 1 ? '' : 's'} ago`;
-    }
-
-    // Less than 24 hours
-    if (diff < 86400000) {
-      const hours = Math.floor(diff / 3600000);
-      return `${hours} hour${hours === 1 ? '' : 's'} ago`;
-    }
-
-    // Less than 7 days
-    if (diff < 604800000) {
-      const days = Math.floor(diff / 86400000);
-      return `${days} day${days === 1 ? '' : 's'} ago`;
-    }
-
-    // Default to date string
-    return d.toLocaleDateString();
-  },
-
-  // Theme management
-  initTheme() {
-    // Get saved theme or default to system
-    const savedTheme = localStorage.getItem('theme-preference') || 'system';
-    this.theme = savedTheme;
-    this.applyTheme();
-
-    // Listen for system theme changes
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-      if (this.theme === 'system') {
-        this.applyTheme();
-      }
-    });
-  },
-
-  cycleTheme() {
-    const themes = ['light', 'dark', 'system'];
-    const currentIndex = themes.indexOf(this.theme);
-    const nextIndex = (currentIndex + 1) % themes.length;
-    this.theme = themes[nextIndex];
-    localStorage.setItem('theme-preference', this.theme);
-    this.applyTheme();
-  },
-
-  applyTheme() {
-    const root = document.documentElement;
-    const isDarkMode = this.theme === 'dark' || 
-      (this.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    
-    if (isDarkMode) {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-  },
-
-  // Requirements and Design expansion state management (combined)
-  expandedDetails: {},
-  
-  // Completed tasks collapse state
-  collapsedCompletedTasks: {},
-
-  toggleDetailsExpanded(specName) {
-    if (this.expandedDetails[specName]) {
-      delete this.expandedDetails[specName];
-    } else {
-      this.expandedDetails[specName] = true;
-    }
-  },
-
-  isDetailsExpanded(specName) {
-    return !!this.expandedDetails[specName];
-  },
-
-  // Markdown preview
-  async viewMarkdown(specName, docType) {
-    this.markdownPreview.loading = true;
-    this.markdownPreview.show = true;
-    this.markdownPreview.title = `${specName} - ${docType.charAt(0).toUpperCase() + docType.slice(1)}`;
-    this.markdownPreview.content = '';
-
-    try {
-      const response = await fetch(`/api/specs/${specName}/${docType}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch document');
-      }
-      const data = await response.json();
-      this.markdownPreview.content = data.content;
-    } catch (error) {
-      console.error('Error fetching markdown:', error);
-      this.markdownPreview.content = '# Error loading document\n\nFailed to fetch the markdown content.';
-    } finally {
-      this.markdownPreview.loading = false;
-    }
-  },
-
-  closeMarkdownPreview() {
-    this.markdownPreview.show = false;
-    this.markdownPreview.content = '';
-  },
-
-  renderMarkdown(content) {
-    if (typeof marked !== 'undefined') {
-      return marked.parse(content);
-    }
-    // Fallback if marked is not loaded
-    return '<pre>' + this.escapeHtml(content) + '</pre>';
-  },
-
-  escapeHtml(text) {
-    const map = {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#039;'
-    };
-    return text.replace(/[&<>"']/g, m => map[m]);
-  },
-
-  toggleCompletedTasks(specName) {
-    if (this.collapsedCompletedTasks[specName]) {
-      delete this.collapsedCompletedTasks[specName];
-    } else {
-      this.collapsedCompletedTasks[specName] = true;
-    }
-  },
-
-  areCompletedTasksCollapsed(specName) {
-    return !!this.collapsedCompletedTasks[specName];
-  },
-
-  getVisibleTasks(spec) {
-    if (!spec.tasks || !spec.tasks.taskList) return [];
-    
-    if (this.areCompletedTasksCollapsed(spec.name)) {
-      // Show only incomplete tasks when collapsed
-      return spec.tasks.taskList.filter(task => !task.completed);
-    }
-    
-    // Show all tasks when expanded
-    return spec.tasks.taskList;
-  },
-
-  getCompletedTaskCount(spec) {
-    if (!spec.tasks || !spec.tasks.taskList) return 0;
-    return spec.tasks.taskList.filter(task => task.completed).length;
-  },
-
+  // Get current task for a spec
   getCurrentTask(spec) {
     if (!spec.tasks || !spec.tasks.taskList || !spec.tasks.inProgress) return null;
     return spec.tasks.taskList.find(task => task.id === spec.tasks.inProgress);
   },
 
-  copyTaskCommand(specName, taskId) {
-    const command = `/spec-exec ${specName} ${taskId}`;
-    
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(command).then(() => {
-        // Could add a toast notification here
-        console.log('Command copied to clipboard:', command);
-      }).catch(err => {
-        console.error('Failed to copy command:', err);
-      });
-    } else {
-      // Fallback for older browsers
-      const textArea = document.createElement('textarea');
-      textArea.value = command;
-      textArea.style.position = 'fixed';
-      textArea.style.opacity = '0';
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
-    }
-  },
+  // Override viewMarkdown to not include projectPath
+  async viewMarkdown(specName, docType) {
+    // Call the base method without projectPath for single dashboard
+    return window.DashboardShared.BaseAppState.viewMarkdown.call(this, specName, docType, null);
+  }
 }).mount('#app');
