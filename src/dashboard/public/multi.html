@@ -379,10 +379,12 @@
               <div
                 v-for="spec in selectedProject.specs"
                 :key="spec.name"
-                class="p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors"
-                @click="selectedSpec = selectedSpec?.name === spec.name ? null : spec"
+                class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
               >
-                <div class="flex items-center justify-between">
+                <div 
+                  class="flex items-center justify-between p-6 cursor-pointer"
+                  @click="selectedSpec = selectedSpec?.name === spec.name ? null : spec"
+                >
                   <div class="flex-1">
                     <h3 class="text-lg font-medium text-gray-900 dark:text-white">
                       {{ spec.displayName }}
@@ -400,18 +402,22 @@
                       </span>
                     </div>
                   </div>
-                  <div class="ml-4">
+                  <div class="ml-4 flex items-center gap-3">
                     <span
                       class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
                       :class="getStatusClass(spec.status)"
                     >
                       {{ getStatusLabel(spec.status) }}
                     </span>
+                    <i 
+                      class="fas fa-chevron-down text-gray-400 transition-transform duration-200"
+                      :class="selectedSpec?.name === spec.name ? 'rotate-180' : ''"
+                    ></i>
                   </div>
                 </div>
 
-                <!-- Progress bar -->
-                <div v-if="spec.tasks && spec.tasks.total > 0" class="mt-4">
+                <!-- Progress bar (outside clickable area) -->
+                <div v-if="spec.tasks && spec.tasks.total > 0" class="px-6 pb-3">
                   <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                     <div
                       class="bg-indigo-600 dark:bg-indigo-500 h-2 rounded-full transition-all duration-300"
@@ -420,15 +426,23 @@
                   </div>
                 </div>
 
-                <!-- Expanded details -->
+                <!-- Expanded details (outside clickable area) -->
                 <div
                   v-if="selectedSpec?.name === spec.name"
-                  class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700"
+                  class="px-6 pb-6 pt-4 border-t border-gray-200 dark:border-gray-700"
                 >
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                     <div>
-                      <h4 class="font-medium text-gray-900 dark:text-white mb-2">
-                        <i class="fas fa-clipboard-list mr-1"></i> Requirements
+                      <h4 class="font-medium text-gray-900 dark:text-white mb-2 flex items-center justify-between">
+                        <span><i class="fas fa-clipboard-list mr-1"></i> Requirements</span>
+                        <button
+                          v-if="spec.requirements"
+                          @click.stop="viewMarkdown(spec.name, 'requirements')"
+                          class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
+                          title="View source"
+                        >
+                          <i class="fas fa-file-alt"></i>
+                        </button>
                       </h4>
                       <div
                         v-if="spec.requirements"
@@ -532,8 +546,16 @@
                       <p v-else class="text-sm text-gray-400 dark:text-gray-500">Not created</p>
                     </div>
                     <div>
-                      <h4 class="font-medium text-gray-900 dark:text-white mb-2">
-                        <i class="fas fa-drafting-compass mr-1"></i> Design
+                      <h4 class="font-medium text-gray-900 dark:text-white mb-2 flex items-center justify-between">
+                        <span><i class="fas fa-drafting-compass mr-1"></i> Design</span>
+                        <button
+                          v-if="spec.design"
+                          @click.stop="viewMarkdown(spec.name, 'design')"
+                          class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
+                          title="View source"
+                        >
+                          <i class="fas fa-file-alt"></i>
+                        </button>
                       </h4>
                       <div v-if="spec.design" class="text-sm text-gray-600 dark:text-gray-400">
                         <div class="flex items-center justify-between mb-2">
@@ -596,7 +618,7 @@
 
                   <!-- Task list -->
                   <div v-if="spec.tasks && spec.tasks.taskList.length > 0" class="mt-4">
-                    <div class="mb-2">
+                    <div class="mb-2 flex items-center justify-between">
                       <h4 class="font-medium text-gray-700 dark:text-gray-300">
                         <i class="fas fa-tasks mr-1"></i> Tasks ({{ spec.tasks.total }} tasks -
                         <i
@@ -605,6 +627,13 @@
                         ></i>
                         {{ spec.tasks.approved ? 'Approved' : 'Pending' }})
                       </h4>
+                      <button
+                        @click.stop="viewMarkdown(spec.name, 'tasks')"
+                        class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
+                        title="View source"
+                      >
+                        <i class="fas fa-file-alt"></i>
+                      </button>
                     </div>
                     <div class="space-y-1">
                       <div
@@ -663,5 +692,33 @@
     </div>
 
     <script src="/public/multi-app.js"></script>
+    
+    <!-- Markdown Preview Modal -->
+    <div v-if="markdownPreview.show" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50" @click.self="closeMarkdownPreview()">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col" @click.stop>
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+          <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+            <i class="fas fa-file-alt mr-2"></i>{{ markdownPreview.title }}
+          </h3>
+          <button 
+            @click="closeMarkdownPreview()" 
+            class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+          >
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+        
+        <!-- Modal Content -->
+        <div class="flex-1 overflow-y-auto p-6">
+          <div v-if="markdownPreview.loading" class="flex items-center justify-center py-12">
+            <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
+          </div>
+          <div v-else class="prose dark:prose-invert max-w-none">
+            <pre class="whitespace-pre-wrap font-mono text-sm bg-gray-50 dark:bg-gray-900 p-4 rounded-lg overflow-x-auto">{{ markdownPreview.content }}</pre>
+          </div>
+        </div>
+      </div>
+    </div>
   </body>
 </html>

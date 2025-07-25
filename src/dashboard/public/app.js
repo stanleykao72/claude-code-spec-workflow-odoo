@@ -10,6 +10,12 @@ PetiteVue.createApp({
   githubUrl: null,
   theme: 'system', // 'light', 'dark', or 'system'
   steeringStatus: null,
+  markdownPreview: {
+    show: false,
+    title: '',
+    content: '',
+    loading: false
+  },
 
   // Computed
   get specsInProgress() {
@@ -208,5 +214,47 @@ PetiteVue.createApp({
     } else {
       root.classList.remove('dark');
     }
+  },
+
+  // Requirements and Design expansion state management (combined)
+  expandedDetails: {},
+
+  toggleDetailsExpanded(specName) {
+    if (this.expandedDetails[specName]) {
+      delete this.expandedDetails[specName];
+    } else {
+      this.expandedDetails[specName] = true;
+    }
+  },
+
+  isDetailsExpanded(specName) {
+    return !!this.expandedDetails[specName];
+  },
+
+  // Markdown preview
+  async viewMarkdown(specName, docType) {
+    this.markdownPreview.loading = true;
+    this.markdownPreview.show = true;
+    this.markdownPreview.title = `${specName} - ${docType.charAt(0).toUpperCase() + docType.slice(1)}`;
+    this.markdownPreview.content = '';
+
+    try {
+      const response = await fetch(`/api/specs/${specName}/${docType}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch document');
+      }
+      const data = await response.json();
+      this.markdownPreview.content = data.content;
+    } catch (error) {
+      console.error('Error fetching markdown:', error);
+      this.markdownPreview.content = '# Error loading document\n\nFailed to fetch the markdown content.';
+    } finally {
+      this.markdownPreview.loading = false;
+    }
+  },
+
+  closeMarkdownPreview() {
+    this.markdownPreview.show = false;
+    this.markdownPreview.content = '';
   },
 }).mount('#app');
