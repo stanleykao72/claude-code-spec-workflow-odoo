@@ -13,10 +13,7 @@ import {
 import {
   getRequirementsTemplate,
   getDesignTemplate,
-  getTasksTemplate,
-  getProductTemplate,
-  getTechTemplate,
-  getStructureTemplate
+  getTasksTemplate
 } from './templates';
 import { getClaudeMdContent } from './claude-md';
 // Script imports removed in v1.2.5 - task command generation now uses NPX command

@@ -16,6 +16,7 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
       [v-cloak] {
         display: none;
@@ -28,6 +29,250 @@
       }
       .task-indent-3 {
         padding-left: 4.5rem;
+      }
+      
+      /* Remove focus ring from markdown preview buttons */
+      .markdown-preview-btn:focus {
+        outline: none;
+      }
+      
+      /* GitHub-style Markdown content */
+      .markdown-content {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+        font-size: 16px;
+        line-height: 1.5;
+        word-wrap: break-word;
+        color: #24292f;
+      }
+      
+      .dark .markdown-content {
+        color: #c9d1d9;
+      }
+      
+      .markdown-content h1,
+      .markdown-content h2,
+      .markdown-content h3,
+      .markdown-content h4,
+      .markdown-content h5,
+      .markdown-content h6 {
+        margin-top: 24px;
+        margin-bottom: 16px;
+        font-weight: 600;
+        line-height: 1.25;
+        color: #24292f;
+      }
+      
+      .dark .markdown-content h1,
+      .dark .markdown-content h2,
+      .dark .markdown-content h3,
+      .dark .markdown-content h4,
+      .dark .markdown-content h5,
+      .dark .markdown-content h6 {
+        color: #c9d1d9;
+      }
+      
+      .markdown-content h1 {
+        font-size: 2em;
+        padding-bottom: 0.3em;
+        border-bottom: 1px solid #d0d7de;
+      }
+      
+      .dark .markdown-content h1 {
+        border-bottom-color: #21262d;
+      }
+      
+      .markdown-content h2 {
+        font-size: 1.5em;
+        padding-bottom: 0.3em;
+        border-bottom: 1px solid #d0d7de;
+      }
+      
+      .dark .markdown-content h2 {
+        border-bottom-color: #21262d;
+      }
+      
+      .markdown-content h3 { font-size: 1.25em; }
+      .markdown-content h4 { font-size: 1em; }
+      .markdown-content h5 { font-size: 0.875em; }
+      .markdown-content h6 { font-size: 0.85em; color: #57606a; }
+      
+      .dark .markdown-content h6 { color: #8b949e; }
+      
+      .markdown-content p {
+        margin-top: 0;
+        margin-bottom: 16px;
+      }
+      
+      .markdown-content code {
+        padding: 0.2em 0.4em;
+        margin: 0;
+        font-size: 85%;
+        white-space: break-spaces;
+        background-color: rgba(175, 184, 193, 0.2);
+        border-radius: 6px;
+        font-family: ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+      }
+      
+      .dark .markdown-content code {
+        background-color: rgba(110, 118, 129, 0.4);
+      }
+      
+      .markdown-content pre {
+        padding: 16px;
+        overflow: auto;
+        font-size: 85%;
+        line-height: 1.45;
+        background-color: #f6f8fa;
+        border-radius: 6px;
+        margin-top: 0;
+        margin-bottom: 16px;
+      }
+      
+      .dark .markdown-content pre {
+        background-color: #161b22;
+      }
+      
+      .markdown-content pre code {
+        display: inline;
+        max-width: auto;
+        padding: 0;
+        margin: 0;
+        overflow: visible;
+        line-height: inherit;
+        word-wrap: normal;
+        background-color: transparent;
+        border: 0;
+        font-size: 100%;
+      }
+      
+      .markdown-content ul,
+      .markdown-content ol {
+        margin-top: 0;
+        margin-bottom: 16px;
+        padding-left: 2em;
+      }
+      
+      .markdown-content ul ul,
+      .markdown-content ul ol,
+      .markdown-content ol ol,
+      .markdown-content ol ul {
+        margin-bottom: 0;
+      }
+      
+      .markdown-content li {
+        margin-top: 0.25em;
+      }
+      
+      .markdown-content li + li {
+        margin-top: 0.25em;
+      }
+      
+      .markdown-content blockquote {
+        padding: 0 1em;
+        color: #57606a;
+        border-left: 0.25em solid #d0d7de;
+        margin: 0 0 16px 0;
+      }
+      
+      .dark .markdown-content blockquote {
+        color: #8b949e;
+        border-left-color: #3b434b;
+      }
+      
+      .markdown-content blockquote > :first-child {
+        margin-top: 0;
+      }
+      
+      .markdown-content blockquote > :last-child {
+        margin-bottom: 0;
+      }
+      
+      .markdown-content a {
+        color: #0969da;
+        text-decoration: none;
+        font-weight: 500;
+      }
+      
+      .dark .markdown-content a {
+        color: #58a6ff;
+      }
+      
+      .markdown-content a:hover {
+        text-decoration: underline;
+      }
+      
+      .markdown-content table {
+        display: block;
+        width: max-content;
+        max-width: 100%;
+        overflow: auto;
+        border-spacing: 0;
+        border-collapse: collapse;
+        margin-top: 0;
+        margin-bottom: 16px;
+      }
+      
+      .markdown-content table tr {
+        background-color: #ffffff;
+        border-top: 1px solid #d1d9e0;
+      }
+      
+      .dark .markdown-content table tr {
+        background-color: #0d1117;
+        border-top-color: #30363d;
+      }
+      
+      .markdown-content table tr:nth-child(2n) {
+        background-color: #f6f8fa;
+      }
+      
+      .dark .markdown-content table tr:nth-child(2n) {
+        background-color: #161b22;
+      }
+      
+      .markdown-content table th,
+      .markdown-content table td {
+        padding: 6px 13px;
+        border: 1px solid #d0d7de;
+      }
+      
+      .dark .markdown-content table th,
+      .dark .markdown-content table td {
+        border-color: #30363d;
+      }
+      
+      .markdown-content table th {
+        font-weight: 600;
+      }
+      
+      .markdown-content hr {
+        height: 0.25em;
+        padding: 0;
+        margin: 24px 0;
+        background-color: #d0d7de;
+        border: 0;
+      }
+      
+      .dark .markdown-content hr {
+        background-color: #21262d;
+      }
+      
+      .markdown-content img {
+        max-width: 100%;
+        box-sizing: content-box;
+        background-color: #ffffff;
+      }
+      
+      .dark .markdown-content img {
+        background-color: #0d1117;
+      }
+      
+      .markdown-content > *:first-child {
+        margin-top: 0 !important;
+      }
+      
+      .markdown-content > *:last-child {
+        margin-bottom: 0 !important;
       }
     </style>
     <script>
@@ -211,16 +456,21 @@
               <div
                 v-for="spec in specs"
                 :key="spec.name"
-                class="p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors"
-                @click="selectedSpec = selectedSpec?.name === spec.name ? null : spec"
+                class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all"
+                :class="spec.status === 'completed' ? 'opacity-75' : ''"
               >
-                <div class="flex items-center justify-between">
+                <div 
+                  class="flex items-center justify-between p-6 cursor-pointer"
+                  @click="selectedSpec = selectedSpec?.name === spec.name ? null : spec"
+                >
                   <div class="flex-1">
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+                    <h3 class="text-lg font-medium transition-all"
+                      :class="spec.status === 'completed' ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-white'">
                       {{ spec.displayName }}
                     </h3>
                     <div
-                      class="mt-1 flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400"
+                      class="mt-1 flex items-center space-x-4 text-sm"
+                      :class="spec.status === 'completed' ? 'text-gray-400 dark:text-gray-500' : 'text-gray-500 dark:text-gray-400'"
                     >
                       <span>
                         <i class="fas fa-clock mr-1"></i>
@@ -248,18 +498,22 @@
                       </span>
                     </div>
                   </div>
-                  <div class="ml-4">
+                  <div class="ml-4 flex items-center gap-3">
                     <span
                       class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
                       :class="getStatusClass(spec.status)"
                     >
                       {{ getStatusLabel(spec.status) }}
                     </span>
+                    <i 
+                      class="fas fa-chevron-down text-gray-400 transition-transform duration-200"
+                      :class="selectedSpec?.name === spec.name ? 'rotate-180' : ''"
+                    ></i>
                   </div>
                 </div>
 
-                <!-- Progress bar -->
-                <div v-if="spec.tasks && spec.tasks.total > 0" class="mt-4">
+                <!-- Progress bar (outside clickable area) -->
+                <div v-if="spec.tasks && spec.tasks.total > 0" class="px-6 pb-3">
                   <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                     <div
                       class="bg-indigo-600 dark:bg-indigo-500 h-2 rounded-full transition-all duration-300"
@@ -268,15 +522,23 @@
                   </div>
                 </div>
 
-                <!-- Expanded details -->
+                <!-- Expanded details (outside clickable area) -->
                 <div
                   v-if="selectedSpec?.name === spec.name"
-                  class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700"
+                  class="px-6 pb-6 pt-4 border-t border-gray-200 dark:border-gray-700"
                 >
                   <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div>
                       <h4 class="font-medium text-gray-900 dark:text-white mb-2">
                         <i class="fas fa-clipboard-list mr-1"></i> Requirements
+                        <button
+                          v-if="spec.requirements"
+                          @click.stop="viewMarkdown(spec.name, 'requirements')"
+                          class="markdown-preview-btn ml-2 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
+                          title="View source"
+                        >
+                          <i class="fas fa-search"></i>
+                        </button>
                       </h4>
                       <div
                         v-if="spec.requirements"
@@ -296,14 +558,22 @@
                     <div>
                       <h4 class="font-medium text-gray-900 dark:text-white mb-2">
                         <i class="fas fa-drafting-compass mr-1"></i> Design
+                        <button
+                          v-if="spec.design"
+                          @click.stop="viewMarkdown(spec.name, 'design')"
+                          class="markdown-preview-btn ml-2 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
+                          title="View source"
+                        >
+                          <i class="fas fa-search"></i>
+                        </button>
                       </h4>
                       <div v-if="spec.design" class="text-sm text-gray-600 dark:text-gray-400">
                         <p class="flex items-center">
                           <i
-                            class="fas mr-1"
+                            class="fas"
                             :class="spec.design.hasCodeReuseAnalysis ? 'fa-check-circle text-green-500' : 'fa-times-circle text-red-500'"
                           ></i>
-                          <span class="ml-1">Code reuse analysis</span>
+                          <span class="ml-2">Code reuse analysis</span>
                         </p>
                         <p class="flex items-center mt-1">
                           <i
@@ -318,6 +588,14 @@
                     <div>
                       <h4 class="font-medium text-gray-900 dark:text-white mb-2">
                         <i class="fas fa-tasks mr-1"></i> Tasks
+                        <button
+                          v-if="spec.tasks"
+                          @click.stop="viewMarkdown(spec.name, 'tasks')"
+                          class="markdown-preview-btn ml-2 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
+                          title="View source"
+                        >
+                          <i class="fas fa-search"></i>
+                        </button>
                       </h4>
                       <div v-if="spec.tasks" class="text-sm text-gray-600 dark:text-gray-400">
                         <p>{{ spec.tasks.total }} total tasks</p>
@@ -342,8 +620,11 @@
                       <div
                         v-for="task in spec.tasks.taskList"
                         :key="task.id"
-                        class="flex items-start p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700"
-                        :class="{'bg-yellow-50 dark:bg-yellow-900/50 border-2 border-yellow-500 dark:border-yellow-400': spec.tasks.inProgress === task.id}"
+                        class="flex items-start p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-opacity"
+                        :class="{
+                          'bg-yellow-50 dark:bg-yellow-900/50 border-2 border-yellow-500 dark:border-yellow-400': spec.tasks.inProgress === task.id,
+                          'opacity-60': task.completed
+                        }"
                       >
                         <i
                           class="fas mt-0.5 mr-2"
@@ -351,10 +632,12 @@
                         ></i>
                         <div class="flex-1">
                           <div class="flex items-center">
-                            <span class="font-medium text-sm text-gray-900 dark:text-gray-200"
+                            <span class="font-medium text-sm"
+                              :class="task.completed ? 'text-gray-500 dark:text-gray-500 line-through' : 'text-gray-900 dark:text-gray-200'"
                               >Task {{ task.id }}:</span
                             >
-                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300"
+                            <span class="ml-2 text-sm"
+                              :class="task.completed ? 'text-gray-500 dark:text-gray-500 line-through' : 'text-gray-700 dark:text-gray-300'"
                               >{{ task.description }}</span
                             >
                             <span
@@ -385,6 +668,33 @@
             </div>
           </div>
         </main>
+      </div>
+      
+      <!-- Markdown Preview Modal -->
+      <div v-if="markdownPreview.show" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50" @click.self="closeMarkdownPreview()" @keydown.esc="closeMarkdownPreview()">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col" @click.stop>
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+          <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+            <i class="fas fa-file-alt mr-2"></i>{{ markdownPreview.title }}
+          </h3>
+          <button 
+            @click="closeMarkdownPreview()" 
+            class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+          >
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+        
+        <!-- Modal Content -->
+        <div class="flex-1 overflow-y-auto p-6">
+          <div v-if="markdownPreview.loading" class="flex items-center justify-center py-12">
+            <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
+          </div>
+          <div v-else class="prose dark:prose-invert max-w-none">
+            <div v-html="renderMarkdown(markdownPreview.content)" class="markdown-content"></div>
+          </div>
+        </div>
       </div>
     </div>
 

@@ -2,6 +2,7 @@ import fastify, { FastifyInstance } from 'fastify';
 import fastifyStatic from '@fastify/static';
 import fastifyWebsocket from '@fastify/websocket';
 import { join } from 'path';
+import { readFile } from 'fs/promises';
 import { SpecWatcher } from './watcher';
 import { SpecParser } from './parser';
 import open from 'open';
@@ -114,6 +115,26 @@ export class DashboardServer {
         reply.code(404).send({ error: 'Spec not found' });
       }
       return spec;
+    });
+
+    // Get raw markdown content
+    this.app.get('/api/specs/:name/:document', async (request, reply) => {
+      const { name, document } = request.params as { name: string; document: string };
+      const allowedDocs = ['requirements', 'design', 'tasks'];
+      
+      if (!allowedDocs.includes(document)) {
+        reply.code(400).send({ error: 'Invalid document type' });
+        return;
+      }
+      
+      const docPath = join(this.options.projectPath, '.claude', 'specs', name, `${document}.md`);
+      
+      try {
+        const content = await readFile(docPath, 'utf-8');
+        return { content };
+      } catch (error) {
+        reply.code(404).send({ error: 'Document not found' });
+      }
     });
 
     // Set up file watcher

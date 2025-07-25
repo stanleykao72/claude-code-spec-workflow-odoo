@@ -2,6 +2,7 @@ import fastify, { FastifyInstance } from 'fastify';
 import fastifyStatic from '@fastify/static';
 import fastifyWebsocket from '@fastify/websocket';
 import { join } from 'path';
+import { readFile } from 'fs/promises';
 import { SpecWatcher } from './watcher';
 import { SpecParser, Task } from './parser';
 import { ProjectDiscovery, DiscoveredProject } from './project-discovery';
@@ -126,6 +127,33 @@ export class MultiProjectDashboardServer {
 
       const specs = await projectState.parser.getAllSpecs();
       return specs;
+    });
+
+    // Get raw markdown content for a specific document
+    this.app.get('/api/projects/:projectPath/specs/:name/:document', async (request, reply) => {
+      const { projectPath, name, document } = request.params as { projectPath: string; name: string; document: string };
+      const decodedPath = decodeURIComponent(projectPath);
+      const projectState = this.projects.get(decodedPath);
+
+      if (!projectState) {
+        reply.code(404).send({ error: 'Project not found' });
+        return;
+      }
+
+      const allowedDocs = ['requirements', 'design', 'tasks'];
+      if (!allowedDocs.includes(document)) {
+        reply.code(400).send({ error: 'Invalid document type' });
+        return;
+      }
+
+      const docPath = join(decodedPath, '.claude', 'specs', name, `${document}.md`);
+      
+      try {
+        const content = await readFile(docPath, 'utf-8');
+        return { content };
+      } catch (error) {
+        reply.code(404).send({ error: 'Document not found' });
+      }
     });
 
     // Find available port if the requested port is busy

@@ -10,6 +10,12 @@ PetiteVue.createApp({
   ws: null,
   theme: 'system',
   username: 'User',
+  markdownPreview: {
+    show: false,
+    title: '',
+    content: '',
+    loading: false
+  },
 
   // Computed
   get activeSessionCount() {
@@ -20,7 +26,16 @@ PetiteVue.createApp({
   async init() {
     console.log('Multi-project dashboard initializing...');
     this.initTheme();
+    this.setupKeyboardHandlers();
     this.connectWebSocket();
+  },
+
+  setupKeyboardHandlers() {
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.markdownPreview.show) {
+        this.closeMarkdownPreview();
+      }
+    });
   },
 
   connectWebSocket() {
@@ -353,32 +368,36 @@ PetiteVue.createApp({
     return spec || null;
   },
 
-  // Requirements expansion state management
-  expandedRequirements: {},
-  expandedDesign: {},
+  // Requirements and Design expansion state management (combined)
+  expandedDetails: {},
 
-  toggleRequirementsExpanded(specName) {
-    if (this.expandedRequirements[specName]) {
-      delete this.expandedRequirements[specName];
+  toggleDetailsExpanded(specName) {
+    if (this.expandedDetails[specName]) {
+      delete this.expandedDetails[specName];
     } else {
-      this.expandedRequirements[specName] = true;
+      this.expandedDetails[specName] = true;
     }
+  },
+
+  isDetailsExpanded(specName) {
+    return !!this.expandedDetails[specName];
+  },
+
+  // Legacy methods for backward compatibility
+  toggleRequirementsExpanded(specName) {
+    this.toggleDetailsExpanded(specName);
   },
 
   isRequirementsExpanded(specName) {
-    return !!this.expandedRequirements[specName];
+    return this.isDetailsExpanded(specName);
   },
 
   toggleDesignExpanded(specName) {
-    if (this.expandedDesign[specName]) {
-      delete this.expandedDesign[specName];
-    } else {
-      this.expandedDesign[specName] = true;
-    }
+    this.toggleDetailsExpanded(specName);
   },
 
   isDesignExpanded(specName) {
-    return !!this.expandedDesign[specName];
+    return this.isDetailsExpanded(specName);
   },
 
   // Normalize project data to handle potential JSON serialization issues
@@ -439,5 +458,54 @@ PetiteVue.createApp({
       }
       return project;
     });
+  },
+
+  // Markdown preview
+  async viewMarkdown(specName, docType) {
+    if (!this.selectedProject) return;
+    
+    this.markdownPreview.loading = true;
+    this.markdownPreview.show = true;
+    this.markdownPreview.title = `${specName} - ${docType.charAt(0).toUpperCase() + docType.slice(1)}`;
+    this.markdownPreview.content = '';
+
+    try {
+      // Multi-dashboard needs to specify the project path
+      const response = await fetch(`/api/projects/${encodeURIComponent(this.selectedProject.path)}/specs/${specName}/${docType}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch document');
+      }
+      const data = await response.json();
+      this.markdownPreview.content = data.content;
+    } catch (error) {
+      console.error('Error fetching markdown:', error);
+      this.markdownPreview.content = '# Error loading document\n\nFailed to fetch the markdown content.';
+    } finally {
+      this.markdownPreview.loading = false;
+    }
+  },
+
+  closeMarkdownPreview() {
+    this.markdownPreview.show = false;
+    this.markdownPreview.content = '';
+  },
+
+  renderMarkdown(content) {
+    if (typeof marked !== 'undefined') {
+      return marked.parse(content);
+    }
+    // Fallback if marked is not loaded
+    return '<pre>' + this.escapeHtml(content) + '</pre>';
+  },
+
+  escapeHtml(text) {
+    const map = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
   },
 }).mount('#app');
