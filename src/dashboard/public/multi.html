@@ -624,18 +624,21 @@
               <div
                 v-for="spec in selectedProject.specs"
                 :key="spec.name"
-                class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all"
+                :class="spec.status === 'completed' ? 'opacity-75' : ''"
               >
                 <div 
                   class="flex items-center justify-between p-6 cursor-pointer"
                   @click="selectedSpec = selectedSpec?.name === spec.name ? null : spec"
                 >
                   <div class="flex-1">
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+                    <h3 class="text-lg font-medium transition-all"
+                      :class="spec.status === 'completed' ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-white'">
                       {{ spec.displayName }}
                     </h3>
                     <div
-                      class="mt-1 flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400"
+                      class="mt-1 flex items-center space-x-4 text-sm"
+                      :class="spec.status === 'completed' ? 'text-gray-400 dark:text-gray-500' : 'text-gray-500 dark:text-gray-400'"
                     >
                       <span>
                         <i class="fas fa-clock mr-1"></i>
