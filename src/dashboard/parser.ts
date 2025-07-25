@@ -120,7 +120,6 @@ export class SpecParser {
       status: 'not-started',
     };
 
-
     // Check requirements
     const requirementsPath = join(specPath, 'requirements.md');
     if (await this.fileExists(requirementsPath)) {
@@ -151,6 +150,15 @@ export class SpecParser {
     const designPath = join(specPath, 'design.md');
     if (await this.fileExists(designPath)) {
       const content = await readFile(designPath, 'utf-8');
+      
+      // If we haven't found a display name yet, try to extract from design
+      if (spec.displayName === this.formatDisplayName(name)) {
+        const titleMatch = content.match(/^# (.+?)(?:\s+Design)?$/m);
+        if (titleMatch) {
+          spec.displayName = titleMatch[1].trim();
+        }
+      }
+      
       spec.design = {
         exists: true,
         approved: content.includes('✅ APPROVED'),
@@ -170,6 +178,14 @@ export class SpecParser {
       const content = await readFile(tasksPath, 'utf-8');
       debug('Tasks file content length:', content.length);
       debug('Tasks file includes APPROVED:', content.includes('✅ APPROVED'));
+      
+      // If we still haven't found a display name, try to extract from tasks
+      if (spec.displayName === this.formatDisplayName(name)) {
+        const titleMatch = content.match(/^# (.+?)(?:\s+Tasks)?$/m);
+        if (titleMatch) {
+          spec.displayName = titleMatch[1].trim();
+        }
+      }
 
       const taskList = this.parseTasks(content);
       const completed = this.countCompletedTasks(taskList);
