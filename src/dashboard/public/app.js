@@ -317,4 +317,32 @@ PetiteVue.createApp({
     if (!spec.tasks || !spec.tasks.taskList) return 0;
     return spec.tasks.taskList.filter(task => task.completed).length;
   },
+
+  getCurrentTask(spec) {
+    if (!spec.tasks || !spec.tasks.taskList || !spec.tasks.inProgress) return null;
+    return spec.tasks.taskList.find(task => task.id === spec.tasks.inProgress);
+  },
+
+  copyTaskCommand(specName, taskId) {
+    const command = `/spec-exec ${specName} ${taskId}`;
+    
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(command).then(() => {
+        // Could add a toast notification here
+        console.log('Command copied to clipboard:', command);
+      }).catch(err => {
+        console.error('Failed to copy command:', err);
+      });
+    } else {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = command;
+      textArea.style.position = 'fixed';
+      textArea.style.opacity = '0';
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+    }
+  },
 }).mount('#app');

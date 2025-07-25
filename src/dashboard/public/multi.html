@@ -921,6 +921,14 @@
                             >
                               <i class="fas fa-play mr-1"></i> In Progress
                             </span>
+                            <button
+                              v-if="!task.completed"
+                              @click.stop="copyTaskCommand(spec.name, task.id)"
+                              class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
+                              :title="`Copy command: /spec-exec ${spec.name} ${task.id}`"
+                            >
+                              <i class="fas fa-copy"></i>
+                            </button>
                             <span
                               v-if="task.requirements && task.requirements.length > 0"
                               class="text-xs text-gray-500 dark:text-gray-400"
