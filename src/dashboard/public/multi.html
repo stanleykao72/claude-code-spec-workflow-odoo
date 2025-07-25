@@ -884,8 +884,11 @@
                       <div
                         v-for="task in spec.tasks.taskList"
                         :key="task.id"
-                        class="flex items-start p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700"
-                        :class="{'bg-yellow-50 dark:bg-yellow-900/50 border-2 border-yellow-500 dark:border-yellow-400': spec.tasks.inProgress === task.id}"
+                        class="flex items-start p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-opacity"
+                        :class="{
+                          'bg-yellow-50 dark:bg-yellow-900/50 border-2 border-yellow-500 dark:border-yellow-400': spec.tasks.inProgress === task.id,
+                          'opacity-60': task.completed
+                        }"
                       >
                         <i
                           class="fas mt-0.5 mr-2"
@@ -893,10 +896,12 @@
                         ></i>
                         <div class="flex-1">
                           <div class="flex items-center flex-wrap gap-2">
-                            <span class="font-medium text-sm text-gray-900 dark:text-gray-200"
+                            <span class="font-medium text-sm"
+                              :class="task.completed ? 'text-gray-500 dark:text-gray-500 line-through' : 'text-gray-900 dark:text-gray-200'"
                               >Task {{ task.id }}:</span
                             >
-                            <span class="text-sm text-gray-700 dark:text-gray-300"
+                            <span class="text-sm"
+                              :class="task.completed ? 'text-gray-500 dark:text-gray-500 line-through' : 'text-gray-700 dark:text-gray-300'"
                               >{{ task.description }}</span
                             >
                             <span
