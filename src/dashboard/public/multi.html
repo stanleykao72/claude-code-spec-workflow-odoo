@@ -26,6 +26,11 @@
         color: #6366f1;
       }
       
+      /* Remove focus ring from markdown preview buttons */
+      .markdown-preview-btn:focus {
+        outline: none;
+      }
+      
       /* GitHub-style Markdown content */
       .markdown-content {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
@@ -678,7 +683,7 @@
                         <button
                           v-if="spec.requirements"
                           @click.stop="viewMarkdown(spec.name, 'requirements')"
-                          class="ml-2 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
+                          class="markdown-preview-btn ml-2 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
                           title="View source"
                         >
                           <i class="fas fa-search"></i>
@@ -791,7 +796,7 @@
                         <button
                           v-if="spec.design"
                           @click.stop="viewMarkdown(spec.name, 'design')"
-                          class="ml-2 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
+                          class="markdown-preview-btn ml-2 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
                           title="View source"
                         >
                           <i class="fas fa-search"></i>
@@ -868,7 +873,7 @@
                         {{ spec.tasks.approved ? 'Approved' : 'Pending' }})
                         <button
                           @click.stop="viewMarkdown(spec.name, 'tasks')"
-                          class="ml-2 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
+                          class="markdown-preview-btn ml-2 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
                           title="View source"
                         >
                           <i class="fas fa-search"></i>
