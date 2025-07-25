@@ -26,6 +26,58 @@
         color: #6366f1;
       }
       
+      /* EARS keyword pills */
+      .ears-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.125rem 0.5rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        white-space: nowrap;
+        margin-right: 0.375rem;
+      }
+      .ears-when {
+        background-color: rgb(219 234 254);
+        color: rgb(29 78 216);
+      }
+      .dark .ears-when {
+        background-color: rgb(30 64 175);
+        color: rgb(191 219 254);
+      }
+      .ears-then {
+        background-color: rgb(220 252 231);
+        color: rgb(21 128 61);
+      }
+      .dark .ears-then {
+        background-color: rgb(20 83 45);
+        color: rgb(187 247 208);
+      }
+      .ears-if {
+        background-color: rgb(254 243 199);
+        color: rgb(161 98 7);
+      }
+      .dark .ears-if {
+        background-color: rgb(120 53 15);
+        color: rgb(253 230 138);
+      }
+      .ears-shall {
+        background-color: rgb(243 232 255);
+        color: rgb(107 33 168);
+      }
+      .dark .ears-shall {
+        background-color: rgb(88 28 135);
+        color: rgb(233 213 255);
+      }
+      .ears-shall-not {
+        background-color: rgb(254 226 226);
+        color: rgb(185 28 28);
+      }
+      .dark .ears-shall-not {
+        background-color: rgb(127 29 29);
+        color: rgb(254 202 202);
+      }
+      
       /* Remove focus ring from markdown preview buttons */
       .markdown-preview-btn:focus {
         outline: none;
@@ -762,16 +814,16 @@
                                 >
                                   Acceptance Criteria:
                                 </p>
-                                <ul class="text-xs text-gray-600 dark:text-gray-400 space-y-1">
-                                  <li
-                                    v-for="criteria in requirement.acceptanceCriteria"
-                                    :key="criteria"
-                                    class="flex items-start"
+                                <div class="space-y-1">
+                                  <div
+                                    v-for="(criteria, index) in requirement.acceptanceCriteria"
+                                    :key="index"
+                                    class="flex items-start text-xs text-gray-600 dark:text-gray-400"
                                   >
                                     <span class="mr-2">•</span>
-                                    <span>{{ criteria }}</span>
-                                  </li>
-                                </ul>
+                                    <span v-html="formatAcceptanceCriteria(criteria)"></span>
+                                  </div>
+                                </div>
                               </div>
                             </div>
                             <div
