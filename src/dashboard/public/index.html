@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Spec Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      // Suppress Tailwind CDN production warning for development dashboard
+      if (typeof tailwind !== 'undefined') {
+        tailwind.config = { devtools: { enabled: false } };
+      }
+    </script>
+    <script src="https://unpkg.com/petite-vue@0.4.1/dist/petite-vue.iife.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      [v-cloak] {
+        display: none;
+      }
+      .task-indent-1 {
+        padding-left: 1.5rem;
+      }
+      .task-indent-2 {
+        padding-left: 3rem;
+      }
+      .task-indent-3 {
+        padding-left: 4.5rem;
+      }
+    </style>
+    <script>
+      // Configure Tailwind dark mode
+      tailwind.config = {
+        darkMode: 'class',
+      };
+    </script>
+  </head>
+  <body class="h-full bg-gray-50 dark:bg-gray-900 transition-colors">
+    <div id="app" v-cloak class="h-full" @vue:mounted="init()">
+      <div class="min-h-full">
+        <!-- Header -->
+        <header
+          class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors"
+        >
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-3">
+              <div class="flex items-center gap-8">
+                <div class="flex items-center">
+                  <img src="/claude-icon.svg" alt="Claude" class="w-6 h-6 mr-2" />
+                  <h1 class="text-xl font-bold text-gray-900 dark:text-white">{{ projectName }}</h1>
+                  <a
+                    v-if="branch && githubUrl"
+                    :href="githubUrl"
+                    target="_blank"
+                    class="ml-3 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    <i class="fas fa-code-branch mr-1"></i>
+                    {{ branch }}
+                  </a>
+                  <span
+                    v-else-if="branch"
+                    class="ml-3 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+                  >
+                    <i class="fas fa-code-branch mr-1"></i>
+                    {{ branch }}
+                  </span>
+                </div>
+                <div class="flex items-center gap-4 text-sm">
+                  <div class="flex items-center gap-1.5">
+                    <i class="fas fa-file-alt text-gray-400 dark:text-gray-500"></i>
+                    <span class="hidden md:inline text-gray-600 dark:text-gray-400">Specs:</span>
+                    <span class="font-semibold text-gray-900 dark:text-white"
+                      >{{ specs.length }}</span
+                    >
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <i class="fas fa-spinner text-indigo-400 dark:text-indigo-500"></i>
+                    <span class="hidden md:inline text-gray-600 dark:text-gray-400"
+                      >In Progress:</span
+                    >
+                    <span class="font-semibold text-indigo-600 dark:text-indigo-400"
+                      >{{ specsInProgress }}</span
+                    >
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <i class="fas fa-check-circle text-green-400 dark:text-green-500"></i>
+                    <span class="hidden md:inline text-gray-600 dark:text-gray-400"
+                      >Completed:</span
+                    >
+                    <span class="font-semibold text-green-600 dark:text-green-400"
+                      >{{ specsCompleted }}</span
+                    >
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <i class="fas fa-tasks text-gray-400 dark:text-gray-500"></i>
+                    <span class="hidden md:inline text-gray-600 dark:text-gray-400">Tasks:</span>
+                    <span class="font-semibold text-gray-900 dark:text-white"
+                      >{{ totalTasks }}</span
+                    >
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <!-- Theme toggle -->
+                <button
+                  @click="cycleTheme"
+                  class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  title="Toggle theme"
+                >
+                  <svg
+                    v-if="theme === 'light'"
+                    class="w-5 h-5 text-gray-600 dark:text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                    ></path>
+                  </svg>
+                  <svg
+                    v-else-if="theme === 'dark'"
+                    class="w-5 h-5 text-gray-600 dark:text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                    ></path>
+                  </svg>
+                  <svg
+                    v-else
+                    class="w-5 h-5 text-gray-600 dark:text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    ></path>
+                  </svg>
+                </button>
+                <i
+                  class="fas fa-circle text-xs"
+                  :class="connected ? 'text-green-500' : 'text-red-500'"
+                  :title="connected ? 'Connected' : 'Disconnected'"
+                ></i>
+                <button
+                  v-if="!connected"
+                  @click="refresh"
+                  class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  title="Refresh"
+                >
+                  <i class="fas fa-sync-alt"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <!-- Main content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <!-- Specs list -->
+          <div class="bg-white dark:bg-gray-800 shadow rounded-lg transition-colors">
+            <div class="divide-y divide-gray-200 dark:divide-gray-700">
+              <div
+                v-for="spec in specs"
+                :key="spec.name"
+                class="p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors"
+                @click="selectedSpec = selectedSpec?.name === spec.name ? null : spec"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="flex-1">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+                      {{ spec.displayName }}
+                    </h3>
+                    <div
+                      class="mt-1 flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400"
+                    >
+                      <span>
+                        <i class="fas fa-clock mr-1"></i>
+                        {{ formatDate(spec.lastModified) }}
+                      </span>
+                      <span v-if="spec.tasks">
+                        <i class="fas fa-tasks mr-1"></i>
+                        {{ spec.tasks.completed }} / {{ spec.tasks.total }} tasks
+                      </span>
+                      <a
+                        v-if="branch && githubUrl"
+                        :href="githubUrl"
+                        target="_blank"
+                        class="flex items-center hover:text-gray-700 dark:hover:text-gray-200"
+                      >
+                        <i class="fas fa-code-branch mr-1"></i>
+                        {{ branch }}
+                      </a>
+                      <span
+                        v-else-if="branch"
+                        class="flex items-center"
+                      >
+                        <i class="fas fa-code-branch mr-1"></i>
+                        {{ branch }}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="ml-4">
+                    <span
+                      class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
+                      :class="getStatusClass(spec.status)"
+                    >
+                      {{ getStatusLabel(spec.status) }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Progress bar -->
+                <div v-if="spec.tasks && spec.tasks.total > 0" class="mt-4">
+                  <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div
+                      class="bg-indigo-600 dark:bg-indigo-500 h-2 rounded-full transition-all duration-300"
+                      :style="`width: ${(spec.tasks.completed / spec.tasks.total) * 100}%`"
+                    ></div>
+                  </div>
+                </div>
+
+                <!-- Expanded details -->
+                <div
+                  v-if="selectedSpec?.name === spec.name"
+                  class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700"
+                >
+                  <!-- Steering Documents Status -->
+                  <div v-if="spec.steering" class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <div class="flex items-center justify-between">
+                      <h4 class="font-medium text-gray-900 dark:text-white">
+                        <i class="fas fa-compass mr-1"></i> Steering Documents
+                      </h4>
+                      <div class="flex items-center gap-3 text-sm">
+                        <span class="flex items-center">
+                          <i 
+                            class="fas mr-1" 
+                            :class="spec.steering.hasProduct ? 'fa-check-circle text-green-500' : 'fa-times-circle text-gray-400'"
+                          ></i>
+                          Product
+                        </span>
+                        <span class="flex items-center">
+                          <i 
+                            class="fas mr-1" 
+                            :class="spec.steering.hasTech ? 'fa-check-circle text-green-500' : 'fa-times-circle text-gray-400'"
+                          ></i>
+                          Tech
+                        </span>
+                        <span class="flex items-center">
+                          <i 
+                            class="fas mr-1" 
+                            :class="spec.steering.hasStructure ? 'fa-check-circle text-green-500' : 'fa-times-circle text-gray-400'"
+                          ></i>
+                          Structure
+                        </span>
+                      </div>
+                    </div>
+                    <p v-if="!spec.steering.exists" class="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                      <i class="fas fa-info-circle mr-1"></i>
+                      Run <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">/spec-steering-setup</code> to create steering documents
+                    </p>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                      <h4 class="font-medium text-gray-900 dark:text-white mb-2">
+                        <i class="fas fa-clipboard-list mr-1"></i> Requirements
+                      </h4>
+                      <div
+                        v-if="spec.requirements"
+                        class="text-sm text-gray-600 dark:text-gray-400"
+                      >
+                        <p>{{ spec.requirements.userStories }} user stories</p>
+                        <p class="flex items-center mt-1">
+                          <i
+                            class="fas mr-1"
+                            :class="spec.requirements.approved ? 'fa-check-circle text-green-500' : 'fa-clock text-yellow-500'"
+                          ></i>
+                          {{ spec.requirements.approved ? 'Approved' : 'Pending approval' }}
+                        </p>
+                      </div>
+                      <p v-else class="text-sm text-gray-400 dark:text-gray-500">Not created</p>
+                    </div>
+                    <div>
+                      <h4 class="font-medium text-gray-900 dark:text-white mb-2">
+                        <i class="fas fa-drafting-compass mr-1"></i> Design
+                      </h4>
+                      <div v-if="spec.design" class="text-sm text-gray-600 dark:text-gray-400">
+                        <p class="flex items-center">
+                          <i
+                            class="fas mr-1"
+                            :class="spec.design.hasCodeReuseAnalysis ? 'fa-check-circle text-green-500' : 'fa-times-circle text-red-500'"
+                          ></i>
+                          <span class="ml-1">Code reuse analysis</span>
+                        </p>
+                        <p class="flex items-center mt-1">
+                          <i
+                            class="fas mr-1"
+                            :class="spec.design.approved ? 'fa-check-circle text-green-500' : 'fa-clock text-yellow-500'"
+                          ></i>
+                          {{ spec.design.approved ? 'Approved' : 'Pending approval' }}
+                        </p>
+                      </div>
+                      <p v-else class="text-sm text-gray-400 dark:text-gray-500">Not created</p>
+                    </div>
+                    <div>
+                      <h4 class="font-medium text-gray-900 dark:text-white mb-2">
+                        <i class="fas fa-tasks mr-1"></i> Tasks
+                      </h4>
+                      <div v-if="spec.tasks" class="text-sm text-gray-600 dark:text-gray-400">
+                        <p>{{ spec.tasks.total }} total tasks</p>
+                        <p class="flex items-center mt-1">
+                          <i
+                            class="fas mr-1"
+                            :class="spec.tasks.approved ? 'fa-check-circle text-green-500' : 'fa-clock text-yellow-500'"
+                          ></i>
+                          {{ spec.tasks.approved ? 'Approved' : 'Pending approval' }}
+                        </p>
+                      </div>
+                      <p v-else class="text-sm text-gray-400 dark:text-gray-500">Not created</p>
+                    </div>
+                  </div>
+
+                  <!-- Task list -->
+                  <div v-if="spec.tasks && spec.tasks.taskList.length > 0" class="mt-4">
+                    <h4 class="font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Task Breakdown
+                    </h4>
+                    <div class="space-y-1">
+                      <div
+                        v-for="task in spec.tasks.taskList"
+                        :key="task.id"
+                        class="flex items-start p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700"
+                        :class="{'bg-yellow-50 dark:bg-yellow-900/50 border-2 border-yellow-500 dark:border-yellow-400': spec.tasks.inProgress === task.id}"
+                      >
+                        <i
+                          class="fas mt-0.5 mr-2"
+                          :class="task.completed ? 'fa-check-square text-green-500' : 'fa-square text-gray-400'"
+                        ></i>
+                        <div class="flex-1">
+                          <div class="flex items-center">
+                            <span class="font-medium text-sm text-gray-900 dark:text-gray-200"
+                              >Task {{ task.id }}:</span
+                            >
+                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300"
+                              >{{ task.description }}</span
+                            >
+                            <span
+                              v-if="spec.tasks.inProgress === task.id"
+                              class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-500 dark:text-yellow-900"
+                            >
+                              <i class="fas fa-play mr-1"></i> In Progress
+                            </span>
+                          </div>
+                          <div
+                            v-if="task.requirements.length > 0"
+                            class="text-xs text-gray-500 dark:text-gray-400 mt-1"
+                          >
+                            Requirements: {{ task.requirements.join(', ') }}
+                          </div>
+                          <div
+                            v-if="task.leverage"
+                            class="text-xs text-blue-600 dark:text-blue-400 mt-1"
+                          >
+                            <i class="fas fa-code-branch mr-1"></i> Leverage: {{ task.leverage }}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

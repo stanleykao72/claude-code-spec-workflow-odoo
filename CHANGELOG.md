@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Real-Time Dashboard**: Integrated web-based dashboard for monitoring specs and tasks
+  - `claude-spec-dashboard` command launches a lightweight Fastify server
+  - Built with petite-vue (6kb) and Tailwind CSS for optimal performance
+  - Real-time updates via WebSocket when specs/tasks change
+  - Visual progress tracking with expandable task lists
+  - Shows task leverage references and requirements
+  - Git branch and commit information display
+
+### Enhanced
+- **Dashboard Steering Documents Integration**: Added steering documents status to dashboard
+  - New steering status card shows product.md, tech.md, and structure.md availability
+  - Visual indicators for each steering document type
+  - Prompts users to run `/spec-steering-setup` when documents are missing
+  - Steering status displayed prominently before requirements/design/tasks
+
 ## [1.2.5] - 2025-07-24
 
 ### Changed

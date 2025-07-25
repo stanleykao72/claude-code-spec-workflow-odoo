@@ -130,6 +130,32 @@ The workflow now automatically creates individual commands for each task:
 - **Auto-completion**: Claude Code can suggest spec-specific commands
 - **Clear purpose**: Each command shows exactly what task it executes
 
+### 📊 Real-Time Dashboard
+
+Monitor your specs and tasks with a beautiful web dashboard:
+
+```bash
+# Start the dashboard
+npx claude-spec-dashboard
+
+# Start on custom port
+npx claude-spec-dashboard --port 8080
+
+# Auto-open in browser
+npx claude-spec-dashboard --open
+```
+
+**Dashboard Features:**
+- **Real-time updates** - See changes as they happen
+- **Steering documents status** - Visual indicators for product.md, tech.md, and structure.md
+- **Progress tracking** - Visual progress bars for each spec
+- **Task breakdown** - Expandable task lists with status
+- **Code reuse visibility** - See leverage references at a glance
+- **Git integration** - Shows current branch with GitHub links
+- **Modern UI** - Built with Tailwind CSS and petite-vue
+- **Lightweight** - No heavy frameworks, just fast tools
+- **WebSocket powered** - Instant updates when files change
+
 ## 📊 Command Line Options
 
 ```bash
