@@ -408,6 +408,10 @@ PetiteVue.createApp({
     return projects.map((project) => {
       if (project.specs) {
         project.specs = project.specs.map((spec) => {
+          // Initialize completed tasks as collapsed by default
+          if (spec.tasks && this.getCompletedTaskCount(spec) > 0) {
+            this.collapsedCompletedTasks[spec.name] = true;
+          }
           // Ensure requirements content is properly handled
           if (spec.requirements && spec.requirements.content) {
             // If it's already an array of proper objects, keep it as is

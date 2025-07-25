@@ -70,6 +70,13 @@ PetiteVue.createApp({
       const response = await fetch('/api/specs');
       this.specs = await response.json();
       console.log('Fetched specs:', this.specs);
+      
+      // Initialize completed tasks as collapsed by default
+      this.specs.forEach(spec => {
+        if (spec.tasks && this.getCompletedTaskCount(spec) > 0) {
+          this.collapsedCompletedTasks[spec.name] = true;
+        }
+      });
     } catch (error) {
       console.error('Error fetching specs:', error);
     }
