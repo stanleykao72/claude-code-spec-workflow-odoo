@@ -613,12 +613,22 @@
 
                   <!-- Task list -->
                   <div v-if="spec.tasks && spec.tasks.taskList.length > 0" class="mt-4">
-                    <h4 class="font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Task Breakdown
-                    </h4>
+                    <div class="flex items-center justify-between mb-2">
+                      <h4 class="font-medium text-gray-700 dark:text-gray-300">
+                        Task Breakdown
+                      </h4>
+                      <button
+                        v-if="getCompletedTaskCount(spec) > 0"
+                        @click.stop="toggleCompletedTasks(spec.name)"
+                        class="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex items-center gap-1"
+                      >
+                        <i class="fas" :class="areCompletedTasksCollapsed(spec.name) ? 'fa-eye' : 'fa-eye-slash'"></i>
+                        <span>{{ areCompletedTasksCollapsed(spec.name) ? 'Show' : 'Hide' }} {{ getCompletedTaskCount(spec) }} completed</span>
+                      </button>
+                    </div>
                     <div class="space-y-1">
                       <div
-                        v-for="task in spec.tasks.taskList"
+                        v-for="task in getVisibleTasks(spec)"
                         :key="task.id"
                         class="flex items-start p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-opacity"
                         :class="{
@@ -657,7 +667,7 @@
                             v-if="task.leverage"
                             class="text-xs text-blue-600 dark:text-blue-400 mt-1"
                           >
-                            <i class="fas fa-link mr-1"></i> Leverage: {{ task.leverage }}
+                            <i class="fas fa-screwdriver mr-1"></i> Leverage: {{ task.leverage }}
                           </div>
                         </div>
                       </div>

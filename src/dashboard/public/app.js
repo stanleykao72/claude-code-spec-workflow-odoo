@@ -227,6 +227,9 @@ PetiteVue.createApp({
 
   // Requirements and Design expansion state management (combined)
   expandedDetails: {},
+  
+  // Completed tasks collapse state
+  collapsedCompletedTasks: {},
 
   toggleDetailsExpanded(specName) {
     if (this.expandedDetails[specName]) {
@@ -284,5 +287,34 @@ PetiteVue.createApp({
       "'": '&#039;'
     };
     return text.replace(/[&<>"']/g, m => map[m]);
+  },
+
+  toggleCompletedTasks(specName) {
+    if (this.collapsedCompletedTasks[specName]) {
+      delete this.collapsedCompletedTasks[specName];
+    } else {
+      this.collapsedCompletedTasks[specName] = true;
+    }
+  },
+
+  areCompletedTasksCollapsed(specName) {
+    return !!this.collapsedCompletedTasks[specName];
+  },
+
+  getVisibleTasks(spec) {
+    if (!spec.tasks || !spec.tasks.taskList) return [];
+    
+    if (this.areCompletedTasksCollapsed(spec.name)) {
+      // Show only incomplete tasks when collapsed
+      return spec.tasks.taskList.filter(task => !task.completed);
+    }
+    
+    // Show all tasks when expanded
+    return spec.tasks.taskList;
+  },
+
+  getCompletedTaskCount(spec) {
+    if (!spec.tasks || !spec.tasks.taskList) return 0;
+    return spec.tasks.taskList.filter(task => task.completed).length;
   },
 }).mount('#app');
