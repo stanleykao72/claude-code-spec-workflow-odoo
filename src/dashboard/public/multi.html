@@ -505,7 +505,7 @@
                       Req: {{ activeTask.task.requirements.join(', ') }}
                     </span>
                     <span v-if="activeTask.task.leverage" class="text-gray-600 dark:text-gray-400">
-                      <i class="fas fa-code-branch mr-1"></i>
+                      <i class="fas fa-link mr-1"></i>
                       Leverage: {{ activeTask.task.leverage }}
                     </span>
                   </div>
@@ -923,7 +923,7 @@
                               v-if="task.leverage"
                               class="text-xs text-gray-500 dark:text-gray-400"
                             >
-                              <i class="fas fa-code-branch mr-1"></i> {{ task.leverage }}
+                              <i class="fas fa-link mr-1"></i> {{ task.leverage }}
                             </span>
                           </div>
                         </div>
