@@ -460,8 +460,7 @@
                 :class="spec.status === 'completed' ? 'opacity-75' : ''"
               >
                 <div 
-                  class="flex items-center justify-between p-6 cursor-pointer"
-                  @click="selectedSpec = selectedSpec?.name === spec.name ? null : spec"
+                  class="flex items-center justify-between p-6"
                 >
                   <div class="flex-1">
                     <h3 class="text-lg font-medium transition-all"
@@ -505,10 +504,13 @@
                     >
                       {{ getStatusLabel(spec.status) }}
                     </span>
-                    <i 
-                      class="fas fa-chevron-down text-gray-400 transition-transform duration-200"
-                      :class="selectedSpec?.name === spec.name ? 'rotate-180' : ''"
-                    ></i>
+                    <button
+                      @click.stop="selectedSpec = selectedSpec?.name === spec.name ? null : spec"
+                      class="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex items-center gap-1"
+                    >
+                      <i class="fas" :class="selectedSpec?.name === spec.name ? 'fa-eye-slash' : 'fa-eye'"></i>
+                      <span>{{ selectedSpec?.name === spec.name ? 'Hide' : 'Show' }} details</span>
+                    </button>
                   </div>
                 </div>
 
@@ -570,17 +572,15 @@
                       <div v-if="spec.design" class="text-sm text-gray-600 dark:text-gray-400">
                         <p class="flex items-center">
                           <i
-                            class="fas"
-                            :class="spec.design.hasCodeReuseAnalysis ? 'fa-check-circle text-green-500' : 'fa-times-circle text-red-500'"
-                          ></i>
-                          <span class="ml-2">Code reuse analysis</span>
-                        </p>
-                        <p class="flex items-center mt-1">
-                          <i
                             class="fas mr-1"
                             :class="spec.design.approved ? 'fa-check-circle text-green-500' : 'fa-clock text-yellow-500'"
                           ></i>
                           {{ spec.design.approved ? 'Approved' : 'Pending approval' }}
+                          <i
+                            class="fas ml-2"
+                            :class="spec.design.hasCodeReuseAnalysis ? 'fa-check-circle text-green-500' : 'fa-times-circle text-red-500'"
+                          ></i>
+                          <span class="ml-1">{{ spec.design.hasCodeReuseAnalysis ? 'Has code reuse analysis' : 'No code reuse analysis' }}</span>
                         </p>
                       </div>
                       <p v-else class="text-sm text-gray-400 dark:text-gray-500">Not created</p>
