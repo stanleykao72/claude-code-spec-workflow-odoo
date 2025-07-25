@@ -9,6 +9,7 @@ PetiteVue.createApp({
   branch: null,
   githubUrl: null,
   theme: 'system', // 'light', 'dark', or 'system'
+  steeringStatus: null,
 
   // Computed
   get specsInProgress() {
@@ -41,6 +42,7 @@ PetiteVue.createApp({
       this.projectName = info.projectName;
       this.branch = info.branch || null;
       this.githubUrl = info.githubUrl || null;
+      this.steeringStatus = info.steering || null;
       document.title = `${info.projectName} - Spec Dashboard`;
     } catch (error) {
       console.error('Error fetching project info:', error);

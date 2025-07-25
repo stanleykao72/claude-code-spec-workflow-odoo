@@ -87,6 +87,10 @@ export class DashboardServer {
     });
 
     // API endpoints
+    this.app.get('/api/test', async () => {
+      return { message: 'Test endpoint works!' };
+    });
+
     this.app.get('/api/specs', async () => {
       const specs = await this.parser.getAllSpecs();
       return specs;
@@ -95,8 +99,10 @@ export class DashboardServer {
     this.app.get('/api/info', async () => {
       const projectName = this.options.projectPath.split('/').pop() || 'Project';
       const gitInfo = await GitUtils.getGitInfo(this.options.projectPath);
+      const steeringStatus = await this.parser.getProjectSteeringStatus();
       return { 
         projectName,
+        steering: steeringStatus,
         ...gitInfo
       };
     });

@@ -225,9 +225,11 @@ export class MultiProjectDashboardServer {
     const projects = await Promise.all(
       Array.from(this.projects.entries()).map(async ([, state]) => {
         const specs = await state.parser.getAllSpecs();
+        const steeringStatus = await state.parser.getProjectSteeringStatus();
         const projectData = {
           ...state.project,
           specs,
+          steering: steeringStatus,
         };
         debug(`Sending project ${projectData.name}`);
         return projectData;

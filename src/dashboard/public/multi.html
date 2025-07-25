@@ -309,6 +309,14 @@
               </div>
             </div>
             <div class="flex items-center gap-4 text-sm">
+              <div class="flex items-center gap-1.5" 
+                   :title="selectedProject.steering && selectedProject.steering.exists ? (selectedProject.steering.hasProduct && selectedProject.steering.hasTech && selectedProject.steering.hasStructure ? 'Steering documents complete' : 'Steering documents incomplete') : 'No steering documents'">
+                <i class="fas fa-compass" 
+                   :class="selectedProject.steering && selectedProject.steering.hasProduct && selectedProject.steering.hasTech && selectedProject.steering.hasStructure ? 'text-green-500' : 'text-gray-400 dark:text-gray-500'"></i>
+                <span class="hidden md:inline text-gray-600 dark:text-gray-400">Steering:</span>
+                <i class="fas fa-sm"
+                   :class="selectedProject.steering && selectedProject.steering.hasProduct && selectedProject.steering.hasTech && selectedProject.steering.hasStructure ? 'fa-check text-green-600 dark:text-green-400' : 'fa-times text-red-500 dark:text-red-400'"></i>
+              </div>
               <div class="flex items-center gap-1.5">
                 <i class="fas fa-file-alt text-gray-400 dark:text-gray-500"></i>
                 <span class="hidden md:inline text-gray-600 dark:text-gray-400">Specs:</span>
@@ -336,6 +344,31 @@
                 <span class="font-semibold text-gray-900 dark:text-white"
                   >{{ getTotalTasks(selectedProject) }}</span
                 >
+              </div>
+            </div>
+          </div>
+
+          <!-- Steering Documents Warning (Only shown when incomplete) -->
+          <div v-if="selectedProject.steering && (!selectedProject.steering.exists || !selectedProject.steering.hasProduct || !selectedProject.steering.hasTech || !selectedProject.steering.hasStructure)" 
+               class="mb-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+              </div>
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                  Steering Documents Incomplete
+                </h3>
+                <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
+                  <p>
+                    Run <code class="bg-yellow-100 dark:bg-yellow-800 px-1.5 py-0.5 rounded text-xs font-mono">/spec-steering-setup</code> to create missing steering documents:
+                  </p>
+                  <ul class="list-disc list-inside mt-1">
+                    <li v-if="!selectedProject.steering.hasProduct">Product vision and goals (product.md)</li>
+                    <li v-if="!selectedProject.steering.hasTech">Technology stack and architecture (tech.md)</li>
+                    <li v-if="!selectedProject.steering.hasStructure">Project structure and patterns (structure.md)</li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>

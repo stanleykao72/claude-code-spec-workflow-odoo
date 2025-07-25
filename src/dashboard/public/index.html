@@ -68,6 +68,14 @@
                   </span>
                 </div>
                 <div class="flex items-center gap-4 text-sm">
+                  <div class="flex items-center gap-1.5" 
+                       :title="steeringStatus && steeringStatus.exists ? (steeringStatus.hasProduct && steeringStatus.hasTech && steeringStatus.hasStructure ? 'Steering documents complete' : 'Steering documents incomplete') : 'No steering documents'">
+                    <i class="fas fa-compass" 
+                       :class="steeringStatus && steeringStatus.hasProduct && steeringStatus.hasTech && steeringStatus.hasStructure ? 'text-green-500' : 'text-gray-400 dark:text-gray-500'"></i>
+                    <span class="hidden md:inline text-gray-600 dark:text-gray-400">Steering:</span>
+                    <i class="fas fa-sm"
+                       :class="steeringStatus && steeringStatus.hasProduct && steeringStatus.hasTech && steeringStatus.hasStructure ? 'fa-check text-green-600 dark:text-green-400' : 'fa-times text-red-500 dark:text-red-400'"></i>
+                  </div>
                   <div class="flex items-center gap-1.5">
                     <i class="fas fa-file-alt text-gray-400 dark:text-gray-500"></i>
                     <span class="hidden md:inline text-gray-600 dark:text-gray-400">Specs:</span>
@@ -172,6 +180,31 @@
 
         <!-- Main content -->
         <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <!-- Steering Documents Warning (Only shown when incomplete) -->
+          <div v-if="steeringStatus && (!steeringStatus.exists || !steeringStatus.hasProduct || !steeringStatus.hasTech || !steeringStatus.hasStructure)" 
+               class="mb-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+              </div>
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                  Steering Documents Incomplete
+                </h3>
+                <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
+                  <p>
+                    Run <code class="bg-yellow-100 dark:bg-yellow-800 px-1.5 py-0.5 rounded text-xs font-mono">/spec-steering-setup</code> to create missing steering documents:
+                  </p>
+                  <ul class="list-disc list-inside mt-1">
+                    <li v-if="!steeringStatus.hasProduct">Product vision and goals (product.md)</li>
+                    <li v-if="!steeringStatus.hasTech">Technology stack and architecture (tech.md)</li>
+                    <li v-if="!steeringStatus.hasStructure">Project structure and patterns (structure.md)</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Specs list -->
           <div class="bg-white dark:bg-gray-800 shadow rounded-lg transition-colors">
             <div class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -240,42 +273,6 @@
                   v-if="selectedSpec?.name === spec.name"
                   class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700"
                 >
-                  <!-- Steering Documents Status -->
-                  <div v-if="spec.steering" class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <div class="flex items-center justify-between">
-                      <h4 class="font-medium text-gray-900 dark:text-white">
-                        <i class="fas fa-compass mr-1"></i> Steering Documents
-                      </h4>
-                      <div class="flex items-center gap-3 text-sm">
-                        <span class="flex items-center">
-                          <i 
-                            class="fas mr-1" 
-                            :class="spec.steering.hasProduct ? 'fa-check-circle text-green-500' : 'fa-times-circle text-gray-400'"
-                          ></i>
-                          Product
-                        </span>
-                        <span class="flex items-center">
-                          <i 
-                            class="fas mr-1" 
-                            :class="spec.steering.hasTech ? 'fa-check-circle text-green-500' : 'fa-times-circle text-gray-400'"
-                          ></i>
-                          Tech
-                        </span>
-                        <span class="flex items-center">
-                          <i 
-                            class="fas mr-1" 
-                            :class="spec.steering.hasStructure ? 'fa-check-circle text-green-500' : 'fa-times-circle text-gray-400'"
-                          ></i>
-                          Structure
-                        </span>
-                      </div>
-                    </div>
-                    <p v-if="!spec.steering.exists" class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                      <i class="fas fa-info-circle mr-1"></i>
-                      Run <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">/spec-steering-setup</code> to create steering documents
-                    </p>
-                  </div>
-
                   <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div>
                       <h4 class="font-medium text-gray-900 dark:text-white mb-2">

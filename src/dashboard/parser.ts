@@ -36,7 +36,6 @@ export interface Spec {
   name: string;
   displayName: string;
   status: 'not-started' | 'requirements' | 'design' | 'tasks' | 'in-progress' | 'completed';
-  steering?: SteeringStatus;
   requirements?: {
     exists: boolean;
     userStories: number;
@@ -69,6 +68,10 @@ export class SpecParser {
     this.projectPath = projectPath;
     this.specsPath = join(projectPath, '.claude', 'specs');
     this.steeringLoader = new SteeringLoader(projectPath);
+  }
+
+  async getProjectSteeringStatus(): Promise<SteeringStatus> {
+    return this.getSteeringStatus();
   }
 
   async getAllSpecs(): Promise<Spec[]> {
@@ -117,8 +120,6 @@ export class SpecParser {
       status: 'not-started',
     };
 
-    // Check for steering documents
-    spec.steering = await this.getSteeringStatus();
 
     // Check requirements
     const requirementsPath = join(specPath, 'requirements.md');
