@@ -199,19 +199,23 @@ const BaseAppState = {
     try {
       let url = `/api/specs/${specName}/${docType}`;
       if (projectPath) {
-        url = `/api/projects${projectPath}/specs/${specName}/${docType}`;
+        url = `/api/projects/${encodeURIComponent(projectPath)}/specs/${specName}/${docType}`;
       }
+      
+      console.log('Fetching markdown from:', url);
       
       const response = await fetch(url);
       if (!response.ok) {
-        throw new Error(`Failed to fetch ${docType} content`);
+        const errorText = await response.text();
+        console.error('Response not OK:', response.status, errorText);
+        throw new Error(`Failed to fetch ${docType} content: ${response.status}`);
       }
       
-      const content = await response.text();
-      this.markdownPreview.content = content;
+      const data = await response.json();
+      this.markdownPreview.content = data.content;
     } catch (error) {
       console.error(`Error fetching ${docType} content:`, error);
-      this.markdownPreview.content = `*Error loading ${docType} content*`;
+      this.markdownPreview.content = `# Error loading ${docType} content\n\n${error.message}`;
     } finally {
       this.markdownPreview.loading = false;
     }
