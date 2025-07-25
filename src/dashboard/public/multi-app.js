@@ -26,7 +26,16 @@ PetiteVue.createApp({
   async init() {
     console.log('Multi-project dashboard initializing...');
     this.initTheme();
+    this.setupKeyboardHandlers();
     this.connectWebSocket();
+  },
+
+  setupKeyboardHandlers() {
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.markdownPreview.show) {
+        this.closeMarkdownPreview();
+      }
+    });
   },
 
   connectWebSocket() {
@@ -479,5 +488,24 @@ PetiteVue.createApp({
   closeMarkdownPreview() {
     this.markdownPreview.show = false;
     this.markdownPreview.content = '';
+  },
+
+  renderMarkdown(content) {
+    if (typeof marked !== 'undefined') {
+      return marked.parse(content);
+    }
+    // Fallback if marked is not loaded
+    return '<pre>' + this.escapeHtml(content) + '</pre>';
+  },
+
+  escapeHtml(text) {
+    const map = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
   },
 }).mount('#app');

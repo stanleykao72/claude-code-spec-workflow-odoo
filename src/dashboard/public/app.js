@@ -36,9 +36,18 @@ PetiteVue.createApp({
   async init() {
     console.log('Dashboard initializing...');
     this.initTheme();
+    this.setupKeyboardHandlers();
     await this.fetchProjectInfo();
     await this.fetchSpecs();
     this.connectWebSocket();
+  },
+
+  setupKeyboardHandlers() {
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.markdownPreview.show) {
+        this.closeMarkdownPreview();
+      }
+    });
   },
 
   async fetchProjectInfo() {
@@ -256,5 +265,24 @@ PetiteVue.createApp({
   closeMarkdownPreview() {
     this.markdownPreview.show = false;
     this.markdownPreview.content = '';
+  },
+
+  renderMarkdown(content) {
+    if (typeof marked !== 'undefined') {
+      return marked.parse(content);
+    }
+    // Fallback if marked is not loaded
+    return '<pre>' + this.escapeHtml(content) + '</pre>';
+  },
+
+  escapeHtml(text) {
+    const map = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
   },
 }).mount('#app');
