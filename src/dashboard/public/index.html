@@ -460,7 +460,8 @@
                 :class="spec.status === 'completed' ? 'opacity-75' : ''"
               >
                 <div 
-                  class="flex items-center justify-between p-6"
+                  class="flex items-center justify-between p-6 cursor-pointer"
+                  @click="selectedSpec = selectedSpec?.name === spec.name ? null : spec"
                 >
                   <div class="flex-1">
                     <h3 class="text-lg font-medium transition-all"
@@ -504,13 +505,10 @@
                     >
                       {{ getStatusLabel(spec.status) }}
                     </span>
-                    <button
-                      @click.stop="selectedSpec = selectedSpec?.name === spec.name ? null : spec"
-                      class="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex items-center gap-1"
-                    >
-                      <i class="fas" :class="selectedSpec?.name === spec.name ? 'fa-eye-slash' : 'fa-eye'"></i>
-                      <span>{{ selectedSpec?.name === spec.name ? 'Hide' : 'Show' }} details</span>
-                    </button>
+                    <i 
+                      class="fas fa-chevron-down text-gray-400 transition-transform duration-200"
+                      :class="selectedSpec?.name === spec.name ? 'rotate-180' : ''"
+                    ></i>
                   </div>
                 </div>
 
