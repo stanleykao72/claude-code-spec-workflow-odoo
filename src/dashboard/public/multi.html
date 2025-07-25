@@ -710,13 +710,10 @@
                           <button
                             v-if="spec.requirements.content && spec.requirements.content.length > 0"
                             @click.stop="toggleRequirementsExpanded(spec.name)"
-                            class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center"
+                            class="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex items-center gap-1"
                           >
-                            <i
-                              class="fas mr-1"
-                              :class="isRequirementsExpanded(spec.name) ? 'fa-chevron-up' : 'fa-chevron-down'"
-                            ></i>
-                            {{ isRequirementsExpanded(spec.name) ? 'Collapse' : 'Expand Details' }}
+                            <i class="fas" :class="isRequirementsExpanded(spec.name) ? 'fa-eye-slash' : 'fa-eye'"></i>
+                            <span>{{ isRequirementsExpanded(spec.name) ? 'Hide' : 'Show' }} details</span>
                           </button>
                         </div>
 
@@ -824,13 +821,10 @@
                           <button
                             v-if="spec.design.codeReuseContent && spec.design.codeReuseContent.length > 0"
                             @click.stop="toggleDesignExpanded(spec.name)"
-                            class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center"
+                            class="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex items-center gap-1"
                           >
-                            <i
-                              class="fas mr-1"
-                              :class="isDesignExpanded(spec.name) ? 'fa-chevron-up' : 'fa-chevron-down'"
-                            ></i>
-                            {{ isDesignExpanded(spec.name) ? 'Collapse' : 'Expand Details' }}
+                            <i class="fas" :class="isDesignExpanded(spec.name) ? 'fa-eye-slash' : 'fa-eye'"></i>
+                            <span>{{ isDesignExpanded(spec.name) ? 'Hide' : 'Show' }} details</span>
                           </button>
                         </div>
 
