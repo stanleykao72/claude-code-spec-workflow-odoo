@@ -7,13 +7,26 @@ import ora from 'ora';
 import { SpecWorkflowSetup } from './setup';
 import { detectProjectType, validateClaudeCode } from './utils';
 import { parseTasksFromMarkdown, generateTaskCommand } from './task-generator';
+import { readFileSync } from 'fs';
+import * as path from 'path';
+
+// Read version from package.json
+// Use require.resolve to find package.json in both dev and production
+let packageJson: { version: string };
+try {
+  const packageJsonPath = path.join(__dirname, '..', 'package.json');
+  packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+} catch {
+  // Fallback for edge cases
+  packageJson = { version: '1.2.5' };
+}
 
 const program = new Command();
 
 program
   .name('claude-spec-setup')
   .description('Set up Claude Code Spec Workflow in your project')
-  .version('1.1.2');
+  .version(packageJson.version);
 
 program
   .option('-p, --project <path>', 'Project directory', process.cwd())
