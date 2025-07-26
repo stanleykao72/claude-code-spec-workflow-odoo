@@ -94,7 +94,7 @@ function renderMarkdown(content) {
 }
 
 /**
- * Format acceptance criteria with EARS keywords as pills
+ * Format acceptance criteria with EARS keywords using syntax highlighting
  */
 function formatAcceptanceCriteria(criteria) {
   // Define EARS keywords and their styles
@@ -108,11 +108,11 @@ function formatAcceptanceCriteria(criteria) {
   
   let formattedCriteria = criteria;
   
-  // Replace EARS keywords with pill HTML
+  // Replace EARS keywords with syntax highlighted spans
   Object.entries(earsKeywords).forEach(([keyword, className]) => {
     const regex = new RegExp(`\\b(${keyword})\\b`, 'g');
     formattedCriteria = formattedCriteria.replace(regex, 
-      `<span class="ears-pill ${className}">${keyword}</span>`
+      `<span class="ears-keyword ${className}">${keyword}</span>`
     );
   });
   
