@@ -5,12 +5,15 @@
   "main": "dist/index.js",
   "bin": {
     "claude-code-spec-workflow": "dist/cli.js",
-    "claude-spec-setup": "dist/cli.js"
+    "claude-spec-setup": "dist/cli.js",
+    "claude-spec-dashboard": "dist/dashboard/cli.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && npm run copy-static",
+    "copy-static": "cp -r src/dashboard/public dist/dashboard/",
     "prepare": "npm run build",
     "dev": "ts-node src/cli.ts",
+    "dev:dashboard": "ts-node src/dashboard/cli.ts",
     "test": "jest",
     "lint": "eslint src --ext .ts",
     "format": "prettier --write src"
@@ -49,12 +52,19 @@
     "chalk": "^4.1.2",
     "commander": "^11.1.0",
     "inquirer": "^8.2.6",
-    "ora": "^5.4.1"
+    "ora": "^5.4.1",
+    "fastify": "^4.24.3",
+    "@fastify/static": "^6.12.0",
+    "@fastify/websocket": "^8.2.1",
+    "chokidar": "^3.5.3",
+    "open": "^8.4.2",
+    "simple-git": "^3.28.0"
   },
   "devDependencies": {
     "@types/inquirer": "^8.2.10",
     "@types/jest": "^29.5.8",
     "@types/node": "^20.9.0",
+    "@types/ws": "^8.5.10",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "eslint": "^8.57.1",

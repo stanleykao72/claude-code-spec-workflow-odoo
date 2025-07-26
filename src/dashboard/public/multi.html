@@ -1,0 +1,987 @@
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Claude Spec Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      // Suppress Tailwind CDN production warning for development dashboard
+      if (typeof tailwind !== 'undefined') {
+        tailwind.config = { devtools: { enabled: false } };
+      }
+    </script>
+    <script src="https://unpkg.com/petite-vue@0.4.1/dist/petite-vue.iife.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+      [v-cloak] {
+        display: none;
+      }
+      .tab-active {
+        border-bottom-color: #6366f1;
+        color: #6366f1;
+      }
+      
+      /* Remove focus ring from markdown preview buttons */
+      .markdown-preview-btn:focus {
+        outline: none;
+      }
+      
+      /* GitHub-style Markdown content */
+      .markdown-content {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+        font-size: 16px;
+        line-height: 1.5;
+        word-wrap: break-word;
+        color: #24292f;
+      }
+      
+      .dark .markdown-content {
+        color: #c9d1d9;
+      }
+      
+      .markdown-content h1,
+      .markdown-content h2,
+      .markdown-content h3,
+      .markdown-content h4,
+      .markdown-content h5,
+      .markdown-content h6 {
+        margin-top: 24px;
+        margin-bottom: 16px;
+        font-weight: 600;
+        line-height: 1.25;
+        color: #24292f;
+      }
+      
+      .dark .markdown-content h1,
+      .dark .markdown-content h2,
+      .dark .markdown-content h3,
+      .dark .markdown-content h4,
+      .dark .markdown-content h5,
+      .dark .markdown-content h6 {
+        color: #c9d1d9;
+      }
+      
+      .markdown-content h1 {
+        font-size: 2em;
+        padding-bottom: 0.3em;
+        border-bottom: 1px solid #d0d7de;
+      }
+      
+      .dark .markdown-content h1 {
+        border-bottom-color: #21262d;
+      }
+      
+      .markdown-content h2 {
+        font-size: 1.5em;
+        padding-bottom: 0.3em;
+        border-bottom: 1px solid #d0d7de;
+      }
+      
+      .dark .markdown-content h2 {
+        border-bottom-color: #21262d;
+      }
+      
+      .markdown-content h3 { font-size: 1.25em; }
+      .markdown-content h4 { font-size: 1em; }
+      .markdown-content h5 { font-size: 0.875em; }
+      .markdown-content h6 { font-size: 0.85em; color: #57606a; }
+      
+      .dark .markdown-content h6 { color: #8b949e; }
+      
+      .markdown-content p {
+        margin-top: 0;
+        margin-bottom: 16px;
+      }
+      
+      .markdown-content code {
+        padding: 0.2em 0.4em;
+        margin: 0;
+        font-size: 85%;
+        white-space: break-spaces;
+        background-color: rgba(175, 184, 193, 0.2);
+        border-radius: 6px;
+        font-family: ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+      }
+      
+      .dark .markdown-content code {
+        background-color: rgba(110, 118, 129, 0.4);
+      }
+      
+      .markdown-content pre {
+        padding: 16px;
+        overflow: auto;
+        font-size: 85%;
+        line-height: 1.45;
+        background-color: #f6f8fa;
+        border-radius: 6px;
+        margin-top: 0;
+        margin-bottom: 16px;
+      }
+      
+      .dark .markdown-content pre {
+        background-color: #161b22;
+      }
+      
+      .markdown-content pre code {
+        display: inline;
+        max-width: auto;
+        padding: 0;
+        margin: 0;
+        overflow: visible;
+        line-height: inherit;
+        word-wrap: normal;
+        background-color: transparent;
+        border: 0;
+        font-size: 100%;
+      }
+      
+      .markdown-content ul,
+      .markdown-content ol {
+        margin-top: 0;
+        margin-bottom: 16px;
+        padding-left: 2em;
+      }
+      
+      .markdown-content ul ul,
+      .markdown-content ul ol,
+      .markdown-content ol ol,
+      .markdown-content ol ul {
+        margin-bottom: 0;
+      }
+      
+      .markdown-content li {
+        margin-top: 0.25em;
+      }
+      
+      .markdown-content li + li {
+        margin-top: 0.25em;
+      }
+      
+      .markdown-content blockquote {
+        padding: 0 1em;
+        color: #57606a;
+        border-left: 0.25em solid #d0d7de;
+        margin: 0 0 16px 0;
+      }
+      
+      .dark .markdown-content blockquote {
+        color: #8b949e;
+        border-left-color: #3b434b;
+      }
+      
+      .markdown-content blockquote > :first-child {
+        margin-top: 0;
+      }
+      
+      .markdown-content blockquote > :last-child {
+        margin-bottom: 0;
+      }
+      
+      .markdown-content a {
+        color: #0969da;
+        text-decoration: none;
+        font-weight: 500;
+      }
+      
+      .dark .markdown-content a {
+        color: #58a6ff;
+      }
+      
+      .markdown-content a:hover {
+        text-decoration: underline;
+      }
+      
+      .markdown-content table {
+        display: block;
+        width: max-content;
+        max-width: 100%;
+        overflow: auto;
+        border-spacing: 0;
+        border-collapse: collapse;
+        margin-top: 0;
+        margin-bottom: 16px;
+      }
+      
+      .markdown-content table tr {
+        background-color: #ffffff;
+        border-top: 1px solid #d1d9e0;
+      }
+      
+      .dark .markdown-content table tr {
+        background-color: #0d1117;
+        border-top-color: #30363d;
+      }
+      
+      .markdown-content table tr:nth-child(2n) {
+        background-color: #f6f8fa;
+      }
+      
+      .dark .markdown-content table tr:nth-child(2n) {
+        background-color: #161b22;
+      }
+      
+      .markdown-content table th,
+      .markdown-content table td {
+        padding: 6px 13px;
+        border: 1px solid #d0d7de;
+      }
+      
+      .dark .markdown-content table th,
+      .dark .markdown-content table td {
+        border-color: #30363d;
+      }
+      
+      .markdown-content table th {
+        font-weight: 600;
+      }
+      
+      .markdown-content hr {
+        height: 0.25em;
+        padding: 0;
+        margin: 24px 0;
+        background-color: #d0d7de;
+        border: 0;
+      }
+      
+      .dark .markdown-content hr {
+        background-color: #21262d;
+      }
+      
+      .markdown-content img {
+        max-width: 100%;
+        box-sizing: content-box;
+        background-color: #ffffff;
+      }
+      
+      .dark .markdown-content img {
+        background-color: #0d1117;
+      }
+      
+      .markdown-content > *:first-child {
+        margin-top: 0 !important;
+      }
+      
+      .markdown-content > *:last-child {
+        margin-bottom: 0 !important;
+      }
+    </style>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+      };
+    </script>
+  </head>
+  <body class="h-full bg-gray-50 dark:bg-gray-900 transition-colors">
+    <div id="app" v-cloak class="h-full flex flex-col" @vue:mounted="init()">
+      <!-- Header -->
+      <header
+        class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700"
+      >
+        <div class="max-w-full px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between items-center py-3">
+            <div class="flex items-center">
+              <img src="/public/claude-icon.svg" alt="Claude" class="w-6 h-6 mr-2" />
+              <h1 class="text-xl font-bold text-gray-900 dark:text-white">
+                {{ username }}'s Dashboard
+              </h1>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-sm text-gray-600 dark:text-gray-400">
+                {{ projects.length }} projects
+              </span>
+              <!-- Theme toggle -->
+              <button
+                @click="cycleTheme"
+                class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                title="Toggle theme"
+              >
+                <svg
+                  v-if="theme === 'light'"
+                  class="w-5 h-5 text-gray-600 dark:text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                  ></path>
+                </svg>
+                <svg
+                  v-else-if="theme === 'dark'"
+                  class="w-5 h-5 text-gray-600 dark:text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                  ></path>
+                </svg>
+                <svg
+                  v-else
+                  class="w-5 h-5 text-gray-600 dark:text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  ></path>
+                </svg>
+              </button>
+              <i
+                class="fas fa-circle text-xs"
+                :class="connected ? 'text-green-500' : 'text-red-500'"
+                :title="connected ? 'Connected' : 'Disconnected'"
+              ></i>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Tab Navigation -->
+      <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div class="flex px-4 sm:px-6 lg:px-8">
+          <!-- Active Tasks Tab -->
+          <button
+            @click="switchTab('active')"
+            class="px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap flex items-center gap-2 mr-2"
+            :class="activeTab === 'active' ? 'tab-active border-indigo-600' : 'text-gray-600 dark:text-gray-400 border-transparent hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-gray-600'"
+          >
+            <i class="fas fa-bolt"></i>
+            Active Sessions
+            <span
+              v-if="activeSessionCount > 0"
+              class="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs px-2 py-0.5 rounded-full"
+              >{{ activeSessionCount }}</span
+            >
+          </button>
+
+          <!-- Divider -->
+          <div class="border-l border-gray-300 dark:border-gray-600 my-2 mx-2"></div>
+
+          <!-- Project Tabs -->
+          <div class="flex overflow-x-auto">
+            <button
+              v-for="project in projects"
+              :key="project.path"
+              @click="selectedProject = project; activeTab = 'projects'"
+              class="px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap flex items-center gap-2"
+              :class="activeTab === 'projects' && selectedProject?.path === project.path ? 'tab-active border-indigo-600' : 'text-gray-600 dark:text-gray-400 border-transparent hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-gray-600'"
+            >
+              <span
+                v-if="project.hasActiveSession"
+                class="w-2 h-2 bg-green-500 rounded-full animate-pulse"
+                title="Active Claude session"
+              ></span>
+              {{ project.name }}
+              <span
+                v-if="(project.specs?.length || 0) > 0"
+                class="text-xs text-gray-500 dark:text-gray-500"
+                >({{ getSpecsCompleted(project) }}/{{ project.specs?.length || 0 }})</span
+              >
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main content -->
+      <main class="flex-1 overflow-y-auto">
+        <!-- Active Tasks View -->
+        <div v-if="activeTab === 'active'" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div v-if="activeTasks.length === 0" class="text-center py-12">
+            <i class="fas fa-bolt text-4xl text-gray-400 dark:text-gray-600 mb-4"></i>
+            <p class="text-gray-500 dark:text-gray-400">
+              No tasks currently being worked on in active Claude sessions
+            </p>
+            <p class="text-sm text-gray-400 dark:text-gray-500 mt-2">
+              Tasks marked as "In Progress" in active sessions will appear here
+            </p>
+          </div>
+
+          <div v-else class="space-y-6">
+            <div
+              v-for="activeTask in activeTasks"
+              :key="`${activeTask.projectPath}-${activeTask.specName}-${activeTask.task.id}`"
+              class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
+              :class="{'ring-2 ring-yellow-500 dark:ring-yellow-400': activeTask.isCurrentlyActive}"
+              @click="selectProjectFromTask(activeTask.projectPath, activeTask.specName)"
+            >
+              <div class="flex items-start justify-between">
+                <div class="flex-1">
+                  <!-- Project/Spec Names - Prominent -->
+                  <div class="mb-4">
+                    <div class="flex items-center gap-2 mb-2">
+                      <span
+                        v-if="activeTask.isCurrentlyActive"
+                        class="w-3 h-3 bg-yellow-500 rounded-full animate-pulse"
+                        title="Currently active"
+                      ></span>
+                      <h2 class="text-xl font-bold text-gray-900 dark:text-white">
+                        <a
+                          @click="selectProjectFromTask(activeTask.projectPath, activeTask.specName)"
+                          class="hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer"
+                        >
+                          {{ activeTask.projectName }}: {{ activeTask.specDisplayName }}
+                        </a>
+                      </h2>
+                    </div>
+                    <!-- Git info pills -->
+                    <div class="flex items-center gap-2 mt-2">
+                      <span
+                        v-if="activeTask.gitBranch"
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+                      >
+                        <i class="fas fa-code-branch mr-1"></i>
+                        {{ activeTask.gitBranch }}
+                      </span>
+                      <span
+                        v-if="activeTask.gitCommit"
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+                      >
+                        <i class="fas fa-code-commit mr-1"></i>
+                        {{ activeTask.gitCommit }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Current Task -->
+                  <div class="mb-4">
+                    <h4 class="text-base font-medium text-gray-900 dark:text-white mb-2">
+                      Current Task: {{ activeTask.task.description }}
+                    </h4>
+                  </div>
+
+                  <!-- Task Progress -->
+                  <div class="mb-3">
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Task {{ getTaskNumber(activeTask) }} of {{ getSpecTaskCount(activeTask) }}
+                      </span>
+                      <span class="text-sm text-gray-500 dark:text-gray-400">
+                        {{ Math.round(getSpecProgress(activeTask)) }}% complete
+                      </span>
+                    </div>
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                      <div
+                        class="bg-indigo-600 dark:bg-indigo-500 h-2.5 rounded-full transition-all duration-300"
+                        :style="`width: ${getSpecProgress(activeTask)}%`"
+                      ></div>
+                    </div>
+                  </div>
+
+                  <!-- Next Task -->
+                  <div v-if="getNextTask(activeTask)" class="mb-3">
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >Next Up:</span
+                    >
+                    <span class="text-sm text-gray-600 dark:text-gray-400 ml-2">
+                      Task {{ getNextTask(activeTask).id }}: {{ getNextTask(activeTask).description
+                      }}
+                    </span>
+                  </div>
+
+                  <!-- Task Details - Flattened on one line -->
+                  <div class="flex flex-wrap gap-4 text-sm">
+                    <span
+                      v-if="activeTask.task.requirements && activeTask.task.requirements.length > 0"
+                      class="text-gray-600 dark:text-gray-400"
+                    >
+                      <i class="fas fa-clipboard-check mr-1"></i>
+                      Req: {{ activeTask.task.requirements.join(', ') }}
+                    </span>
+                    <span v-if="activeTask.task.leverage" class="text-gray-600 dark:text-gray-400">
+                      <i class="fas fa-screwdriver mr-1"></i>
+                      Leverage: {{ activeTask.task.leverage }}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="ml-4">
+                  <span
+                    class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                  >
+                    <i class="fas fa-bolt mr-1"></i> Active
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Projects View -->
+        <div
+          v-if="activeTab === 'projects' && selectedProject"
+          class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6"
+        >
+          <!-- Project Info -->
+          <div class="mb-4 flex items-center justify-between">
+            <div>
+              <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                {{ selectedProject.name }}
+              </h2>
+              <p class="text-sm text-gray-600 dark:text-gray-400">{{ selectedProject.path }}</p>
+              <!-- Git info pills -->
+              <div class="flex items-center gap-2 mt-2">
+                <span
+                  v-if="selectedProject.gitBranch"
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+                >
+                  <i class="fas fa-code-branch mr-1"></i>
+                  {{ selectedProject.gitBranch }}
+                </span>
+                <span
+                  v-if="selectedProject.gitCommit"
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+                >
+                  <i class="fas fa-code-commit mr-1"></i>
+                  {{ selectedProject.gitCommit }}
+                </span>
+              </div>
+            </div>
+            <div class="flex items-center gap-4 text-sm">
+              <div class="flex items-center gap-1.5" 
+                   :title="selectedProject.steering && selectedProject.steering.exists ? (selectedProject.steering.hasProduct && selectedProject.steering.hasTech && selectedProject.steering.hasStructure ? 'Steering documents complete' : 'Steering documents incomplete') : 'No steering documents'">
+                <i class="fas fa-compass" 
+                   :class="selectedProject.steering && selectedProject.steering.hasProduct && selectedProject.steering.hasTech && selectedProject.steering.hasStructure ? 'text-green-500' : 'text-gray-400 dark:text-gray-500'"></i>
+                <span class="hidden md:inline text-gray-600 dark:text-gray-400">Steering:</span>
+                <i class="fas fa-sm"
+                   :class="selectedProject.steering && selectedProject.steering.hasProduct && selectedProject.steering.hasTech && selectedProject.steering.hasStructure ? 'fa-check text-green-600 dark:text-green-400' : 'fa-times text-red-500 dark:text-red-400'"></i>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <i class="fas fa-file-alt text-gray-400 dark:text-gray-500"></i>
+                <span class="hidden md:inline text-gray-600 dark:text-gray-400">Specs:</span>
+                <span class="font-semibold text-gray-900 dark:text-white"
+                  >{{ selectedProject.specs?.length || 0 }}</span
+                >
+              </div>
+              <div class="flex items-center gap-1.5">
+                <i class="fas fa-spinner text-indigo-400 dark:text-indigo-500"></i>
+                <span class="hidden md:inline text-gray-600 dark:text-gray-400">In Progress:</span>
+                <span class="font-semibold text-indigo-600 dark:text-indigo-400"
+                  >{{ getSpecsInProgress(selectedProject) }}</span
+                >
+              </div>
+              <div class="flex items-center gap-1.5">
+                <i class="fas fa-check-circle text-green-400 dark:text-green-500"></i>
+                <span class="hidden md:inline text-gray-600 dark:text-gray-400">Completed:</span>
+                <span class="font-semibold text-green-600 dark:text-green-400"
+                  >{{ getSpecsCompleted(selectedProject) }}</span
+                >
+              </div>
+              <div class="flex items-center gap-1.5">
+                <i class="fas fa-tasks text-gray-400 dark:text-gray-500"></i>
+                <span class="hidden md:inline text-gray-600 dark:text-gray-400">Tasks:</span>
+                <span class="font-semibold text-gray-900 dark:text-white"
+                  >{{ getTotalTasks(selectedProject) }}</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Steering Documents Warning (Only shown when incomplete) -->
+          <div v-if="selectedProject.steering && (!selectedProject.steering.exists || !selectedProject.steering.hasProduct || !selectedProject.steering.hasTech || !selectedProject.steering.hasStructure)" 
+               class="mb-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+              </div>
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                  Steering Documents Incomplete
+                </h3>
+                <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
+                  <p>
+                    Run <button @click.stop="copyCommand('/spec-steering-setup')" class="inline-flex items-center gap-1 bg-yellow-100 dark:bg-yellow-800 px-1.5 py-0.5 rounded text-xs font-mono hover:bg-yellow-200 dark:hover:bg-yellow-700 transition-colors"><i class="fas fa-copy"></i>/spec-steering-setup</button> to create missing steering documents:
+                  </p>
+                  <ul class="list-disc list-inside mt-1">
+                    <li v-if="!selectedProject.steering.hasProduct">Product vision and goals (product.md)</li>
+                    <li v-if="!selectedProject.steering.hasTech">Technology stack and architecture (tech.md)</li>
+                    <li v-if="!selectedProject.steering.hasStructure">Project structure and patterns (structure.md)</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Specs list -->
+          <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+            <div class="divide-y divide-gray-200 dark:divide-gray-700">
+              <div
+                v-for="spec in selectedProject.specs"
+                :key="spec.name"
+                class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all"
+                :class="spec.status === 'completed' ? 'opacity-75' : ''"
+              >
+                <div 
+                  class="flex items-center justify-between p-6 cursor-pointer"
+                  @click="selectedSpec = selectedSpec?.name === spec.name ? null : spec"
+                >
+                  <div class="flex-1">
+                    <h3 class="text-lg font-medium transition-all"
+                      :class="spec.status === 'completed' ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-white'">
+                      {{ spec.displayName }}
+                    </h3>
+                    <div
+                      class="mt-1 flex items-center space-x-4 text-sm"
+                      :class="spec.status === 'completed' ? 'text-gray-400 dark:text-gray-500' : 'text-gray-500 dark:text-gray-400'"
+                    >
+                      <span>
+                        <i class="fas fa-clock mr-1"></i>
+                        {{ formatDate(spec.lastModified) }}
+                      </span>
+                      <span v-if="spec.tasks">
+                        <i class="fas fa-tasks mr-1"></i>
+                        {{ spec.tasks.completed }} / {{ spec.tasks.total }} tasks
+                      </span>
+                    </div>
+                  </div>
+                  <div class="ml-4 flex items-center gap-3">
+                    <span
+                      class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
+                      :class="getStatusClass(spec.status)"
+                    >
+                      {{ getStatusLabel(spec.status) }}
+                    </span>
+                    <i 
+                      class="fas fa-chevron-down text-gray-400 transition-transform duration-200"
+                      :class="selectedSpec?.name === spec.name ? 'rotate-180' : ''"
+                    ></i>
+                  </div>
+                </div>
+
+                <!-- Progress bar (outside clickable area) -->
+                <div v-if="spec.tasks && spec.tasks.total > 0" class="px-6 pb-3">
+                  <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div
+                      class="bg-indigo-600 dark:bg-indigo-500 h-2 rounded-full transition-all duration-300"
+                      :style="`width: ${(spec.tasks.completed / spec.tasks.total) * 100}%`"
+                    ></div>
+                  </div>
+                </div>
+
+                <!-- Expanded details (outside clickable area) -->
+                <div
+                  v-if="selectedSpec?.name === spec.name"
+                  class="px-6 pb-6 pt-4 border-t border-gray-200 dark:border-gray-700"
+                >
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                    <div>
+                      <h4 class="font-medium text-gray-900 dark:text-white mb-2">
+                        <i class="fas fa-clipboard-list mr-1"></i> Requirements
+                        <button
+                          v-if="spec.requirements"
+                          @click.stop="viewMarkdown(spec.name, 'requirements')"
+                          class="markdown-preview-btn ml-2 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
+                          title="View source"
+                        >
+                          <i class="fas fa-search"></i> <span class="font-mono text-[10px] opacity-75">.md</span>
+                        </button>
+                      </h4>
+                      <div
+                        v-if="spec.requirements"
+                        class="text-sm text-gray-600 dark:text-gray-400"
+                      >
+                        <div class="flex items-center justify-between mb-2">
+                          <p class="flex items-center">
+                            <i
+                              class="fas mr-1"
+                              :class="spec.requirements.approved ? 'fa-check-circle text-green-500' : 'fa-clock text-yellow-500'"
+                            ></i>
+                            {{ spec.requirements.content?.length || 0 }} requirements - {{
+                            spec.requirements.approved ? 'Approved' : 'Pending' }}
+                          </p>
+                          <button
+                            v-if="spec.requirements.content && spec.requirements.content.length > 0"
+                            @click.stop="toggleRequirementsExpanded(spec.name)"
+                            class="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex items-center gap-1"
+                          >
+                            <i class="fas" :class="isRequirementsExpanded(spec.name) ? 'fa-eye-slash' : 'fa-eye'"></i>
+                            <span>{{ isRequirementsExpanded(spec.name) ? 'Hide' : 'Show' }} details</span>
+                          </button>
+                        </div>
+
+                        <!-- Collapsed view - just requirement titles -->
+                        <div
+                          v-if="spec.requirements.content && Array.isArray(spec.requirements.content) && spec.requirements.content.length > 0 && !isRequirementsExpanded(spec.name)"
+                          class="space-y-1"
+                        >
+                          <div
+                            v-for="(requirement, index) in spec.requirements.content"
+                            :key="(requirement && requirement.id) || index"
+                            class="text-xs text-gray-600 dark:text-gray-400 pl-2 border-l-2 border-gray-200 dark:border-gray-600"
+                          >
+                            <span v-if="requirement && requirement.id">
+                              <strong>{{ requirement.id }}:</strong> {{ requirement.title || '[No title - Debug: ' + JSON.stringify(Object.keys(requirement)) + ']' }}
+                            </span>
+                            <span v-else-if="typeof requirement === 'string'">
+                              {{ requirement }}
+                            </span>
+                            <span v-else> DEBUG: {{ JSON.stringify(requirement) }} </span>
+                          </div>
+                        </div>
+
+                        <!-- Expanded view - full details -->
+                        <div
+                          v-if="spec.requirements.content && spec.requirements.content.length > 0 && isRequirementsExpanded(spec.name)"
+                          class="space-y-3"
+                        >
+                          <div
+                            v-for="(requirement, index) in spec.requirements.content"
+                            :key="(requirement && requirement.id) || index"
+                            class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3"
+                          >
+                            <div v-if="requirement && requirement.id">
+                              <h5 class="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                                <strong>Requirement {{ requirement.id }}:</strong> {{
+                                requirement.title || 'No title' }}
+                              </h5>
+                              <div
+                                v-if="requirement.userStory"
+                                class="text-xs text-blue-600 dark:text-blue-400 mb-2 italic"
+                              >
+                                {{ requirement.userStory }}
+                              </div>
+                              <div
+                                v-if="requirement.acceptanceCriteria && requirement.acceptanceCriteria.length > 0"
+                              >
+                                <p
+                                  class="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1"
+                                >
+                                  Acceptance Criteria:
+                                </p>
+                                <ul class="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                                  <li
+                                    v-for="criteria in requirement.acceptanceCriteria"
+                                    :key="criteria"
+                                    class="flex items-start"
+                                  >
+                                    <span class="mr-2">•</span>
+                                    <span>{{ criteria }}</span>
+                                  </li>
+                                </ul>
+                              </div>
+                            </div>
+                            <div
+                              v-else-if="typeof requirement === 'string'"
+                              class="text-xs text-gray-600 dark:text-gray-400"
+                            >
+                              {{ requirement }}
+                            </div>
+                            <div v-else class="text-xs text-gray-600 dark:text-gray-400">
+                              <pre>{{ JSON.stringify(requirement, null, 2) }}</pre>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <p v-else class="text-sm text-gray-400 dark:text-gray-500">Not created</p>
+                    </div>
+                    <div>
+                      <h4 class="font-medium text-gray-900 dark:text-white mb-2">
+                        <i class="fas fa-drafting-compass mr-1"></i> Design
+                        <button
+                          v-if="spec.design"
+                          @click.stop="viewMarkdown(spec.name, 'design')"
+                          class="markdown-preview-btn ml-2 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
+                          title="View source"
+                        >
+                          <i class="fas fa-search"></i> <span class="font-mono text-[10px] opacity-75">.md</span>
+                        </button>
+                      </h4>
+                      <div v-if="spec.design" class="text-sm text-gray-600 dark:text-gray-400">
+                        <div class="flex items-center justify-between mb-2">
+                          <p class="flex items-center">
+                            <i
+                              class="fas mr-1"
+                              :class="spec.design.approved ? 'fa-check-circle text-green-500' : 'fa-clock text-yellow-500'"
+                            ></i>
+                            {{ spec.design.approved ? 'Approved' : 'Pending' }}
+                            <i
+                              class="fas ml-2"
+                              :class="spec.design.hasCodeReuseAnalysis ? 'fa-check-circle text-green-500' : 'fa-times-circle text-red-500'"
+                            ></i>
+                            <span class="ml-1">{{ spec.design.hasCodeReuseAnalysis ? 'Has code reuse analysis' : 'No code reuse analysis' }}</span>
+                          </p>
+                          <button
+                            v-if="spec.design.codeReuseContent && spec.design.codeReuseContent.length > 0"
+                            @click.stop="toggleDesignExpanded(spec.name)"
+                            class="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex items-center gap-1"
+                          >
+                            <i class="fas" :class="isDesignExpanded(spec.name) ? 'fa-eye-slash' : 'fa-eye'"></i>
+                            <span>{{ isDesignExpanded(spec.name) ? 'Hide' : 'Show' }} details</span>
+                          </button>
+                        </div>
+
+                        <div
+                          v-if="spec.design.codeReuseContent && spec.design.codeReuseContent.length > 0 && isDesignExpanded(spec.name)"
+                          class="space-y-2 mt-2"
+                        >
+                          <div
+                            v-for="category in spec.design.codeReuseContent"
+                            :key="category.title"
+                            class="bg-green-50 dark:bg-green-900/20 rounded-lg p-2"
+                          >
+                            <h6 class="text-xs font-medium text-green-700 dark:text-green-300 mb-1">
+                              {{ category.title }}
+                            </h6>
+                            <ul class="text-xs text-green-600 dark:text-green-400 space-y-0.5">
+                              <li
+                                v-for="item in category.items"
+                                :key="item"
+                                class="flex items-start"
+                              >
+                                <span
+                                  class="mr-1.5 mt-0.5 w-1 h-1 bg-green-500 rounded-full flex-shrink-0"
+                                ></span>
+                                <span>{{ item }}</span>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                      <p v-else class="text-sm text-gray-400 dark:text-gray-500">Not created</p>
+                    </div>
+                  </div>
+
+                  <!-- Task list -->
+                  <div v-if="spec.tasks && spec.tasks.taskList.length > 0" class="mt-4">
+                    <div class="mb-2 flex items-center justify-between">
+                      <h4 class="font-medium text-gray-700 dark:text-gray-300">
+                        <i class="fas fa-tasks mr-1"></i> Tasks ({{ spec.tasks.total }} tasks -
+                        <i
+                          class="fas mr-1"
+                          :class="spec.tasks.approved ? 'fa-check-circle text-green-500' : 'fa-clock text-yellow-500'"
+                        ></i>
+                        {{ spec.tasks.approved ? 'Approved' : 'Pending' }})
+                        <button
+                          @click.stop="viewMarkdown(spec.name, 'tasks')"
+                          class="markdown-preview-btn ml-2 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
+                          title="View source"
+                        >
+                          <i class="fas fa-search"></i> <span class="font-mono text-[10px] opacity-75">.md</span>
+                        </button>
+                      </h4>
+                      <button
+                        v-if="getCompletedTaskCount(spec) > 0"
+                        @click.stop="toggleCompletedTasks(spec.name)"
+                        class="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex items-center gap-1"
+                      >
+                        <i class="fas" :class="areCompletedTasksCollapsed(spec.name) ? 'fa-eye' : 'fa-eye-slash'"></i>
+                        <span>{{ areCompletedTasksCollapsed(spec.name) ? 'Show' : 'Hide' }} {{ getCompletedTaskCount(spec) }} completed</span>
+                      </button>
+                    </div>
+                    <div class="space-y-1">
+                      <div
+                        v-for="task in getVisibleTasks(spec)"
+                        :key="task.id"
+                        class="flex items-start p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-opacity"
+                        :class="{
+                          'bg-yellow-50 dark:bg-yellow-900/50 border-2 border-yellow-500 dark:border-yellow-400': spec.tasks.inProgress === task.id,
+                          'opacity-60': task.completed
+                        }"
+                      >
+                        <i
+                          class="fas mt-0.5 mr-2"
+                          :class="task.completed ? 'fa-check-square text-green-500' : 'fa-square text-gray-400'"
+                        ></i>
+                        <div class="flex-1">
+                          <div class="flex items-center flex-wrap gap-2">
+                            <span class="font-medium text-sm"
+                              :class="task.completed ? 'text-gray-500 dark:text-gray-500 line-through' : 'text-gray-900 dark:text-gray-200'"
+                              >Task {{ task.id }}:</span
+                            >
+                            <span class="text-sm"
+                              :class="task.completed ? 'text-gray-500 dark:text-gray-500 line-through' : 'text-gray-700 dark:text-gray-300'"
+                              >{{ task.description }}</span
+                            >
+                            <span
+                              v-if="spec.tasks.inProgress === task.id"
+                              class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-500 dark:text-yellow-900"
+                            >
+                              In Progress
+                            </span>
+                            <button
+                              v-if="!task.completed"
+                              @click.stop="copyTaskCommand(spec.name, task.id)"
+                              class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
+                              :title="`Copy command: /spec-exec ${spec.name} ${task.id}`"
+                            >
+                              <i class="fas fa-copy"></i>
+                              <span>/spec-exec</span>
+                            </button>
+                            <span
+                              v-if="task.requirements && task.requirements.length > 0"
+                              class="text-xs text-gray-500 dark:text-gray-400"
+                            >
+                              Req: {{ task.requirements.join(', ') }}
+                            </span>
+                            <span
+                              v-if="task.leverage"
+                              class="text-xs text-gray-500 dark:text-gray-400"
+                            >
+                              <i class="fas fa-screwdriver mr-1"></i> {{ task.leverage }}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          v-if="activeTab === 'projects' && !selectedProject"
+          class="flex items-center justify-center h-full"
+        >
+          <p class="text-gray-500 dark:text-gray-400">Select a project to view specs</p>
+        </div>
+      </main>
+      
+      <!-- Markdown Preview Modal -->
+      <div v-if="markdownPreview.show" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50" @click.self="closeMarkdownPreview()">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col" @click.stop>
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+          <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+            <i class="fas fa-file-alt mr-2"></i>{{ markdownPreview.title }}
+          </h3>
+          <button 
+            @click="closeMarkdownPreview()" 
+            class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+          >
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+        
+        <!-- Modal Content -->
+        <div class="flex-1 overflow-y-auto p-6">
+          <div v-if="markdownPreview.loading" class="flex items-center justify-center py-12">
+            <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
+          </div>
+          <div v-else class="prose dark:prose-invert max-w-none">
+            <div v-html="renderMarkdown(markdownPreview.content)" class="markdown-content"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/public/shared-components.js"></script>
+    <script src="/public/multi-app.js"></script>
+  </body>
+</html>
