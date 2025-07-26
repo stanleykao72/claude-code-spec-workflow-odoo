@@ -153,7 +153,7 @@ export class SpecParser {
       
       // If we haven't found a display name yet, try to extract from design
       if (spec.displayName === this.formatDisplayName(name)) {
-        const titleMatch = content.match(/^# (.+?)(?:\s+Design)?$/m);
+        const titleMatch = content.match(/^# (.+?)(?:\s+Design(?:\s+Document)?)?$/m);
         if (titleMatch && titleMatch[1].trim() && titleMatch[1].trim().toLowerCase() !== 'design') {
           spec.displayName = titleMatch[1].trim();
         }
@@ -181,7 +181,7 @@ export class SpecParser {
       
       // If we still haven't found a display name, try to extract from tasks
       if (spec.displayName === this.formatDisplayName(name)) {
-        const titleMatch = content.match(/^# (.+?)(?:\s+Tasks)?$/m);
+        const titleMatch = content.match(/^# (.+?)(?:\s+Tasks(?:\s+Plan)?)?$/m);
         if (titleMatch && titleMatch[1].trim() && titleMatch[1].trim().toLowerCase() !== 'tasks') {
           spec.displayName = titleMatch[1].trim();
         }
