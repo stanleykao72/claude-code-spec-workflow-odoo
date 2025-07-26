@@ -5,23 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.3.0] - 2025-07-26
 
 ### Added
-- **Real-Time Dashboard**: Integrated web-based dashboard for monitoring specs and tasks
+- **Bug Fix Workflow**: Complete 5-command workflow for systematic bug handling
+  - New `/bug-report`, `/bug-analyze`, `/bug-fix`, `/bug-test`, `/bug-verify` commands
+  - Comprehensive templates for bug reporting, analysis, and verification
+  - Streamlined process for identifying, fixing, and validating bug fixes
+- **Real-Time Dashboard**: Web-based monitoring dashboard for specs and tasks
   - `claude-spec-dashboard` command launches a lightweight Fastify server
   - Built with petite-vue (6kb) and Tailwind CSS for optimal performance
   - Real-time updates via WebSocket when specs/tasks change
   - Visual progress tracking with expandable task lists
   - Shows task leverage references and requirements
   - Git branch and commit information display
+  - Steering documents status integration with visual indicators
+- **Dynamic Version Management**: CLI now dynamically reads version from package.json with fallback handling
+
+### Changed
+- **Architecture Simplification**: Removed CLAUDE.md generation and integrated workflow instructions directly into individual command files
+  - Streamlined documentation structure and setup process
+  - Enhanced command organization and maintainability
+- **Documentation Updates**: Updated README and CLI output for NPX-based task command generation approach
 
 ### Enhanced
-- **Dashboard Steering Documents Integration**: Added steering documents status to dashboard
-  - New steering status card shows product.md, tech.md, and structure.md availability
-  - Visual indicators for each steering document type
-  - Prompts users to run `/spec-steering-setup` when documents are missing
-  - Steering status displayed prominently before requirements/design/tasks
+- **Dashboard Display**: Improved spec display name extraction to check all document types for better presentation
+- **Steering Documents Integration**: Added steering documents status to dashboard with prompts to run `/spec-steering-setup` when missing
 
 ## [1.2.5] - 2025-07-24
 
