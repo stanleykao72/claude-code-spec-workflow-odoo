@@ -474,3 +474,216 @@ Suggested guidelines:
 - Follow language-specific documentation conventions
 `;
 }
+
+export function getBugReportTemplate(): string {
+  return `# Bug Report
+
+## Bug Summary
+[Provide a clear, concise description of the bug]
+
+## Bug Details
+
+### Expected Behavior
+[Describe what should happen]
+
+### Actual Behavior  
+[Describe what actually happens]
+
+### Steps to Reproduce
+1. [Step 1]
+2. [Step 2]
+3. [Step 3]
+4. [Observe the issue]
+
+### Environment
+- **Version**: [Application/system version]
+- **Platform**: [OS, browser, device, etc.]
+- **Configuration**: [Relevant settings or environment details]
+
+## Impact Assessment
+
+### Severity
+- [ ] Critical - System unusable
+- [ ] High - Major functionality broken
+- [ ] Medium - Feature impaired but workaround exists
+- [ ] Low - Minor issue or cosmetic
+
+### Affected Users
+[Who is impacted by this bug?]
+
+### Affected Features
+[What functionality is broken or impaired?]
+
+## Additional Context
+
+### Error Messages
+\`\`\`
+[Include any error messages, stack traces, or logs]
+\`\`\`
+
+### Screenshots/Media
+[Describe any visual evidence or attach files]
+
+### Related Issues
+[Reference any related bugs, features, or discussions]
+
+## Initial Analysis
+
+### Suspected Root Cause
+[Initial thoughts on what might be causing the issue]
+
+### Affected Components
+[List files, modules, or systems that might be involved]
+`;
+}
+
+export function getBugAnalysisTemplate(): string {
+  return `# Bug Analysis
+
+## Root Cause Analysis
+
+### Investigation Summary
+[Overview of the investigation process and findings]
+
+### Root Cause
+[The underlying cause of the bug]
+
+### Contributing Factors
+[Any secondary factors that led to or exacerbated the issue]
+
+## Technical Details
+
+### Affected Code Locations
+[List specific files, functions, or code sections involved]
+
+- **File**: \`path/to/file.ext\`
+  - **Function/Method**: \`functionName()\`
+  - **Lines**: \`123-145\`
+  - **Issue**: [Description of the problem in this location]
+
+### Data Flow Analysis
+[How data moves through the system and where it breaks]
+
+### Dependencies
+[External libraries, services, or components involved]
+
+## Impact Analysis
+
+### Direct Impact
+[Immediate effects of the bug]
+
+### Indirect Impact  
+[Secondary effects or potential cascading issues]
+
+### Risk Assessment
+[Risks if the bug is not fixed]
+
+## Solution Approach
+
+### Fix Strategy
+[High-level approach to solving the problem]
+
+### Alternative Solutions
+[Other possible approaches considered]
+
+### Risks and Trade-offs
+[Potential risks of the chosen solution]
+
+## Implementation Plan
+
+### Changes Required
+[Specific modifications needed]
+
+1. **Change 1**: [Description]
+   - File: \`path/to/file\`
+   - Modification: [What needs to be changed]
+
+2. **Change 2**: [Description]
+   - File: \`path/to/file\`
+   - Modification: [What needs to be changed]
+
+### Testing Strategy
+[How to verify the fix works]
+
+### Rollback Plan
+[How to revert if the fix causes issues]
+`;
+}
+
+export function getBugVerificationTemplate(): string {
+  return `# Bug Verification
+
+## Fix Implementation Summary
+[Brief description of what was changed to fix the bug]
+
+## Test Results
+
+### Original Bug Reproduction
+- [ ] **Before Fix**: Bug successfully reproduced
+- [ ] **After Fix**: Bug no longer occurs
+
+### Reproduction Steps Verification
+[Re-test the original steps that caused the bug]
+
+1. [Step 1] - ✅ Works as expected
+2. [Step 2] - ✅ Works as expected  
+3. [Step 3] - ✅ Works as expected
+4. [Expected outcome] - ✅ Achieved
+
+### Regression Testing
+[Verify related functionality still works]
+
+- [ ] **Related Feature 1**: [Test result]
+- [ ] **Related Feature 2**: [Test result]
+- [ ] **Integration Points**: [Test result]
+
+### Edge Case Testing
+[Test boundary conditions and edge cases]
+
+- [ ] **Edge Case 1**: [Description and result]
+- [ ] **Edge Case 2**: [Description and result]
+- [ ] **Error Conditions**: [How errors are handled]
+
+## Code Quality Checks
+
+### Automated Tests
+- [ ] **Unit Tests**: All passing
+- [ ] **Integration Tests**: All passing
+- [ ] **Linting**: No issues
+- [ ] **Type Checking**: No errors
+
+### Manual Code Review
+- [ ] **Code Style**: Follows project conventions
+- [ ] **Error Handling**: Appropriate error handling added
+- [ ] **Performance**: No performance regressions
+- [ ] **Security**: No security implications
+
+## Deployment Verification
+
+### Pre-deployment
+- [ ] **Local Testing**: Complete
+- [ ] **Staging Environment**: Tested
+- [ ] **Database Migrations**: Verified (if applicable)
+
+### Post-deployment
+- [ ] **Production Verification**: Bug fix confirmed in production
+- [ ] **Monitoring**: No new errors or alerts
+- [ ] **User Feedback**: Positive confirmation from affected users
+
+## Documentation Updates
+- [ ] **Code Comments**: Added where necessary
+- [ ] **README**: Updated if needed
+- [ ] **Changelog**: Bug fix documented
+- [ ] **Known Issues**: Updated if applicable
+
+## Closure Checklist
+- [ ] **Original issue resolved**: Bug no longer occurs
+- [ ] **No regressions introduced**: Related functionality intact
+- [ ] **Tests passing**: All automated tests pass
+- [ ] **Documentation updated**: Relevant docs reflect changes
+- [ ] **Stakeholders notified**: Relevant parties informed of resolution
+
+## Notes
+[Any additional observations, lessons learned, or follow-up actions needed]
+`;
+}

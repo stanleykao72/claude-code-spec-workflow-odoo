@@ -18,7 +18,7 @@ try {
   packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
 } catch {
   // Fallback for edge cases
-  packageJson = { version: '1.2.5' };
+  packageJson = { version: '1.3.0' };
 }
 
 const program = new Command();
@@ -85,7 +85,7 @@ program
         console.log();
         console.log(chalk.cyan('This will create:'));
         console.log(chalk.gray('  📁 .claude/ directory structure'));
-        console.log(chalk.gray('  📝 8 slash commands for spec workflow'));
+        console.log(chalk.gray('  📝 13 slash commands (8 spec workflow + 5 bug fix workflow)'));
         console.log(chalk.gray('  🤖 Auto-generated task commands'));
         console.log(chalk.gray('  📋 Document templates'));
         console.log(chalk.gray('  🔧 NPX-based task command generation'));
@@ -118,6 +118,7 @@ program
       console.log(chalk.green.bold('✅ Spec Workflow installed successfully!'));
       console.log();
       console.log(chalk.cyan('Available commands:'));
+      console.log(chalk.white.bold('📊 Spec Workflow (for new features):'));
       console.log(chalk.gray('  /spec-create <feature-name>  - Create a new spec'));
       console.log(chalk.gray('  /spec-requirements           - Generate requirements'));
       console.log(chalk.gray('  /spec-design                 - Generate design'));
@@ -127,9 +128,17 @@ program
       console.log(chalk.gray('  /spec-status                 - Show status'));
       console.log(chalk.gray('  /spec-list                   - List all specs'));
       console.log();
+      console.log(chalk.white.bold('🐛 Bug Fix Workflow (for bug fixes):'));
+      console.log(chalk.gray('  /bug-create <bug-name>       - Start bug fix'));
+      console.log(chalk.gray('  /bug-analyze                 - Analyze root cause'));
+      console.log(chalk.gray('  /bug-fix                     - Implement fix'));
+      console.log(chalk.gray('  /bug-verify                  - Verify fix'));
+      console.log(chalk.gray('  /bug-status                  - Show bug status'));
+      console.log();
       console.log(chalk.yellow('Next steps:'));
       console.log(chalk.gray('1. Run: claude'));
-      console.log(chalk.gray('2. Try: /spec-create my-feature'));
+      console.log(chalk.gray('2. For new features: /spec-create my-feature'));
+      console.log(chalk.gray('3. For bug fixes: /bug-create my-bug'));
       console.log();
       console.log(chalk.blue('📖 For help, see the README or run /spec-list'));
 

@@ -874,3 +874,525 @@ After steering documents are created, they will automatically be referenced duri
 - \`/spec-execute\` - Implement following all conventions
 `;
 }
+
+export function getBugCreateCommand(): string {
+  return `# Bug Create Command
+
+Initialize a new bug fix workflow for tracking and resolving bugs.
+
+## Usage
+\`\`\`
+/bug-create <bug-name> [description]
+\`\`\`
+
+## Workflow Overview
+
+This is the **streamlined bug fix workflow** - a lighter alternative to the full spec workflow for addressing bugs and issues.
+
+### Bug Fix Phases
+1. **Report Phase** (This command) - Document the bug
+2. **Analysis Phase** (\`/bug-analyze\`) - Investigate root cause
+3. **Fix Phase** (\`/bug-fix\`) - Implement solution
+4. **Verification Phase** (\`/bug-verify\`) - Confirm resolution
+
+## Instructions
+
+You are helping create a new bug fix workflow. This is designed for smaller fixes that don't need the full spec workflow overhead.
+
+1. **Create Directory Structure**
+   - Create \`.claude/bugs/{bug-name}/\` directory
+   - Initialize report.md, analysis.md, and verification.md files
+
+2. **Load Context** (if available)
+   - Check for .claude/steering/tech.md for technical context
+   - Check for .claude/steering/structure.md for project patterns
+   - Load available steering documents to understand project context
+
+3. **Gather Bug Information**
+   - Take the bug name and optional description
+   - Guide user through bug report creation
+   - Use structured format for consistency
+
+4. **Generate Bug Report**
+   - Use the bug report template from \`.claude/templates/bug-report-template.md\`
+   - Create detailed bug description including:
+     - Expected vs actual behavior
+     - Steps to reproduce
+     - Environment details
+     - Impact assessment
+     - Initial analysis
+
+### Bug Report Structure
+\`\`\`markdown
+## Bug Summary
+[Clear description of the issue]
+
+## Bug Details
+- Expected Behavior: [What should happen]
+- Actual Behavior: [What actually happens]
+- Steps to Reproduce: [Numbered steps]
+- Environment: [Platform, version, config details]
+
+## Impact Assessment
+- Severity: [Critical/High/Medium/Low]
+- Affected Users: [Who is impacted]
+- Affected Features: [What functionality is broken]
+
+## Initial Analysis
+- Suspected Root Cause: [Initial thoughts]
+- Affected Components: [Files/modules that might be involved]
+\`\`\`
+
+5. **Request User Input**
+   - Ask for bug details if not provided in description
+   - Guide through each section of the bug report
+   - Ensure all required information is captured
+
+6. **Save and Proceed**
+   - Save the completed bug report to report.md
+   - Ask: "Is this bug report accurate? If so, we can move on to the analysis."
+   - Wait for explicit approval before proceeding
+
+## Key Differences from Spec Workflow
+
+- **Faster**: No requirements/design phases
+- **Targeted**: Focus on fixing existing functionality
+- **Streamlined**: 4 phases instead of detailed workflow
+- **Practical**: Direct from problem to solution
+
+## Rules
+
+- Only create ONE bug fix at a time
+- Always use kebab-case for bug names
+- Must analyze existing codebase during investigation
+- Follow existing project patterns and conventions
+- Do not proceed without user approval between phases
+
+## Error Handling
+
+If issues arise during the workflow:
+- **Bug unclear**: Ask targeted questions to clarify
+- **Too complex**: Suggest breaking into smaller bugs or using spec workflow
+- **Reproduction blocked**: Document blockers and suggest alternatives
+
+## Example
+\`\`\`
+/bug-create login-timeout "Users getting logged out too quickly"
+\`\`\`
+
+## Next Steps
+After bug report approval, proceed to \`/bug-analyze\` phase.
+`;
+}
+
+export function getBugAnalyzeCommand(): string {
+  return `# Bug Analyze Command
+
+Investigate and analyze the root cause of a reported bug.
+
+## Usage
+\`\`\`
+/bug-analyze [bug-name]
+\`\`\`
+
+## Phase Overview
+**Your Role**: Investigate the bug and identify the root cause
+
+This is Phase 2 of the bug fix workflow. Your goal is to understand why the bug is happening and plan the fix approach.
+
+## Instructions
+
+You are working on the analysis phase of the bug fix workflow.
+
+1. **Prerequisites**
+   - Ensure report.md exists and is complete
+   - Load the bug report for context
+   - **Load steering documents**: 
+     - Check for .claude/steering/tech.md for technical patterns
+     - Check for .claude/steering/structure.md for project organization
+   - Understand the reported issue completely
+
+2. **Investigation Process**
+   1. **Code Investigation**
+      - Search codebase for relevant functionality
+      - Identify files, functions, and components involved
+      - Map data flow and identify potential failure points
+      - Look for similar issues or patterns
+
+   2. **Root Cause Analysis**
+      - Determine the underlying cause of the bug
+      - Identify contributing factors
+      - Understand why existing tests didn't catch this
+      - Assess impact and risks
+
+   3. **Solution Planning**
+      - Design fix strategy
+      - Consider alternative approaches
+      - Plan testing approach
+      - Identify potential risks
+
+3. **Create Analysis Document**
+   - Use the bug analysis template
+   - Document investigation findings
+   - Include specific code locations affected
+   - Provide implementation plan for the fix
+
+### Analysis Structure
+\`\`\`markdown
+## Root Cause Analysis
+- Investigation Summary: [What you found]
+- Root Cause: [The underlying issue]
+- Contributing Factors: [Secondary issues]
+
+## Technical Details
+- Affected Code Locations: [Specific files and functions]
+- Data Flow Analysis: [How data moves and where it breaks]
+- Dependencies: [External factors involved]
+
+## Solution Approach
+- Fix Strategy: [How to solve it]
+- Alternative Solutions: [Other options considered]
+- Implementation Plan: [Specific changes needed]
+\`\`\`
+
+4. **Investigation Guidelines**
+   - **Follow tech.md standards**: Understand existing patterns before proposing changes
+   - **Respect structure.md**: Know where fixes should be placed
+   - **Search thoroughly**: Look for existing utilities, similar bugs, related code
+   - **Think systematically**: Consider data flow, error handling, edge cases
+   - **Plan for testing**: How will you verify the fix works
+
+5. **Approval Process**
+   - Present the complete analysis document
+   - **Show code reuse opportunities**: Note existing utilities that can help
+   - **Highlight integration points**: Show how fix fits with existing architecture
+   - Ask: "Does this analysis look correct? If so, we can proceed to implement the fix."
+   - Incorporate feedback and revisions
+   - Continue until explicit approval
+   - **CRITICAL**: Do not proceed without explicit approval
+
+## Analysis Guidelines
+
+### Code Investigation
+- Use search tools to find relevant code
+- Understand existing error handling patterns
+- Look for similar functionality that works correctly
+- Check for recent changes that might have caused the issue
+
+### Root Cause Identification
+- Don't just fix symptoms - find the real cause
+- Consider edge cases and error conditions
+- Look for design issues vs implementation bugs
+- Understand the intended behavior vs actual behavior
+
+### Solution Design
+- Prefer minimal, targeted fixes
+- Reuse existing patterns and utilities
+- Consider backwards compatibility
+- Plan for future prevention of similar bugs
+
+## Critical Rules
+- **NEVER** proceed to the next phase without explicit user approval
+- Accept only clear affirmative responses: "yes", "approved", "looks good", etc.
+- If user provides feedback, make revisions and ask for approval again
+- Continue revision cycle until explicit approval is received
+
+## Next Phase
+After approval, proceed to \`/bug-fix\`.
+`;
+}
+
+export function getBugFixCommand(): string {
+  return `# Bug Fix Command
+
+Implement the fix for the analyzed bug.
+
+## Usage
+\`\`\`
+/bug-fix [bug-name]
+\`\`\`
+
+## Phase Overview
+**Your Role**: Implement the solution based on the approved analysis
+
+This is Phase 3 of the bug fix workflow. Your goal is to implement the fix while following project conventions.
+
+## Instructions
+
+You are working on the fix implementation phase of the bug fix workflow.
+
+1. **Prerequisites**
+   - Ensure analysis.md exists and is approved
+   - Load report.md and analysis.md for complete context
+   - **Load steering documents**: 
+     - Load .claude/steering/tech.md for technical patterns
+     - Load .claude/steering/structure.md for project conventions
+   - Understand the planned fix approach completely
+
+2. **Implementation Process**
+   1. **Follow the Implementation Plan**
+      - Execute changes exactly as outlined in analysis.md
+      - Make targeted, minimal changes
+      - Follow existing code patterns and conventions
+
+   2. **Code Changes**
+      - Implement the fix following project standards
+      - Add appropriate error handling
+      - Include logging or debugging aids if needed
+      - Update or add tests as specified
+
+   3. **Quality Checks**
+      - Verify fix addresses the root cause
+      - Ensure no unintended side effects
+      - Follow code style and conventions
+      - Run tests and checks
+
+3. **Implementation Guidelines**
+   - **Follow steering documents**: Adhere to patterns in tech.md and conventions in structure.md
+   - **Make minimal changes**: Fix only what's necessary
+   - **Preserve existing behavior**: Don't break unrelated functionality
+   - **Use existing patterns**: Leverage established code patterns and utilities
+   - **Add appropriate tests**: Ensure the bug won't return
+
+4. **Testing Requirements**
+   - Test the specific bug scenario
+   - Verify related functionality still works
+   - Run existing test suite if available
+   - Add regression tests for this bug
+
+5. **Documentation Updates**
+   - Update code comments if needed
+   - Document any non-obvious changes
+   - Update error messages if applicable
+
+## Implementation Rules
+
+### Code Quality
+- Follow project coding standards
+- Use existing utilities and patterns
+- Add proper error handling
+- Include meaningful comments for complex logic
+
+### Testing Strategy
+- Test the original bug reproduction steps
+- Verify fix doesn't break related functionality
+- Add tests to prevent regression
+- Run full test suite if available
+
+### Change Management
+- Make atomic, focused changes
+- Document the fix approach
+- Preserve existing API contracts
+- Consider backwards compatibility
+
+## Completion Process
+
+1. **Implement the Fix**
+   - Make the necessary code changes
+   - Follow the implementation plan from analysis.md
+   - Ensure code follows project conventions
+
+2. **Verify Implementation**
+   - Test that the original bug is resolved
+   - Verify no new issues introduced
+   - Run relevant tests and checks
+
+3. **Update Documentation**
+   - Document the changes made
+   - Update any relevant comments or docs
+
+4. **Confirm Completion**
+   - Present summary of changes made
+   - Show test results confirming fix
+   - Ask: "The fix has been implemented. Should we proceed to verification?"
+   - **CRITICAL**: Wait for user approval before proceeding
+
+## Critical Rules
+- **ONLY** implement the fix outlined in the approved analysis
+- **ALWAYS** test the fix thoroughly
+- **NEVER** make changes beyond the planned fix scope
+- **MUST** wait for user approval before proceeding to verification
+
+## Next Phase
+After approval, proceed to \`/bug-verify\`.
+`;
+}
+
+export function getBugVerifyCommand(): string {
+  return `# Bug Verify Command
+
+Verify that the bug fix works correctly and doesn't introduce regressions.
+
+## Usage
+\`\`\`
+/bug-verify [bug-name]
+\`\`\`
+
+## Phase Overview
+**Your Role**: Thoroughly verify the fix works and document the results
+
+This is Phase 4 (final) of the bug fix workflow. Your goal is to confirm the bug is resolved and the fix is safe.
+
+## Instructions
+
+You are working on the verification phase of the bug fix workflow.
+
+1. **Prerequisites**
+   - Ensure the fix has been implemented
+   - Load report.md, analysis.md for context
+   - Understand what was changed and why
+   - Have the verification plan from analysis.md
+
+2. **Verification Process**
+   1. **Original Bug Testing**
+      - Reproduce the original steps from report.md
+      - Verify the bug no longer occurs
+      - Test edge cases mentioned in the analysis
+
+   2. **Regression Testing**
+      - Test related functionality
+      - Verify no new bugs introduced
+      - Check integration points
+      - Run automated tests if available
+
+   3. **Code Quality Verification**
+      - Review code changes for quality
+      - Verify adherence to project standards
+      - Check error handling is appropriate
+      - Ensure tests are adequate
+
+3. **Verification Checklist**
+   - **Original Issue**: Bug reproduction steps no longer cause the issue
+   - **Related Features**: No regression in related functionality
+   - **Edge Cases**: Boundary conditions work correctly
+   - **Error Handling**: Errors are handled gracefully
+   - **Tests**: All tests pass, new tests added for regression prevention
+   - **Code Quality**: Changes follow project conventions
+
+4. **Create Verification Document**
+   - Use the bug verification template
+   - Document all test results
+   - Include verification checklist completion
+   - Note any observations or follow-up needed
+
+### Verification Structure
+\`\`\`markdown
+## Fix Implementation Summary
+[Brief description of what was changed]
+
+## Test Results
+- Original Bug Reproduction: [Before/After results]
+- Regression Testing: [Related functionality status]
+- Edge Case Testing: [Boundary condition results]
+
+## Code Quality Checks
+- Automated Tests: [Test suite results]
+- Code Style: [Standards compliance]
+- Error Handling: [Error scenario testing]
+
+## Closure Checklist
+- [ ] Original issue resolved
+- [ ] No regressions introduced
+- [ ] Tests passing
+- [ ] Documentation updated
+\`\`\`
+
+5. **Final Approval**
+   - Present complete verification results
+   - Show that all checks pass
+   - Ask: "The bug fix has been verified successfully. Is this bug resolved?"
+   - Get final confirmation before closing
+
+## Verification Guidelines
+
+### Testing Approach
+- Test the exact scenario from the bug report
+- Verify fix works in different environments
+- Check that related features still work
+- Test error conditions and edge cases
+
+### Quality Verification
+- Code follows project standards
+- Appropriate error handling added
+- No security implications
+- Performance not negatively impacted
+
+### Documentation Check
+- Code comments updated if needed
+- Any relevant docs reflect changes
+- Bug fix documented appropriately
+
+## Completion Criteria
+
+The bug fix is complete when:
+- ✅ Original bug no longer occurs
+- ✅ No regressions introduced
+- ✅ All tests pass
+- ✅ Code follows project standards
+- ✅ Documentation is up to date
+- ✅ User confirms resolution
+
+## Critical Rules
+- **THOROUGHLY** test the original bug scenario
+- **VERIFY** no regressions in related functionality
+- **DOCUMENT** all verification results
+- **GET** final user approval before considering bug resolved
+
+## Success Criteria
+A successful bug fix includes:
+- ✅ Root cause identified and addressed
+- ✅ Minimal, targeted fix implemented
+- ✅ Comprehensive verification completed
+- ✅ No regressions introduced
+- ✅ Appropriate tests added
+- ✅ User confirms issue resolved
+`;
+}
+
+export function getBugStatusCommand(): string {
+  return `# Bug Status Command
+
+Show current status of all bug fixes or a specific bug fix.
+
+## Usage
+\`\`\`
+/bug-status [bug-name]
+\`\`\`
+
+## Instructions
+Display the current status of bug fix workflows.
+
+1. **If no bug-name provided:**
+   - List all bugs in \`.claude/bugs/\` directory
+   - Show current phase for each bug
+   - Display completion status
+
+2. **If bug-name provided:**
+   - Show detailed status for that bug
+   - Display current workflow phase
+   - Show completed vs pending phases
+   - List next recommended actions
+
+3. **Status Information:**
+   - Report: [Complete/In Progress/Pending]
+   - Analysis: [Complete/In Progress/Pending]
+   - Fix: [Complete/In Progress/Pending]
+   - Verification: [Complete/In Progress/Pending]
+
+4. **Output Format:**
+   \`\`\`
+   Bug: login-timeout
+   Phase: Fix Implementation
+   Progress: Report ✅ | Analysis ✅ | Fix 🔄 | Verification ⏳
+   Status: Implementing fix for session timeout issue
+   Next: Complete implementation and verify fix works
+   \`\`\`
+
+## Bug Fix Phases
+- **Report**: Bug description and impact assessment
+- **Analysis**: Root cause investigation and solution planning
+- **Fix**: Implementation of the planned solution
+- **Verification**: Testing and confirmation of resolution
+- **Complete**: Bug fully resolved and verified
+`;
+}

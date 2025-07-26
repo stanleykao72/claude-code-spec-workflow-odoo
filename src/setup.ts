@@ -8,12 +8,20 @@ import {
   getSpecExecuteCommand,
   getSpecStatusCommand,
   getSpecListCommand,
-  getSpecSteeringSetupCommand
+  getSpecSteeringSetupCommand,
+  getBugCreateCommand,
+  getBugAnalyzeCommand,
+  getBugFixCommand,
+  getBugVerifyCommand,
+  getBugStatusCommand
 } from './commands';
 import {
   getRequirementsTemplate,
   getDesignTemplate,
-  getTasksTemplate
+  getTasksTemplate,
+  getBugReportTemplate,
+  getBugAnalysisTemplate,
+  getBugVerificationTemplate
 } from './templates';
 // CLAUDE.md generation removed - all workflow instructions now in individual commands
 // Script imports removed in v1.2.5 - task command generation now uses NPX command
@@ -26,6 +34,7 @@ export class SpecWorkflowSetup {
   private templatesDir: string;
   // scriptsDir removed in v1.2.5 - no longer creating scripts
   private steeringDir: string;
+  private bugsDir: string;
 
   constructor(projectRoot: string = process.cwd()) {
     this.projectRoot = projectRoot;
@@ -35,6 +44,7 @@ export class SpecWorkflowSetup {
     this.templatesDir = join(this.claudeDir, 'templates');
     // scriptsDir initialization removed in v1.2.5
     this.steeringDir = join(this.claudeDir, 'steering');
+    this.bugsDir = join(this.claudeDir, 'bugs');
   }
 
   async claudeDirectoryExists(): Promise<boolean> {
@@ -53,7 +63,8 @@ export class SpecWorkflowSetup {
       this.specsDir,
       this.templatesDir,
       // scriptsDir removed from directory creation
-      this.steeringDir
+      this.steeringDir,
+      this.bugsDir
     ];
 
     for (const dir of directories) {
@@ -70,7 +81,12 @@ export class SpecWorkflowSetup {
       'spec-execute': getSpecExecuteCommand(),
       'spec-status': getSpecStatusCommand(),
       'spec-list': getSpecListCommand(),
-      'spec-steering-setup': getSpecSteeringSetupCommand()
+      'spec-steering-setup': getSpecSteeringSetupCommand(),
+      'bug-create': getBugCreateCommand(),
+      'bug-analyze': getBugAnalyzeCommand(),
+      'bug-fix': getBugFixCommand(),
+      'bug-verify': getBugVerifyCommand(),
+      'bug-status': getBugStatusCommand()
     };
 
     for (const [commandName, commandContent] of Object.entries(commands)) {
@@ -83,7 +99,10 @@ export class SpecWorkflowSetup {
     const templates = {
       'requirements-template.md': getRequirementsTemplate(),
       'design-template.md': getDesignTemplate(),
-      'tasks-template.md': getTasksTemplate()
+      'tasks-template.md': getTasksTemplate(),
+      'bug-report-template.md': getBugReportTemplate(),
+      'bug-analysis-template.md': getBugAnalysisTemplate(),
+      'bug-verification-template.md': getBugVerificationTemplate()
     };
 
     for (const [templateName, templateContent] of Object.entries(templates)) {

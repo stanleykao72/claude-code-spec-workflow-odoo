@@ -1,7 +1,7 @@
 {
   "name": "@pimzino/claude-code-spec-workflow",
-  "version": "1.2.5",
-  "description": "Automated spec-driven workflow for Claude Code. Transforms feature ideas into complete implementations through Requirements → Design → Tasks → Implementation.",
+  "version": "1.3.0",
+  "description": "Automated workflows for Claude Code. Includes spec-driven development (Requirements → Design → Tasks → Implementation) and streamlined bug fix workflow (Report → Analyze → Fix → Verify).",
   "main": "dist/index.js",
   "bin": {
     "claude-code-spec-workflow": "dist/cli.js",
@@ -21,13 +21,16 @@
   "keywords": [
     "claude-code",
     "spec-workflow",
+    "bug-fix-workflow",
     "requirements",
     "design",
     "tasks",
     "implementation",
     "ai-development",
     "automation",
-    "development-workflow"
+    "development-workflow",
+    "bug-tracking",
+    "issue-resolution"
   ],
   "author": "Pimzino",
   "license": "MIT",

@@ -3,7 +3,7 @@
 [![npm version](https://badge.fury.io/js/@pimzino%2Fclaude-code-spec-workflow.svg?cacheSeconds=3600)](https://badge.fury.io/js/@pimzino%2Fclaude-code-spec-workflow)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-> Automated spec-driven workflow for Claude Code. Transform feature ideas into complete implementations through **Requirements → Design → Tasks → Implementation**.
+> Automated workflows for Claude Code. Features **spec-driven development** for new features (**Requirements → Design → Tasks → Implementation**) and **streamlined bug fix workflow** for quick issue resolution (**Report → Analyze → Fix → Verify**).
 
 ## 🚀 Quick Start
 
@@ -48,49 +48,79 @@ npx claude-spec-setup
 
 The setup automatically creates:
 - **📁 .claude/ directory structure** with all necessary files
-- **📝 8 slash commands** for the complete workflow (including steering setup!)
-- **🎯 Steering documents** for persistent project context (NEW!)
+- **📝 13 slash commands** (8 spec workflow + 5 bug fix workflow)
+- **🎯 Steering documents** for persistent project context
 - **🤖 Auto-generated task commands** for each spec
-- **📋 Document templates** for consistent formatting
+- **📋 Document templates** for both workflows
 - **⚙️ Configuration files** for workflow automation
 - **🔧 NPX-based task command generation** for dynamic task commands
 - **📖 Complete workflow instructions** embedded in each command
 
 ## 🔄 Workflow Overview
 
-### 0. **Steering Setup** (`/spec-steering-setup`) - NEW!
+### 📊 Spec Workflow (for new features)
+
+#### 0. **Steering Setup** (`/spec-steering-setup`)
 - Creates persistent project context documents
 - Analyzes your codebase and gathers project information
 - Generates product.md, tech.md, and structure.md
 - Ensures all specs align with your project's vision and standards
 
-### 1. **Requirements Phase** (`/spec-requirements`)
+#### 1. **Requirements Phase** (`/spec-requirements`)
 - Generates user stories and acceptance criteria
 - Uses EARS format (WHEN/IF/THEN statements)
 - Aligns with product vision from steering documents
 - Ensures comprehensive requirement coverage
 
-### 2. **Design Phase** (`/spec-design`)
+#### 2. **Design Phase** (`/spec-design`)
 - Creates technical architecture and design
 - Follows technical standards from steering documents
 - Includes Mermaid diagrams for visualization
 - Plans components, interfaces, and data models
 
-### 3. **Tasks Phase** (`/spec-tasks`)
+#### 3. **Tasks Phase** (`/spec-tasks`)
 - Breaks design into atomic coding tasks
 - Respects project structure conventions
 - References specific requirements
 - Focuses on test-driven development
 
-### 4. **Implementation Phase** (`/spec-execute`)
+#### 4. **Implementation Phase** (`/spec-execute`)
 - Executes tasks systematically
 - Follows all steering document guidelines
 - Validates against requirements
 - Ensures quality and consistency
 
+### 🐛 Bug Fix Workflow (for bug fixes)
+
+#### 1. **Report Phase** (`/bug-create`)
+- Documents the bug with structured format
+- Captures expected vs actual behavior
+- Records reproduction steps and environment
+- Assesses impact and severity
+
+#### 2. **Analysis Phase** (`/bug-analyze`)
+- Investigates root cause systematically
+- Maps affected code locations
+- Plans fix strategy and approach
+- Considers alternative solutions
+
+#### 3. **Fix Phase** (`/bug-fix`)
+- Implements targeted, minimal fix
+- Follows project coding standards
+- Adds appropriate tests
+- Preserves existing functionality
+
+#### 4. **Verification Phase** (`/bug-verify`)
+- Verifies bug is resolved
+- Tests for regressions
+- Confirms code quality
+- Documents resolution
+
 ## 🛠️ Usage
 
 After setup, use these commands in Claude Code:
+
+### 📊 Spec Workflow Commands (for new features)
 
 ```bash
 # Set up steering documents (recommended first step!)
@@ -121,6 +151,39 @@ After setup, use these commands in Claude Code:
 # List all specs
 /spec-list
 ```
+
+### 🐛 Bug Fix Workflow Commands (for bug fixes)
+
+```bash
+# Start a new bug fix
+/bug-create login-timeout "Users getting logged out too quickly"
+
+# Analyze the bug
+/bug-analyze
+
+# Implement the fix
+/bug-fix
+
+# Verify the fix works
+/bug-verify
+
+# Check bug status
+/bug-status
+```
+
+### ⚖️ When to Use Which Workflow?
+
+**Use Spec Workflow for:**
+- New features or major functionality
+- Complex changes requiring design planning
+- Features that need detailed requirements gathering
+- Long-term development projects
+
+**Use Bug Fix Workflow for:**
+- Fixing existing functionality
+- Small, targeted changes
+- Quick issue resolution
+- Troubleshooting and debugging
 
 ### 🆕 Auto-Generated Task Commands
 
