@@ -412,6 +412,7 @@ Made with ❤️ by [Pimzino](https://github.com/pimzino)
 ## Special Thanks
 @pimzino - for the initial setup
 @boundless-oss - Adding steering documents
+@mquinnv - spec workflow dashboard feature
 
 ## Acknowledgments
 
