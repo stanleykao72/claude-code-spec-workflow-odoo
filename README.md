@@ -53,7 +53,7 @@ The setup automatically creates:
 - **🤖 Auto-generated task commands** for each spec
 - **📋 Document templates** for consistent formatting
 - **⚙️ Configuration files** for workflow automation
-- **🔧 Command generation scripts** for dynamic task commands
+- **🔧 NPX-based task command generation** for dynamic task commands
 - **📖 Complete workflow instructions** embedded in each command
 
 ## 🔄 Workflow Overview
@@ -249,11 +249,6 @@ your-project/
 │   │   ├── product.md               # Product vision & goals
 │   │   ├── tech.md                  # Technical standards
 │   │   └── structure.md             # Project conventions
-│   ├── scripts/
-│   │   ├── generate-commands.bat     # Windows script
-│   │   ├── generate-commands.sh      # macOS/Linux script
-│   │   ├── generate-commands-launcher.sh  # OS detection launcher
-│   │   └── README.md                 # Script documentation
 │   ├── templates/
 │   │   ├── requirements-template.md
 │   │   ├── design-template.md
@@ -261,7 +256,6 @@ your-project/
 │   ├── specs/
 │   │   └── (your specs will be created here)
 │   └── spec-config.json
-└── spec-config.json
 ```
 
 ## 🧪 Testing

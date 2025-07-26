@@ -72,7 +72,7 @@ program
         console.log();
         console.log(chalk.cyan('This will create:'));
         console.log(chalk.gray('  📁 .claude/ directory structure'));
-        console.log(chalk.gray('  📝 7 slash commands for spec workflow'));
+        console.log(chalk.gray('  📝 8 slash commands for spec workflow'));
         console.log(chalk.gray('  🤖 Auto-generated task commands'));
         console.log(chalk.gray('  📋 Document templates'));
         console.log(chalk.gray('  🔧 NPX-based task command generation'));
