@@ -97,22 +97,17 @@ function renderMarkdown(content) {
  * Format acceptance criteria with EARS keywords using syntax highlighting
  */
 function formatAcceptanceCriteria(criteria) {
-  // Define EARS keywords and their styles
-  const earsKeywords = {
-    'WHEN': 'ears-when',
-    'THEN': 'ears-then',
-    'IF': 'ears-if',
-    'SHALL': 'ears-shall',
-    'SHALL NOT': 'ears-shall-not'
-  };
+  // Define EARS keywords
+  const earsKeywords = ['WHEN', 'THEN', 'IF', 'SHALL NOT', 'SHALL'];
   
   let formattedCriteria = criteria;
   
   // Replace EARS keywords with syntax highlighted spans
-  Object.entries(earsKeywords).forEach(([keyword, className]) => {
+  // Process SHALL NOT before SHALL to avoid partial matches
+  earsKeywords.forEach(keyword => {
     const regex = new RegExp(`\\b(${keyword})\\b`, 'g');
     formattedCriteria = formattedCriteria.replace(regex, 
-      `<span class="ears-keyword ${className}">${keyword}</span>`
+      `<span class="ears-keyword">$1</span>`
     );
   });
   
