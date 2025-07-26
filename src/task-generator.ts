@@ -121,20 +121,42 @@ This command executes a specific task from the ${specName} specification.
 /spec-execute ${task.id} ${specName}
 \`\`\`
 
+**Context Loading**:
+Before executing the task, you MUST load all relevant context:
+1. **Specification Documents**:
+   - Load \`.claude/specs/${specName}/requirements.md\` for feature requirements
+   - Load \`.claude/specs/${specName}/design.md\` for technical design
+   - Load \`.claude/specs/${specName}/tasks.md\` for the complete task list
+2. **Steering Documents** (if available):
+   - Load \`.claude/steering/product.md\` for product vision context
+   - Load \`.claude/steering/tech.md\` for technical standards
+   - Load \`.claude/steering/structure.md\` for project conventions
+
 **Process**:
-1. Load the ${specName} specification context (requirements.md, design.md, tasks.md)
+1. Load all context documents listed above
 2. Execute task ${task.id}: "${task.description}"
 3. **Prioritize code reuse**: Use existing components and utilities identified above
 4. Follow all implementation guidelines from the main /spec-execute command
-5. Mark the task as complete in tasks.md
-6. Stop and wait for user review
+5. **Follow steering documents**: Adhere to patterns in tech.md and conventions in structure.md
+6. **CRITICAL**: Mark the task as complete in tasks.md by changing [ ] to [x]
+7. Confirm task completion to user
+8. Stop and wait for user review
 
-**Important**: This command follows the same rules as /spec-execute:
+**Important Rules**:
 - Execute ONLY this specific task
 - **Leverage existing code** whenever possible to avoid rebuilding functionality
+- **Follow project conventions** from steering documents
 - Mark task as complete by changing [ ] to [x] in tasks.md
 - Stop after completion and wait for user approval
 - Do not automatically proceed to the next task
+- Validate implementation against referenced requirements
+
+## Task Completion Protocol
+When completing this task:
+1. **Update tasks.md**: Change task ${task.id} status from \`- [ ]\` to \`- [x]\`
+2. **Confirm to user**: State clearly "Task ${task.id} has been marked as complete"
+3. **Stop execution**: Do not proceed to next task automatically
+4. **Wait for instruction**: Let user decide next steps
 
 ## Next Steps
 After task completion, you can:

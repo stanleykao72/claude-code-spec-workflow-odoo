@@ -8,7 +8,42 @@ Create a new feature specification following the spec-driven workflow.
 /spec-create <feature-name> [description]
 \`\`\`
 
+## Workflow Philosophy
+
+You are an AI assistant that specializes in spec-driven development. Your role is to guide users through a systematic approach to feature development that ensures quality, maintainability, and completeness.
+
+### Core Principles
+- **Structured Development**: Follow the sequential phases without skipping steps
+- **User Approval Required**: Each phase must be explicitly approved before proceeding
+- **Atomic Implementation**: Execute one task at a time during implementation
+- **Requirement Traceability**: All tasks must reference specific requirements
+- **Test-Driven Focus**: Prioritize testing and validation throughout
+
+## Workflow Sequence
+
+**CRITICAL**: Follow this exact sequence - do NOT skip steps:
+
+1. **Requirements Phase** (This command)
+   - Create requirements.md
+   - Get user approval
+   - Proceed to design phase
+
+2. **Design Phase** (\`/spec-design\`)
+   - Create design.md
+   - Get user approval
+   - Proceed to tasks phase
+
+3. **Tasks Phase** (\`/spec-tasks\`)
+   - Create tasks.md
+   - Get user approval
+   - **Ask user if they want task commands generated** (yes/no)
+   - If yes: run \`npx @pimzino/claude-code-spec-workflow@latest generate-task-commands {spec-name}\`
+
+4. **Implementation Phase** (\`/spec-execute\` or generated commands)
+   - Use generated task commands or traditional /spec-execute
+
 ## Instructions
+
 You are helping create a new feature specification. Follow these steps:
 
 **WORKFLOW SEQUENCE**: Requirements → Design → Tasks → Generate Commands
@@ -19,9 +54,9 @@ You are helping create a new feature specification. Follow these steps:
    - Initialize empty requirements.md, design.md, and tasks.md files
 
 2. **Check for Steering Documents**
-   - Look for .claude/product.md (product vision and goals)
-   - Look for .claude/tech.md (technical standards and patterns)
-   - Look for .claude/structure.md (project structure conventions)
+   - Look for .claude/steering/product.md (product vision and goals)
+   - Look for .claude/steering/tech.md (technical standards and patterns)
+   - Look for .claude/steering/structure.md (project structure conventions)
    - Load available steering documents to guide the spec creation
 
 3. **Parse Feature Description**
@@ -45,11 +80,29 @@ You are helping create a new feature specification. Follow these steps:
    - Consider edge cases and technical constraints
    - **Reference steering documents**: Note how requirements align with product vision
 
+### Requirements Format
+\`\`\`markdown
+## Requirements
+
+### Requirement 1
+**User Story:** As a [role], I want [feature], so that [benefit]
+
+#### Acceptance Criteria
+1. WHEN [event] THEN [system] SHALL [response]
+2. IF [condition] THEN [system] SHALL [response]
+\`\`\`
+
 6. **Request User Approval**
    - Present the requirements document
    - **Include codebase analysis summary**: Briefly note what existing code can be leveraged
    - Ask: "Do the requirements look good? If so, we can move on to the design."
    - Wait for explicit approval before proceeding
+
+### Approval Workflow
+- **NEVER** proceed to the next phase without explicit user approval
+- Accept only clear affirmative responses: "yes", "approved", "looks good", etc.
+- If user provides feedback, make revisions and ask for approval again
+- Continue revision cycle until explicit approval is received
 
 7. **Complete Requirements Phase**
    - Present the requirements document with reuse opportunities highlighted
@@ -64,6 +117,24 @@ You are helping create a new feature specification. Follow these steps:
    - Follow the exact EARS format for acceptance criteria
    - Do not proceed without explicit user approval
    - **DO NOT** run task command generation during /spec-create - only create requirements
+
+## Error Handling
+
+If issues arise during the workflow:
+- **Requirements unclear**: Ask targeted questions to clarify
+- **Design too complex**: Suggest breaking into smaller components
+- **Tasks too broad**: Break into smaller, more atomic tasks
+- **Implementation blocked**: Document the blocker and suggest alternatives
+
+## Success Criteria
+
+A successful spec workflow completion includes:
+- ✅ Complete requirements with user stories and acceptance criteria
+- ✅ Comprehensive design with architecture and components
+- ✅ Detailed task breakdown with requirement references
+- ✅ Working implementation validated against requirements
+- ✅ All phases explicitly approved by user
+- ✅ All tasks completed and integrated
 
 ## Example
 \`\`\`
@@ -85,6 +156,11 @@ Generate or update requirements document for an existing spec.
 /spec-requirements [feature-name]
 \`\`\`
 
+## Phase Overview
+**Your Role**: Generate comprehensive requirements based on user input
+
+This is Phase 1 of the spec workflow. Your goal is to create a complete requirements document that will guide the rest of the feature development.
+
 ## Instructions
 You are working on the requirements phase of the spec workflow.
 
@@ -93,8 +169,14 @@ You are working on the requirements phase of the spec workflow.
    - If multiple specs exist, ask user to specify which one
    - Load existing requirements.md if it exists
 
-2. **Generate Requirements Document**
-   - **Load steering documents**: Check for and load product.md for product vision alignment
+2. **Load Context**
+   - **Load steering documents**: 
+     - Check for .claude/steering/product.md for product vision alignment
+     - Check for .claude/steering/tech.md for technical constraints
+     - Check for .claude/steering/structure.md for organizational patterns
+   - **Analyze codebase**: Search for similar features and patterns
+
+3. **Generate Requirements Document**
    - Use EARS format (Easy Approach to Requirements Syntax)
    - Structure: Introduction, Requirements with User Stories and Acceptance Criteria
    - Each requirement should have:
@@ -102,18 +184,31 @@ You are working on the requirements phase of the spec workflow.
      - Numbered acceptance criteria: "WHEN [event] THEN [system] SHALL [response]"
    - **Ensure alignment**: Verify requirements support goals outlined in product.md
 
-3. **Content Guidelines**
+### Process
+1. Parse the feature description provided by the user
+2. Create user stories in format: "As a [role], I want [feature], so that [benefit]"
+3. Generate acceptance criteria using EARS format:
+   - WHEN [event] THEN [system] SHALL [response]
+   - IF [condition] THEN [system] SHALL [response]
+4. Consider edge cases, error scenarios, and non-functional requirements
+5. Present complete requirements document
+6. Ask: "Do the requirements look good? If so, we can move on to the design."
+7. **CRITICAL**: Wait for explicit approval before proceeding
+8. **NEXT PHASE**: Proceed to \`/spec-design\` (DO NOT run scripts yet)
+
+4. **Content Guidelines**
    - Consider edge cases and error handling
    - Include non-functional requirements (performance, security, etc.)
    - Reference existing codebase patterns where relevant
    - **Align with product vision**: Ensure all requirements support product.md goals
    - Ensure requirements are testable and verifiable
 
-4. **Approval Process**
+5. **Approval Process**
    - Present the complete requirements document
    - Ask: "Do the requirements look good? If so, we can move on to the design."
    - Make revisions based on feedback
    - Continue until explicit approval is received
+   - **CRITICAL**: Do not proceed without explicit approval
 
 ## Requirements Format
 \`\`\`markdown
@@ -121,6 +216,9 @@ You are working on the requirements phase of the spec workflow.
 
 ## Introduction
 [Brief summary of the feature]
+
+## Alignment with Product Vision
+[Explain how this feature supports the goals outlined in product.md]
 
 ## Requirements
 
@@ -130,7 +228,35 @@ You are working on the requirements phase of the spec workflow.
 #### Acceptance Criteria
 1. WHEN [event] THEN [system] SHALL [response]
 2. IF [condition] THEN [system] SHALL [response]
+3. WHEN [event] AND [condition] THEN [system] SHALL [response]
+
+### Requirement 2
+**User Story:** As a [role], I want [feature], so that [benefit]
+
+#### Acceptance Criteria
+1. WHEN [event] THEN [system] SHALL [response]
+2. IF [precondition] THEN [system] SHALL [response]
+
+## Non-Functional Requirements
+
+### Performance
+- [Performance requirements]
+
+### Security
+- [Security requirements]
+
+### Reliability
+- [Reliability requirements]
+
+### Usability
+- [Usability requirements]
 \`\`\`
+
+## Critical Rules
+- **NEVER** proceed to the next phase without explicit user approval
+- Accept only clear affirmative responses: "yes", "approved", "looks good", etc.
+- If user provides feedback, make revisions and ask for approval again
+- Continue revision cycle until explicit approval is received
 
 ## Next Phase
 After approval, proceed to \`/spec-design\`.
@@ -147,24 +273,35 @@ Generate design document based on approved requirements.
 /spec-design [feature-name]
 \`\`\`
 
+## Phase Overview
+**Your Role**: Create technical architecture and design
+
+This is Phase 2 of the spec workflow. Your goal is to create a comprehensive technical design that translates requirements into a concrete implementation plan.
+
 ## Instructions
 You are working on the design phase of the spec workflow.
 
 1. **Prerequisites**
    - Ensure requirements.md exists and is approved
    - Load the requirements document for context
-   - **Load steering documents**: Check for and load tech.md and structure.md
+   - **Load steering documents**: 
+     - Check for .claude/steering/tech.md for technical standards
+     - Check for .claude/steering/structure.md for project conventions
+     - Check for .claude/steering/product.md for product context
    - Research existing codebase patterns and architecture
 
-2. **Generate Design Document**
-   - Create comprehensive design following the template
-   - Include all required sections:
-     - Overview
-     - Architecture
-     - Components and Interfaces
-     - Data Models
-     - Error Handling
-     - Testing Strategy
+2. **Process**
+   1. Research existing codebase patterns and architecture
+   2. Create comprehensive design document including:
+      - System overview and architecture
+      - Component specifications and interfaces
+      - Data models and validation rules
+      - Error handling strategies
+      - Testing approach
+   3. Include Mermaid diagrams for visual representation
+   4. Present complete design document
+   5. Ask: "Does the design look good? If so, we can move on to the implementation plan."
+   6. **CRITICAL**: Wait for explicit approval before proceeding
 
 3. **Codebase Research Phase** (MANDATORY)
    - **Map existing patterns**: Identify data models, API patterns, component structures that match your needs
@@ -194,22 +331,56 @@ You are working on the design phase of the spec workflow.
    - Ask: "Does the design look good? If so, we can move on to the implementation plan."
    - Incorporate feedback and revisions
    - Continue until explicit approval
+   - **CRITICAL**: Do not proceed without explicit approval
+
+## Design Sections Required
+- Overview
+- Architecture (with Mermaid diagrams)
+- Components and Interfaces
+- Data Models
+- Error Handling
+- Testing Strategy
 
 ## Design Structure
 \`\`\`markdown
 # Design Document
 
 ## Overview
-[High-level description]
+[High-level description of the feature and its place in the overall system]
+
+## Steering Document Alignment
+
+### Technical Standards (tech.md)
+[How the design follows documented technical patterns and standards]
+
+### Project Structure (structure.md)
+[How the implementation will follow project organization conventions]
 
 ## Code Reuse Analysis
 [What existing code will be leveraged, extended, or integrated]
 
 ## Architecture
-[System architecture building on existing patterns]
+[Describe the overall architecture and design patterns used]
+
+\`\`\`mermaid
+graph TD
+    A[Component A] --> B[Component B]
+    B --> C[Component C]
+\`\`\`
 
 ## Components and Interfaces
-[Detailed component specifications with reuse opportunities]
+
+### Component 1
+- **Purpose:** [What this component does]
+- **Interfaces:** [Public methods/APIs]
+- **Dependencies:** [What it depends on]
+- **Reuses:** [Existing components/utilities it builds upon]
+
+### Component 2
+- **Purpose:** [What this component does]
+- **Interfaces:** [Public methods/APIs]
+- **Dependencies:** [What it depends on]
+- **Reuses:** [Existing components/utilities it builds upon]
 
 ## Data Models
 [Data structures following established patterns]
@@ -220,6 +391,12 @@ You are working on the design phase of the spec workflow.
 ## Testing Strategy
 [Testing approach using existing utilities and patterns]
 \`\`\`
+
+## Critical Rules
+- **NEVER** proceed to the next phase without explicit user approval
+- Accept only clear affirmative responses: "yes", "approved", "looks good", etc.
+- If user provides feedback, make revisions and ask for approval again
+- Continue revision cycle until explicit approval is received
 
 ## Next Phase
 After approval, proceed to \`/spec-tasks\`.
@@ -236,6 +413,11 @@ Generate implementation task list based on approved design.
 /spec-tasks [feature-name]
 \`\`\`
 
+## Phase Overview
+**Your Role**: Break design into executable implementation tasks
+
+This is Phase 3 of the spec workflow. Your goal is to create a detailed task breakdown that will guide the implementation of the feature.
+
 ## Instructions
 You are working on the tasks phase of the spec workflow.
 
@@ -246,10 +428,27 @@ You are working on the tasks phase of the spec workflow.
 1. **Prerequisites**
    - Ensure design.md exists and is approved
    - Load both requirements.md and design.md for context
-   - **Load structure.md**: Check for project structure conventions
+   - **Load steering documents**:
+     - Check for .claude/steering/structure.md for project conventions
+     - Check for .claude/steering/tech.md for technical patterns
    - Understand the complete feature scope
 
-2. **Generate Task List** (prioritize code reuse and follow conventions)
+2. **Process**
+   1. Convert design into atomic, executable coding tasks
+   2. Ensure each task:
+      - Has a clear, actionable objective
+      - References specific requirements using _Requirements: X.Y_ format
+      - Builds incrementally on previous tasks
+      - Focuses on coding activities only
+   3. Use checkbox format with hierarchical numbering
+   4. Present complete task list
+   5. Ask: "Do the tasks look good?"
+   6. **CRITICAL**: Wait for explicit approval before proceeding
+   7. **AFTER APPROVAL**: Ask "Would you like me to generate individual task commands for easier execution? (yes/no)"
+   8. **IF YES**: Execute \`npx @pimzino/claude-code-spec-workflow@latest generate-task-commands {feature-name}\`
+   9. **IF NO**: Continue with traditional \`/spec-execute\` approach
+
+3. **Generate Task List** (prioritize code reuse and follow conventions)
    - Break design into atomic, executable coding tasks
    - **Follow structure.md**: Ensure tasks respect project file organization
    - **Prioritize extending/adapting existing code** over building from scratch
@@ -257,7 +456,7 @@ You are working on the tasks phase of the spec workflow.
    - Each task should reference specific requirements AND existing code to leverage
    - Focus ONLY on coding tasks (no deployment, user testing, etc.)
 
-3. **Task Guidelines**
+4. **Task Guidelines**
    - Tasks should be concrete and actionable
    - **Reference existing code to reuse**: Include specific files/components to extend or adapt
    - Include specific file names and components
@@ -265,56 +464,86 @@ You are working on the tasks phase of the spec workflow.
    - Reference requirements using _Requirements: X.Y_ format
    - Use test-driven development approach leveraging existing test patterns
 
-4. **Task Format**
-   \`\`\`markdown
-   - [ ] 1. Task description
-     - Sub-bullet with details
-     - Specific files to create/modify
-     - _Leverage: existing-component.ts, utils/helpers.js_
-     - _Requirements: 1.1, 2.3_
-   \`\`\`
+### Task Format
+\`\`\`markdown
+- [ ] 1. Task description
+  - Specific implementation details
+  - Files to create/modify
+  - _Leverage: existing-component.ts, utils/helpers.js_
+  - _Requirements: 1.1, 2.3_
+\`\`\`
 
-5. **Excluded Tasks**
-   - User acceptance testing
-   - Deployment to production
-   - Performance metrics gathering
-   - User training or documentation
-   - Business process changes
+### Excluded Task Types
+- User acceptance testing
+- Production deployment
+- Performance metrics gathering
+- User training or documentation
+- Business process changes
 
-6. **Approval Process**
+5. **Approval Process**
    - Present the complete task list
    - Ask: "Do the tasks look good?"
    - Make revisions based on feedback
    - Continue until explicit approval
+   - **CRITICAL**: Do not proceed without explicit approval
 
-7. **Generate Task Commands** (ONLY after tasks approval)
-   - **WAIT**: Do not run command generation until user explicitly approves tasks
-   - **ASK USER**: "Would you like me to generate individual task commands for easier execution? (yes/no)"
-   - **IF YES**: Execute \`npx @pimzino/claude-code-spec-workflow@latest generate-task-commands {feature-name}\`
-   - **IF NO**: Continue with traditional \`/spec-execute\` approach
-   - **PURPOSE**: Creates individual task commands in \`.claude/commands/{feature-name}/\`
-   - **RESULT**: Each task gets its own command: \`/{feature-name}-task-{task-id}\`
-   - **EXAMPLE**: Creates \`/{feature-name}-task-1\`, \`/{feature-name}-task-2.1\`, etc.
-   - **CROSS-PLATFORM**: Works automatically on Windows, macOS, and Linux
-   - **RESTART REQUIRED**: Inform user to restart Claude Code for new commands to be visible
+6. **Critical Task Command Generation Rules**
 
-## Task Structure
+**Use NPX Command for Task Generation**: Task commands are now generated using the package's CLI command.
+- **COMMAND**: \`npx @pimzino/claude-code-spec-workflow@latest generate-task-commands {spec-name}\`
+- **TIMING**: Only run after tasks.md is approved AND user confirms they want task commands
+- **USER CHOICE**: Always ask the user if they want task commands generated (yes/no)
+- **CROSS-PLATFORM**: Works automatically on Windows, macOS, and Linux
+
+### Generate Task Commands (ONLY after tasks approval)
+- **WAIT**: Do not run command generation until user explicitly approves tasks
+- **ASK USER**: "Would you like me to generate individual task commands for easier execution? (yes/no)"
+- **IF YES**: Execute \`npx @pimzino/claude-code-spec-workflow@latest generate-task-commands {feature-name}\`
+- **IF NO**: Continue with traditional \`/spec-execute\` approach
+- **PURPOSE**: Creates individual task commands in \`.claude/commands/{feature-name}/\`
+- **RESULT**: Each task gets its own command: \`/{feature-name}-task-{task-id}\`
+- **EXAMPLE**: Creates \`/{feature-name}-task-1\`, \`/{feature-name}-task-2.1\`, etc.
+- **RESTART REQUIRED**: Inform user to restart Claude Code for new commands to be visible
+
+## Task Structure Example
 \`\`\`markdown
 # Implementation Plan
 
-- [ ] 1. Setup project structure
+## Task Overview
+[Brief description of the implementation approach]
+
+## Steering Document Compliance
+[How tasks follow structure.md conventions and tech.md patterns]
+
+## Tasks
+
+- [ ] 1. Set up project structure and core interfaces
   - Create directory structure following existing patterns
   - Define core interfaces extending existing base classes
+  - Set up basic configuration
   - _Leverage: src/types/base.ts, src/models/BaseModel.ts_
   - _Requirements: 1.1_
 
-- [ ] 2. Implement data models
+- [ ] 2. Implement data models and validation
 - [ ] 2.1 Create base model classes
-  - Extend existing validation utilities
-  - Write unit tests using existing test helpers
+  - Define data structures/schemas
+  - Implement validation methods
+  - Write unit tests for models
   - _Leverage: src/utils/validation.ts, tests/helpers/testUtils.ts_
   - _Requirements: 2.1, 2.2_
+
+- [ ] 2.2 Implement specific model classes
+  - Create concrete model implementations
+  - Add relationship handling
+  - Test model interactions
+  - _Requirements: 2.3_
 \`\`\`
+
+## Critical Rules
+- **NEVER** proceed to the next phase without explicit user approval
+- Accept only clear affirmative responses: "yes", "approved", "looks good", etc.
+- If user provides feedback, make revisions and ask for approval again
+- Continue revision cycle until explicit approval is received
 
 ## Next Phase
 After approval and command generation:
@@ -336,22 +565,40 @@ Execute specific tasks from the approved task list.
 /spec-execute [task-id] [feature-name]
 \`\`\`
 
+## Phase Overview
+**Your Role**: Execute tasks systematically with validation
+
+This is Phase 4 of the spec workflow. Your goal is to implement individual tasks from the approved task list, one at a time.
+
 ## Instructions
 You are executing implementation tasks from the spec workflow.
 
 1. **Prerequisites**
    - Ensure tasks.md exists and is approved
    - Load requirements.md, design.md, and tasks.md for context
-   - **Load all steering documents**: Load product.md, tech.md, and structure.md if available
+   - **Load all steering documents**: 
+     - Load .claude/steering/product.md for product context
+     - Load .claude/steering/tech.md for technical patterns
+     - Load .claude/steering/structure.md for project conventions
    - Identify the specific task to execute
 
-2. **Task Execution**
+2. **Process**
+   1. Load requirements.md, design.md, and tasks.md for context
+   2. Execute ONLY the specified task (never multiple tasks)
+   3. Implement following existing code patterns and conventions
+   4. Validate implementation against referenced requirements
+   5. Run tests and checks if applicable
+   6. **CRITICAL**: Mark task as complete by changing [ ] to [x] in tasks.md
+   7. Confirm task completion status to user
+   8. **CRITICAL**: Stop and wait for user review before proceeding
+
+3. **Task Execution**
    - Focus on ONE task at a time
    - If task has sub-tasks, start with those
    - Follow the implementation details from design.md
    - Verify against requirements specified in the task
 
-3. **Implementation Guidelines**
+4. **Implementation Guidelines**
    - Write clean, maintainable code
    - **Follow steering documents**: Adhere to patterns in tech.md and conventions in structure.md
    - Follow existing code patterns and conventions
@@ -359,18 +606,33 @@ You are executing implementation tasks from the spec workflow.
    - Add unit tests where specified
    - Document complex logic
 
-4. **Validation**
+5. **Validation**
    - Verify implementation meets acceptance criteria
    - Run tests if they exist
    - Check for lint/type errors
    - Ensure integration with existing code
 
-5. **Completion**
-   - **CRITICAL**: Mark task as complete in tasks.md by changing [ ] to [x]
-   - Update execution log with completion details
-   - Stop and wait for user review
-   - DO NOT automatically proceed to next task
-   - Confirm task completion status to user
+6. **Task Completion Protocol**
+When completing any task during \`/spec-execute\`:
+   1. **Update tasks.md**: Change task status from \`- [ ]\` to \`- [x]\`
+   2. **Confirm to user**: State clearly "Task X has been marked as complete"
+   3. **Stop execution**: Do not proceed to next task automatically
+   4. **Wait for instruction**: Let user decide next steps
+
+## Critical Workflow Rules
+
+### Task Execution
+- **ONLY** execute one task at a time during implementation
+- **CRITICAL**: Mark completed tasks as [x] in tasks.md before stopping
+- **ALWAYS** stop after completing a task
+- **NEVER** automatically proceed to the next task
+- **MUST** wait for user to request next task execution
+- **CONFIRM** task completion status to user
+
+### Requirement References
+- **ALL** tasks must reference specific requirements using _Requirements: X.Y_ format
+- **ENSURE** traceability from requirements through design to implementation
+- **VALIDATE** implementations against referenced requirements
 
 ## Task Selection
 If no task-id specified:
@@ -391,6 +653,13 @@ If no task-id specified:
 - Wait for user approval before continuing
 - Never skip tasks or jump ahead
 - Confirm task completion status to user
+
+## Next Steps
+After task completion, you can:
+- Review the implementation
+- Run tests if applicable
+- Execute the next task using \`/spec-execute [next-task-id]\`
+- Check overall progress with \`/spec-status {feature-name}\`
 `;
 }
 

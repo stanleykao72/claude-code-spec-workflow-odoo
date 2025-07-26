@@ -15,7 +15,7 @@ import {
   getDesignTemplate,
   getTasksTemplate
 } from './templates';
-import { getClaudeMdContent } from './claude-md';
+// CLAUDE.md generation removed - all workflow instructions now in individual commands
 // Script imports removed in v1.2.5 - task command generation now uses NPX command
 
 export class SpecWorkflowSetup {
@@ -110,56 +110,7 @@ export class SpecWorkflowSetup {
     await fs.writeFile(configFile, JSON.stringify(config, null, 2), 'utf-8');
   }
 
-  async createClaudeMd(): Promise<void> {
-    const claudeMdContent = getClaudeMdContent();
-    const claudeMdFile = join(this.projectRoot, 'CLAUDE.md');
-
-    // Check if CLAUDE.md exists
-    try {
-      const existingContent = await fs.readFile(claudeMdFile, 'utf-8');
-
-      if (!existingContent.includes('# Spec Workflow')) {
-        // Append to existing file - preserve all existing content
-        const separator = existingContent.trim().length > 0 ? '\n\n---\n\n' : '';
-        const updatedContent = existingContent.trim() + separator + claudeMdContent;
-        await fs.writeFile(claudeMdFile, updatedContent, 'utf-8');
-      } else {
-        // Replace existing spec workflow section while preserving everything else
-        const lines = existingContent.split('\n');
-        const startIndex = lines.findIndex(line => line.trim() === '# Spec Workflow');
-
-        if (startIndex !== -1) {
-          // Find the end of the spec workflow section (next # header or end of file)
-          let endIndex = lines.length;
-          for (let i = startIndex + 1; i < lines.length; i++) {
-            if (lines[i].startsWith('# ') && !lines[i].includes('Spec Workflow')) {
-              endIndex = i;
-              break;
-            }
-          }
-
-          // Preserve content before and after the spec workflow section
-          const beforeSection = lines.slice(0, startIndex).join('\n').trim();
-          const afterSection = lines.slice(endIndex).join('\n').trim();
-
-          // Reconstruct the file with preserved content
-          let updatedContent = '';
-          if (beforeSection) {
-            updatedContent += beforeSection + '\n\n';
-          }
-          updatedContent += claudeMdContent;
-          if (afterSection) {
-            updatedContent += '\n\n' + afterSection;
-          }
-
-          await fs.writeFile(claudeMdFile, updatedContent, 'utf-8');
-        }
-      }
-    } catch {
-      // File doesn't exist, create it
-      await fs.writeFile(claudeMdFile, claudeMdContent, 'utf-8');
-    }
-  }
+  // CLAUDE.md creation removed - all workflow instructions now in individual commands
 
   async runSetup(): Promise<void> {
     await this.setupDirectories();
@@ -167,6 +118,6 @@ export class SpecWorkflowSetup {
     await this.createTemplates();
     // Script creation removed in v1.2.5 - using NPX command instead
     await this.createConfigFile();
-    await this.createClaudeMd();
+    // CLAUDE.md creation removed - all workflow instructions now in individual commands
   }
 }

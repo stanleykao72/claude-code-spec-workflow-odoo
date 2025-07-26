@@ -103,23 +103,7 @@ describe('SpecWorkflowSetup', () => {
     expect(config.spec_workflow).toHaveProperty('auto_create_directories');
   });
 
-  test('should create CLAUDE.md', async () => {
-    await setup.setupDirectories();
-    await setup.createClaudeMd();
-
-    const claudeMdPath = join(tempDir, 'CLAUDE.md');
-    await expect(fs.access(claudeMdPath)).resolves.not.toThrow();
-
-    const content = await fs.readFile(claudeMdPath, 'utf-8');
-    expect(content).toContain('# Spec Workflow');
-    expect(content).toContain('/spec-create');
-    expect(content).toContain('/spec-steering-setup');
-    expect(content).toContain('Requirements → Design → Tasks → Implementation');
-    expect(content).toContain('Steering Documents');
-    expect(content).toContain('product.md');
-    expect(content).toContain('tech.md');
-    expect(content).toContain('structure.md');
-  });
+  // CLAUDE.md tests removed - workflow instructions now in individual commands
 
   test('should run complete setup', async () => {
     await setup.runSetup();
@@ -129,30 +113,18 @@ describe('SpecWorkflowSetup', () => {
     const commandsDir = join(claudeDir, 'commands');
     const templatesDir = join(claudeDir, 'templates');
     const configPath = join(claudeDir, 'spec-config.json');
-    const claudeMdPath = join(tempDir, 'CLAUDE.md');
-
     await expect(fs.access(claudeDir)).resolves.not.toThrow();
     await expect(fs.access(commandsDir)).resolves.not.toThrow();
     await expect(fs.access(templatesDir)).resolves.not.toThrow();
     await expect(fs.access(configPath)).resolves.not.toThrow();
-    await expect(fs.access(claudeMdPath)).resolves.not.toThrow();
 
-    // Check that files have content
-    const claudeMdContent = await fs.readFile(claudeMdPath, 'utf-8');
-    expect(claudeMdContent.length).toBeGreaterThan(1000);
+    // Check that command files have workflow content
+    const specCreatePath = join(commandsDir, 'spec-create.md');
+    const specCreateContent = await fs.readFile(specCreatePath, 'utf-8');
+    expect(specCreateContent).toContain('Workflow Philosophy');
+    expect(specCreateContent).toContain('Core Principles');
+    expect(specCreateContent.length).toBeGreaterThan(2000);
   });
 
-  test('should handle existing CLAUDE.md', async () => {
-    // Create existing CLAUDE.md with content
-    const existingContent = '# My Project\n\nThis is my existing project documentation.\n';
-    await fs.writeFile(join(tempDir, 'CLAUDE.md'), existingContent);
-
-    await setup.setupDirectories();
-    await setup.createClaudeMd();
-
-    const claudeMdContent = await fs.readFile(join(tempDir, 'CLAUDE.md'), 'utf-8');
-    expect(claudeMdContent).toContain('# My Project');
-    expect(claudeMdContent).toContain('# Spec Workflow');
-    expect(claudeMdContent).toContain('existing project documentation');
-  });
+  // Test removed - CLAUDE.md no longer created
 });

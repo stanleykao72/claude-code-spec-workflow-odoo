@@ -54,7 +54,7 @@ The setup automatically creates:
 - **📋 Document templates** for consistent formatting
 - **⚙️ Configuration files** for workflow automation
 - **🔧 Command generation scripts** for dynamic task commands
-- **📖 CLAUDE.md** with comprehensive workflow instructions
+- **📖 Complete workflow instructions** embedded in each command
 
 ## 🔄 Workflow Overview
 
@@ -212,7 +212,7 @@ Run `/spec-steering-setup` to create these documents. Claude will analyze your p
 - Helpful error messages and guidance
 
 ### ✅ **Smart File Management**
-- Preserves existing `CLAUDE.md` content
+- Complete workflow instructions in each command file
 - Creates comprehensive directory structure
 - Includes all necessary templates and configs
 
@@ -261,7 +261,7 @@ your-project/
 │   ├── specs/
 │   │   └── (your specs will be created here)
 │   └── spec-config.json
-└── CLAUDE.md (created/updated)
+└── spec-config.json
 ```
 
 ## 🧪 Testing

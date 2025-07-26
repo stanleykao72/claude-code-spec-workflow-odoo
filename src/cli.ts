@@ -55,8 +55,8 @@ program
             {
               type: 'confirm',
               name: 'proceed',
-              message: '.claude directory already exists. Overwrite?',
-              default: false
+              message: '.claude directory already exists. Update with latest commands?',
+              default: true
             }
           ]);
 
@@ -77,7 +77,7 @@ program
         console.log(chalk.gray('  📋 Document templates'));
         console.log(chalk.gray('  🔧 NPX-based task command generation'));
         console.log(chalk.gray('  ⚙️  Configuration files'));
-        console.log(chalk.gray('  📖 CLAUDE.md with workflow instructions'));
+        console.log(chalk.gray('  📖 Complete workflow instructions embedded in each command'));
         console.log();
 
         const { confirm } = await inquirer.prompt([
