@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.2] - 2025-07-27
+
+### Fixed
+- **Deprecated Dependency Warnings**: Eliminated all deprecation warnings during package installation
+  - Updated `@fastify/static` from v6.12.0 to v8.2.0 (eliminates old glob dependency)
+  - Updated `commander` from v11.1.0 to v12.1.0
+  - Replaced `cpx2` with `cpy-cli` to eliminate deprecated inflight and glob dependencies
+  - Updated all dev dependencies to latest versions
+
+- **Task Command Generation Reliability**: Fixed issue where task parsing would fail with format variations
+  - Enhanced task parser to handle flexible spacing, punctuation, and formatting
+  - Added support for inline metadata extraction (_Requirements:_, _Leverage:_)
+  - Improved multi-line task description handling
+  - Added graceful handling of format variations agents naturally produce
+
+### Enhanced
+- **Comprehensive Test Coverage**: Added extensive unit tests for task parsing edge cases
+  - Tests for format variations (with/without periods, extra spaces, inline metadata)
+  - Tests for deeply nested task hierarchies (1.1.1.1 etc.)
+  - Tests for mixed formats within same document
+  - All 45 tests passing with robust coverage
+
+- **Template Consistency**: Updated task templates and command instructions
+  - Reinforced correct format through positive examples only (avoiding "pink elephant" effect)
+  - Enhanced format rules with clear, consistent examples
+  - Improved task format documentation in command instructions
+
 ## [1.3.1] - 2025-07-27
 
 ### Fixed

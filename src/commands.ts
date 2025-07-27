@@ -468,13 +468,31 @@ You are working on the tasks phase of the spec workflow.
    - Use test-driven development approach leveraging existing test patterns
 
 ### Task Format
+Use this exact format for all tasks:
+
 \`\`\`markdown
 - [ ] 1. Task description
   - Specific implementation details
   - Files to create/modify
-  - _Leverage: existing-component.ts, utils/helpers.js_
   - _Requirements: 1.1, 2.3_
+  - _Leverage: existing-component.ts, utils/helpers.js_
+
+- [ ] 2. Another task description
+  - Implementation details for this task
+  - _Requirements: 2.1_
+
+- [ ] 2.1 Subtask description
+  - Subtask implementation details
+  - _Requirements: 2.1_
+  - _Leverage: shared/component.ts_
 \`\`\`
+
+**Format Rules:**
+- Start with \`- [ ]\` (dash, space, left bracket, space, right bracket, space)
+- Follow with task number and period: \`1.\` or \`2.1\`
+- Add task description after the period and space
+- Include indented details with \`- \` prefix
+- Add metadata lines with \`_Requirements:\` and \`_Leverage:\` as needed
 
 ### Excluded Task Types
 - User acceptance testing

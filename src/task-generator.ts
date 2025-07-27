@@ -12,7 +12,7 @@ export interface ParsedTask {
 
 /**
  * Parse tasks from a tasks.md markdown file
- * Handles the exact format from the template:
+ * Handles various formats agents might produce:
  * - [ ] 1. Task description
  * - [ ] 2.1 Subtask description  
  *   - Details
@@ -24,11 +24,15 @@ export function parseTasksFromMarkdown(content: string): ParsedTask[] {
   const lines = content.split('\n');
   
   let currentTask: ParsedTask | null = null;
+  let isCollectingTaskContent = false;
   
-  for (const line of lines) {
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
     const trimmedLine = line.trim();
     
-    // Match task lines: "- [ ] 1. Task description" or "- [ ] 2.1 Subtask description"
+    // Match task lines with flexible format:
+    // Supports: "- [ ] 1. Task", "- [] 1 Task", "- [ ] 1.1. Task", etc.
+    // Also handles various spacing and punctuation
     const taskMatch = trimmedLine.match(/^-\s*\[\s*\]\s*([0-9]+(?:\.[0-9]+)*)\s*\.?\s*(.+)$/);
     
     if (taskMatch) {
@@ -39,25 +43,42 @@ export function parseTasksFromMarkdown(content: string): ParsedTask[] {
       
       // Start new task
       const taskId = taskMatch[1];
-      const taskDescription = taskMatch[2];
+      const taskDescription = taskMatch[2].trim();
       
       currentTask = {
         id: taskId,
         description: taskDescription
       };
+      isCollectingTaskContent = true;
     } 
-    // Check for _Requirements: lines (only if we're in a task)
-    else if (currentTask && trimmedLine.match(/^-\s*_Requirements:\s*(.+)$/)) {
-      const requirementsMatch = trimmedLine.match(/^-\s*_Requirements:\s*(.+)$/);
-      if (requirementsMatch) {
-        currentTask.requirements = requirementsMatch[1].trim().replace(/_$/, '');
+    // If we're in a task, look for metadata anywhere in the task block
+    else if (currentTask && isCollectingTaskContent) {
+      // Check if this line starts a new task section (to stop collecting)
+      if (trimmedLine.match(/^-\s*\[\s*\]\s*[0-9]/)) {
+        // This is the start of a new task, process it in the next iteration
+        i--;
+        isCollectingTaskContent = false;
+        continue;
       }
-    }
-    // Check for _Leverage: lines (only if we're in a task)
-    else if (currentTask && trimmedLine.match(/^-\s*_Leverage:\s*(.+)$/)) {
-      const leverageMatch = trimmedLine.match(/^-\s*_Leverage:\s*(.+)$/);
+      
+      // Check for _Requirements: anywhere in the line
+      const requirementsMatch = line.match(/_Requirements:\s*(.+?)(?:_|$)/);
+      if (requirementsMatch) {
+        currentTask.requirements = requirementsMatch[1].trim();
+      }
+      
+      // Check for _Leverage: anywhere in the line
+      const leverageMatch = line.match(/_Leverage:\s*(.+?)(?:_|$)/);
       if (leverageMatch) {
-        currentTask.leverage = leverageMatch[1].trim().replace(/_$/, '');
+        currentTask.leverage = leverageMatch[1].trim();
+      }
+      
+      // Stop collecting if we hit an empty line followed by non-indented content
+      if (trimmedLine === '' && i + 1 < lines.length) {
+        const nextLine = lines[i + 1];
+        if (nextLine.length > 0 && nextLine[0] !== ' ' && nextLine[0] !== '\t' && !nextLine.startsWith('  -')) {
+          isCollectingTaskContent = false;
+        }
       }
     }
   }
@@ -65,6 +86,13 @@ export function parseTasksFromMarkdown(content: string): ParsedTask[] {
   // Don't forget the last task
   if (currentTask) {
     tasks.push(currentTask);
+  }
+  
+  // Log parsing results for debugging
+  console.log(`Parsed ${tasks.length} tasks from markdown`);
+  if (tasks.length === 0 && content.trim().length > 0) {
+    console.log('Warning: No tasks found. Content preview:');
+    console.log(content.substring(0, 500) + '...');
   }
   
   return tasks;

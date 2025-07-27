@@ -132,7 +132,7 @@ export class DashboardServer {
       try {
         const content = await readFile(docPath, 'utf-8');
         return { content };
-      } catch (error) {
+      } catch {
         reply.code(404).send({ error: 'Document not found' });
       }
     });
