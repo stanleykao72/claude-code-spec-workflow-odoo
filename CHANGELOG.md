@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.3] - 2025-07-27
+
+### Fixed
+- **Dashboard Compatibility**: Fixed Fastify version compatibility issue in dashboard
+  - Downgraded `@fastify/static` from v8.2.0 to v7.0.4 to maintain compatibility with Fastify v4.24.3
+  - **Result**: Dashboard now starts correctly without version mismatch errors
+
 ## [1.3.2] - 2025-07-27
 
 ### Fixed
@@ -13,12 +20,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated `commander` from v11.1.0 to v12.1.0
   - Replaced `cpx2` with `cpy-cli` to eliminate deprecated inflight and glob dependencies
   - Updated all dev dependencies to latest versions
+  - **Result**: Clean installation with no more "npm warn deprecated" messages
 
 - **Task Command Generation Reliability**: Fixed issue where task parsing would fail with format variations
   - Enhanced task parser to handle flexible spacing, punctuation, and formatting
   - Added support for inline metadata extraction (_Requirements:_, _Leverage:_)
   - Improved multi-line task description handling
   - Added graceful handling of format variations agents naturally produce
+  - **Result**: Task command generation now works reliably regardless of minor formatting differences
 
 ### Enhanced
 - **Comprehensive Test Coverage**: Added extensive unit tests for task parsing edge cases
@@ -26,11 +35,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Tests for deeply nested task hierarchies (1.1.1.1 etc.)
   - Tests for mixed formats within same document
   - All 45 tests passing with robust coverage
-
-- **Template Consistency**: Updated task templates and command instructions
+  
+- **Template Consistency**: Updated task templates and command instructions 
   - Reinforced correct format through positive examples only (avoiding "pink elephant" effect)
   - Enhanced format rules with clear, consistent examples
   - Improved task format documentation in command instructions
+
+### Technical Details
+- **ESLint Migration**: Updated from ESLint v8 to v9 with new flat config format
+- **Dependency Updates**: All dependencies updated to latest stable versions
+- **Code Quality**: Fixed linting issues and improved error handling
+- **Build Process**: Updated copy command to use `cpy-cli` instead of deprecated `cpx2`
 
 ## [1.3.1] - 2025-07-27
 
