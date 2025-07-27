@@ -1,5 +1,5 @@
 import { readFile, readdir, access } from 'fs/promises';
-import { join } from 'path';
+import { join, resolve, normalize } from 'path';
 import { constants } from 'fs';
 import { debug } from './logger';
 import { SteeringLoader } from '../steering';
@@ -65,9 +65,10 @@ export class SpecParser {
   private steeringLoader: SteeringLoader;
 
   constructor(projectPath: string) {
-    this.projectPath = projectPath;
-    this.specsPath = join(projectPath, '.claude', 'specs');
-    this.steeringLoader = new SteeringLoader(projectPath);
+    // Normalize and resolve the project path to handle different path formats
+    this.projectPath = normalize(resolve(projectPath));
+    this.specsPath = join(this.projectPath, '.claude', 'specs');
+    this.steeringLoader = new SteeringLoader(this.projectPath);
   }
 
   async getProjectSteeringStatus(): Promise<SteeringStatus> {

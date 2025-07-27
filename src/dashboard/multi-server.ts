@@ -1,7 +1,7 @@
 import fastify, { FastifyInstance } from 'fastify';
 import fastifyStatic from '@fastify/static';
 import fastifyWebsocket from '@fastify/websocket';
-import { join } from 'path';
+import { join, resolve, normalize } from 'path';
 import { readFile } from 'fs/promises';
 import { SpecWatcher } from './watcher';
 import { SpecParser, Task } from './parser';
@@ -117,7 +117,7 @@ export class MultiProjectDashboardServer {
 
     this.app.get('/api/projects/:projectPath/specs', async (request, reply) => {
       const { projectPath } = request.params as { projectPath: string };
-      const decodedPath = decodeURIComponent(projectPath);
+      const decodedPath = normalize(resolve(decodeURIComponent(projectPath)));
       const projectState = this.projects.get(decodedPath);
 
       if (!projectState) {
@@ -132,7 +132,7 @@ export class MultiProjectDashboardServer {
     // Get raw markdown content for a specific document
     this.app.get('/api/projects/:projectPath/specs/:name/:document', async (request, reply) => {
       const { projectPath, name, document } = request.params as { projectPath: string; name: string; document: string };
-      const decodedPath = decodeURIComponent(projectPath);
+      const decodedPath = normalize(resolve(decodeURIComponent(projectPath)));
       const projectState = this.projects.get(decodedPath);
 
       if (!projectState) {
@@ -181,8 +181,12 @@ export class MultiProjectDashboardServer {
   }
 
   private async initializeProject(project: DiscoveredProject) {
-    const parser = new SpecParser(project.path);
-    const watcher = new SpecWatcher(project.path, parser);
+    // Normalize and resolve the project path to handle different path formats
+    const normalizedPath = normalize(resolve(project.path));
+    project.path = normalizedPath; // Update the project path with normalized version
+    
+    const parser = new SpecParser(normalizedPath);
+    const watcher = new SpecWatcher(normalizedPath, parser);
 
     // Set up watcher events
     watcher.on('change', async (event) => {
@@ -231,6 +235,24 @@ export class MultiProjectDashboardServer {
         projectPath: project.path,
         gitBranch: project.gitBranch,
         gitCommit: project.gitCommit,
+      });
+
+      this.clients.forEach((client) => {
+        if (client.readyState === 1) {
+          client.send(message);
+        }
+      });
+    });
+
+    // Handle steering change events
+    watcher.on('steering-change', async (event) => {
+      debug(`[Multi-server] Steering change detected for ${project.name}:`, event);
+      
+      // Send steering update to all clients
+      const message = JSON.stringify({
+        type: 'steering-update',
+        projectPath: project.path,
+        data: event.steeringStatus,
       });
 
       this.clients.forEach((client) => {

@@ -1,7 +1,7 @@
 import { watch, FSWatcher } from 'chokidar';
 import { EventEmitter } from 'events';
 import { join } from 'path';
-import { SpecParser, Spec } from './parser';
+import { SpecParser, Spec, SteeringStatus } from './parser';
 import { simpleGit, SimpleGit } from 'simple-git';
 import { debug } from './logger';
 
@@ -18,9 +18,16 @@ export interface GitChangeEvent {
   commit?: string;
 }
 
+export interface SteeringChangeEvent {
+  type: 'added' | 'changed' | 'removed';
+  file: string;
+  steeringStatus?: SteeringStatus;
+}
+
 export class SpecWatcher extends EventEmitter {
   private watcher?: FSWatcher;
   private gitWatcher?: FSWatcher;
+  private steeringWatcher?: FSWatcher;
   private projectPath: string;
   private parser: SpecParser;
   private git: SimpleGit;
@@ -100,6 +107,9 @@ export class SpecWatcher extends EventEmitter {
 
     // Start watching git files
     await this.startGitWatcher();
+    
+    // Start watching steering documents
+    await this.startSteeringWatcher();
   }
 
   private async startGitWatcher() {
@@ -154,6 +164,55 @@ export class SpecWatcher extends EventEmitter {
       });
   }
 
+  private async startSteeringWatcher() {
+    const steeringPath = join(this.projectPath, '.claude', 'steering');
+    
+    debug(`[SteeringWatcher] Starting to watch: ${steeringPath}`);
+
+    // Try to use FSEvents on macOS, fall back to polling if needed
+    const isMacOS = process.platform === 'darwin';
+
+    this.steeringWatcher = watch(['product.md', 'tech.md', 'structure.md'], {
+      cwd: steeringPath,
+      persistent: true,
+      ignoreInitial: true,
+      // Use FSEvents on macOS if available, otherwise poll
+      usePolling: !isMacOS,
+      useFsEvents: isMacOS,
+      // Polling fallback settings
+      interval: isMacOS ? 100 : 1000,
+      binaryInterval: 300,
+      // Don't wait for write to finish - report changes immediately
+      awaitWriteFinish: false,
+      // Follow symlinks
+      followSymlinks: true,
+      // Emit all events
+      ignorePermissionErrors: true, // Don't fail if steering directory doesn't exist yet
+      atomic: true,
+    });
+
+    this.steeringWatcher
+      .on('add', (path) => {
+        debug(`[SteeringWatcher] File added: ${path}`);
+        this.handleSteeringChange('added', path);
+      })
+      .on('change', (path) => {
+        debug(`[SteeringWatcher] File changed: ${path}`);
+        this.handleSteeringChange('changed', path);
+      })
+      .on('unlink', (path) => {
+        debug(`[SteeringWatcher] File removed: ${path}`);
+        this.handleSteeringChange('removed', path);
+      })
+      .on('ready', () => debug('[SteeringWatcher] Initial scan complete. Ready for changes.'))
+      .on('error', (error) => {
+        // Don't log error if steering directory doesn't exist yet
+        if (!error.message.includes('ENOENT')) {
+          console.error('[SteeringWatcher] Error:', error);
+        }
+      });
+  }
+
   private async checkGitChanges() {
     try {
       const branchSummary = await this.git.branchLocal();
@@ -189,6 +248,19 @@ export class SpecWatcher extends EventEmitter {
     } catch (error) {
       console.error('[GitWatcher] Error checking git changes:', error);
     }
+  }
+
+  private async handleSteeringChange(type: 'added' | 'changed' | 'removed', fileName: string) {
+    debug(`Steering change detected: ${type} - ${fileName}`);
+    
+    // Get updated steering status
+    const steeringStatus = await this.parser.getProjectSteeringStatus();
+    
+    this.emit('steering-change', {
+      type,
+      file: fileName,
+      steeringStatus,
+    } as SteeringChangeEvent);
   }
 
   private async handleFileChange(type: 'added' | 'changed' | 'removed', filePath: string) {
@@ -241,6 +313,9 @@ export class SpecWatcher extends EventEmitter {
     }
     if (this.gitWatcher) {
       await this.gitWatcher.close();
+    }
+    if (this.steeringWatcher) {
+      await this.steeringWatcher.close();
     }
   }
 }

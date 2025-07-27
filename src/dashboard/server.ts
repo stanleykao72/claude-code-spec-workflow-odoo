@@ -153,6 +153,22 @@ export class DashboardServer {
       });
     });
 
+    // Set up steering change watcher
+    this.watcher.on('steering-change', (event) => {
+      // Broadcast steering updates to all connected clients
+      const message = JSON.stringify({
+        type: 'steering-update',
+        data: event.steeringStatus,
+      });
+
+      this.clients.forEach((client) => {
+        if (client.readyState === 1) {
+          // WebSocket.OPEN
+          client.send(message);
+        }
+      });
+    });
+
     // Start watcher
     await this.watcher.start();
 

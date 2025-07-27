@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.4] - 2025-07-28
+
+### Fixed
+- **Real-time Steering Document Detection**: Fixed GitHub issue #19 where dashboard wouldn't detect steering document changes in real-time
+  - **Root Cause**: Dashboard file watcher only monitored `.claude/specs` but not `.claude/steering` directory
+  - **Primary Fix**: Extended `SpecWatcher` class to monitor steering directory and emit `steering-change` events
+  - **Secondary Fix**: Added robust path normalization to handle URL encoding/decoding and cross-platform path differences
+  - **Dashboard Updates**: Enhanced both single-project and multi-project dashboard servers to handle steering events
+  - **Frontend Integration**: Updated JavaScript to handle real-time steering status updates via WebSocket
+  - **Result**: Users now see immediate feedback when running `/spec-steering-setup` without manual page refresh
+
+### Enhanced
+- **Cross-platform Path Handling**: Improved path normalization for Windows, macOS, and Linux compatibility
+  - Added `resolve()` and `normalize()` to `SpecParser` constructor for consistent path handling
+  - Enhanced multi-project dashboard to handle URL-encoded paths with spaces and special characters
+  - Fixed path separator inconsistencies between different operating systems
+  - **Result**: Dashboard works reliably across all platforms with various project path formats
+
+### Added
+- **Comprehensive Path Testing**: Added extensive test coverage for path normalization scenarios
+  - New `parser.test.ts` with 7 path normalization test cases
+  - Enhanced `steering.test.ts` with cross-platform path compatibility tests
+  - Coverage for URL encoding, path separators, trailing slashes, and spaces in paths
+  - **Result**: 55 total tests passing, ensuring robust path handling
+
 ## [1.3.3] - 2025-07-27
 
 ### Fixed
@@ -35,8 +60,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Tests for deeply nested task hierarchies (1.1.1.1 etc.)
   - Tests for mixed formats within same document
   - All 45 tests passing with robust coverage
-  
-- **Template Consistency**: Updated task templates and command instructions 
+
+- **Template Consistency**: Updated task templates and command instructions
   - Reinforced correct format through positive examples only (avoiding "pink elephant" effect)
   - Enhanced format rules with clear, consistent examples
   - Improved task format documentation in command instructions

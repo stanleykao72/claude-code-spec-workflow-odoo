@@ -111,11 +111,18 @@ PetiteVue.createApp({
       case 'spec-update':
         this.updateSpec(message.data);
         break;
+      case 'update':
+        this.updateSpec(message.data);
+        break;
       case 'project-info-update':
         this.projectName = message.data.name || this.projectName;
         this.branch = message.data.branch || this.branch;
         this.githubUrl = message.data.githubUrl || this.githubUrl;
         this.steeringStatus = message.data.steeringStatus || this.steeringStatus;
+        break;
+      case 'steering-update':
+        this.steeringStatus = message.data;
+        console.log('Steering status updated:', this.steeringStatus);
         break;
       default:
         console.log('Unknown message type:', message.type);
