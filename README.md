@@ -1,6 +1,6 @@
 # Claude Code Spec Workflow
 
-[![npm version](https://badge.fury.io/js/@pimzino%2Fclaude-code-spec-workflow.svg?cacheSeconds=3600)](https://badge.fury.io/js/@pimzino%2Fclaude-code-spec-workflow)
+[![npm version](https://badge.fury.io/js/@pimzino%2Fclaude-code-spec-workflow.svg?cacheSeconds=300)](https://badge.fury.io/js/@pimzino%2Fclaude-code-spec-workflow)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 > Automated workflows for Claude Code. Features **spec-driven development** for new features (**Requirements → Design → Tasks → Implementation**) and **streamlined bug fix workflow** for quick issue resolution (**Report → Analyze → Fix → Verify**).
@@ -199,13 +199,17 @@ Monitor your specs and tasks with a beautiful web dashboard:
 
 ```bash
 # Start the dashboard
-npx claude-spec-dashboard
+npx -p @pimzino/claude-code-spec-workflow claude-spec-dashboard
 
 # Start on custom port
-npx claude-spec-dashboard --port 8080
+npx -p @pimzino/claude-code-spec-workflow claude-spec-dashboard --port 8080
 
 # Auto-open in browser
-npx claude-spec-dashboard --open
+npx -p @pimzino/claude-code-spec-workflow claude-spec-dashboard --open
+
+# Alternative: If you have the package installed globally
+npm install -g @pimzino/claude-code-spec-workflow
+claude-spec-dashboard
 ```
 
 **Dashboard Features:**
