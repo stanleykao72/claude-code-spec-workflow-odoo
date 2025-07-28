@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.5] - 2025-07-29
+
+### Enhanced
+- **Command Workflow Clarity**: Consolidated all workflow instructions into single `spec-create` command for better agent guidance
+  - **Root Cause**: Individual spec commands (`/spec-requirements`, `/spec-design`, `/spec-tasks`) cannot be executed by Claude Code, causing agent confusion
+  - **Primary Fix**: Removed all confusing command references from workflow instructions
+  - **Secondary Fix**: Enhanced `spec-create` command with complete Requirements → Design → Tasks → Commands workflow
+  - **Template Integration**: All commands now reference actual template files instead of inline examples
+  - **Result**: Agents receive clear, actionable guidance without attempting to execute unavailable commands
+
+- **Template Content Completeness**: Enhanced all templates with comprehensive guidance and examples
+  - Added `_Leverage:` examples throughout task template showing code reuse opportunities
+  - Enhanced design template with code reuse analysis and integration points sections
+  - Added task format guidelines and detailed examples to task template
+  - **Result**: Templates are now self-contained with all necessary guidance for each workflow phase
+
+- **Bug Workflow Consistency**: Applied same clarity improvements to all bug fix commands
+  - Removed inline template examples from `bug-create`, `bug-analyze`, and `bug-verify` commands
+  - Added explicit template file references for `bug-report-template.md`, `bug-analysis-template.md`, and `bug-verification-template.md`
+  - **Result**: Consistent approach across both spec and bug workflows with clean, focused commands
+
 ## [1.3.4] - 2025-07-28
 
 ### Fixed

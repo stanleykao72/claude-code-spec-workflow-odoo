@@ -1,7 +1,7 @@
 export function getSpecCreateCommand(): string {
   return `# Spec Create Command
 
-Create a new feature specification following the spec-driven workflow.
+Create a new feature specification following the complete spec-driven workflow.
 
 ## Usage
 \`\`\`
@@ -19,130 +19,207 @@ You are an AI assistant that specializes in spec-driven development. Your role i
 - **Requirement Traceability**: All tasks must reference specific requirements
 - **Test-Driven Focus**: Prioritize testing and validation throughout
 
-## Workflow Sequence
+## Complete Workflow Sequence
 
 **CRITICAL**: Follow this exact sequence - do NOT skip steps:
 
-1. **Requirements Phase** (This command)
-   - Create requirements.md
+1. **Requirements Phase** (Phase 1)
+   - Create requirements.md using template
    - Get user approval
    - Proceed to design phase
 
-2. **Design Phase** (\`/spec-design\`)
-   - Create design.md
+2. **Design Phase** (Phase 2)
+   - Create design.md using template
    - Get user approval
    - Proceed to tasks phase
 
-3. **Tasks Phase** (\`/spec-tasks\`)
-   - Create tasks.md
+3. **Tasks Phase** (Phase 3)
+   - Create tasks.md using template
    - Get user approval
    - **Ask user if they want task commands generated** (yes/no)
    - If yes: run \`npx @pimzino/claude-code-spec-workflow@latest generate-task-commands {spec-name}\`
 
-4. **Implementation Phase** (\`/spec-execute\` or generated commands)
-   - Use generated task commands or traditional /spec-execute
+4. **Implementation Phase** (Phase 4)
+   - Use generated task commands or execute tasks individually
 
 ## Instructions
 
-You are helping create a new feature specification. Follow these steps:
+You are helping create a new feature specification through the complete workflow. Follow these phases sequentially:
 
 **WORKFLOW SEQUENCE**: Requirements → Design → Tasks → Generate Commands
-**DO NOT** run task command generation until the tasks phase is complete and approved.
+**DO NOT** run task command generation until all phases are complete and approved.
+
+### Initial Setup
 
 1. **Create Directory Structure**
    - Create \`.claude/specs/{feature-name}/\` directory
    - Initialize empty requirements.md, design.md, and tasks.md files
 
-2. **Check for Steering Documents**
+2. **Load Context Documents**
    - Look for .claude/steering/product.md (product vision and goals)
    - Look for .claude/steering/tech.md (technical standards and patterns)
    - Look for .claude/steering/structure.md (project structure conventions)
-   - Load available steering documents to guide the spec creation
+   - Load available steering documents to guide the entire workflow
 
-3. **Parse Feature Description**
-   - Take the feature name and optional description
-   - Begin the requirements gathering phase immediately
-   - Do not ask sequential questions - generate initial requirements
-
-4. **Analyze Existing Codebase** (BEFORE writing requirements)
-   - **Search for similar features**: Look for existing authentication, data handling, UI patterns, etc.
+3. **Analyze Existing Codebase** (BEFORE starting any phase)
+   - **Search for similar features**: Look for existing patterns relevant to the new feature
    - **Identify reusable components**: Find utilities, services, hooks, or modules that can be leveraged
    - **Review architecture patterns**: Understand current project structure, naming conventions, and design patterns
-   - **Cross-reference with steering documents**: Ensure findings align with tech.md patterns and structure.md conventions
+   - **Cross-reference with steering documents**: Ensure findings align with documented standards
    - **Find integration points**: Locate where new feature will connect with existing systems
    - **Document findings**: Note what can be reused vs. what needs to be built from scratch
 
-5. **Generate Initial Requirements**
-   - Use the requirements template from \`.claude/templates/requirements-template.md\`
+## PHASE 1: Requirements Creation
+
+**Template to Follow**: Use the exact structure from \`.claude/templates/requirements-template.md\`
+
+### Requirements Process
+1. **Generate Requirements Document**
+   - Use the requirements template structure precisely
    - **Align with product.md**: Ensure requirements support the product vision and goals
    - Create user stories in "As a [role], I want [feature], so that [benefit]" format
    - Write acceptance criteria in EARS format (WHEN/IF/THEN statements)
    - Consider edge cases and technical constraints
    - **Reference steering documents**: Note how requirements align with product vision
 
-### Requirements Format
-\`\`\`markdown
-## Requirements
+### Requirements Template Usage
+- **Read and follow**: \`.claude/templates/requirements-template.md\`
+- **Use exact structure**: Follow all sections and formatting from the template
+- **Include all sections**: Don't omit any required template sections
 
-### Requirement 1
-**User Story:** As a [role], I want [feature], so that [benefit]
+### Requirements Approval
+- **Present the complete requirements document**
+- **Include codebase analysis summary**: Briefly note what existing code can be leveraged
+- Ask: "Do the requirements look good? If so, we can move on to the design phase."
+- **CRITICAL**: Wait for explicit approval before proceeding to Phase 2
+- Accept only clear affirmative responses: "yes", "approved", "looks good", etc.
+- If user provides feedback, make revisions and ask for approval again
 
-#### Acceptance Criteria
-1. WHEN [event] THEN [system] SHALL [response]
-2. IF [condition] THEN [system] SHALL [response]
-\`\`\`
+## PHASE 2: Design Creation
 
-6. **Request User Approval**
-   - Present the requirements document
-   - **Include codebase analysis summary**: Briefly note what existing code can be leveraged
-   - Ask: "Do the requirements look good? If so, we can move on to the design."
-   - Wait for explicit approval before proceeding
+**Template to Follow**: Use the exact structure from \`.claude/templates/design-template.md\`
 
-### Approval Workflow
+### Design Process
+1. **Load Previous Phase**
+   - Ensure requirements.md exists and is approved
+   - Load requirements document for context
+
+2. **Codebase Research** (MANDATORY)
+   - **Map existing patterns**: Identify data models, API patterns, component structures
+   - **Cross-reference with tech.md**: Ensure patterns align with documented technical standards
+   - **Catalog reusable utilities**: Find validation functions, helpers, middleware, hooks
+   - **Document architectural decisions**: Note existing tech stack, state management, routing patterns
+   - **Verify against structure.md**: Ensure file organization follows project conventions
+   - **Identify integration points**: Map how new feature connects to existing auth, database, APIs
+
+3. **Create Design Document**
+   - Use the design template structure precisely
+   - **Build on existing patterns** rather than creating new ones
+   - **Follow tech.md standards**: Ensure design adheres to documented technical guidelines
+   - **Respect structure.md conventions**: Organize components according to project structure
+   - **Include Mermaid diagrams** for visual representation
+   - **Define clear interfaces** that integrate with existing systems
+
+### Design Template Usage
+- **Read and follow**: \`.claude/templates/design-template.md\`
+- **Use exact structure**: Follow all sections and formatting from the template
+- **Include Mermaid diagrams**: Add visual representations as shown in template
+
+### Design Approval
+- **Present the complete design document**
+- **Highlight code reuse**: Clearly show what existing code will be leveraged
+- **Show steering document alignment**: Note how design follows tech.md and structure.md
+- Ask: "Does the design look good? If so, we can move on to the implementation planning."
+- **CRITICAL**: Wait for explicit approval before proceeding to Phase 3
+
+## PHASE 3: Tasks Creation
+
+**Template to Follow**: Use the exact structure from \`.claude/templates/tasks-template.md\`
+
+### Task Planning Process
+1. **Load Previous Phases**
+   - Ensure design.md exists and is approved
+   - Load both requirements.md and design.md for complete context
+
+2. **Generate Task List**
+   - Break design into atomic, executable coding tasks
+   - **Follow structure.md**: Ensure tasks respect project file organization
+   - **Prioritize extending/adapting existing code** over building from scratch
+   - Use checkbox format with numbered hierarchy
+   - Each task should reference specific requirements AND existing code to leverage
+   - Focus ONLY on coding tasks (no deployment, user testing, etc.)
+
+### Task Template Usage
+- **Read and follow**: \`.claude/templates/tasks-template.md\`
+- **Use exact structure**: Follow all sections and formatting from the template
+- **Use checkbox format**: Follow the exact task format with requirement references
+
+### Task Approval and Command Generation
+- **Present the complete task list**
+- Ask: "Do the tasks look good?"
+- **CRITICAL**: Wait for explicit approval before proceeding
+- **AFTER APPROVAL**: Ask "Would you like me to generate individual task commands for easier execution? (yes/no)"
+- **IF YES**: Execute \`npx @pimzino/claude-code-spec-workflow@latest generate-task-commands {feature-name}\`
+- **IF NO**: Continue with traditional task execution approach
+
+## Critical Workflow Rules
+
+### Universal Rules
+- **Only create ONE spec at a time**
+- **Always use kebab-case for feature names**
+- **MANDATORY**: Always analyze existing codebase before starting any phase
+- **Follow exact template structures** from the specified template files
+- **Do not proceed without explicit user approval** between phases
+- **Do not skip phases** - complete Requirements → Design → Tasks → Commands sequence
+
+### Approval Requirements
 - **NEVER** proceed to the next phase without explicit user approval
 - Accept only clear affirmative responses: "yes", "approved", "looks good", etc.
 - If user provides feedback, make revisions and ask for approval again
 - Continue revision cycle until explicit approval is received
 
-7. **Complete Requirements Phase**
-   - Present the requirements document with reuse opportunities highlighted
-   - Wait for explicit approval
-   - **DO NOT** run task command generation yet
-   - **NEXT STEP**: Proceed to \`/spec-design\` phase
+### Template Usage
+- **Requirements**: Must follow \`.claude/templates/requirements-template.md\` structure exactly
+- **Design**: Must follow \`.claude/templates/design-template.md\` structure exactly  
+- **Tasks**: Must follow \`.claude/templates/tasks-template.md\` structure exactly
+- **Include all template sections** - do not omit any required sections
 
-8. **Rules**
-   - Only create ONE spec at a time
-   - Always use kebab-case for feature names
-   - **MANDATORY**: Always analyze existing codebase before writing requirements
-   - Follow the exact EARS format for acceptance criteria
-   - Do not proceed without explicit user approval
-   - **DO NOT** run task command generation during /spec-create - only create requirements
+### Task Command Generation
+- **ONLY** ask about task command generation AFTER tasks.md is approved
+- **Use NPX command**: \`npx @pimzino/claude-code-spec-workflow@latest generate-task-commands {feature-name}\`
+- **User choice**: Always ask the user if they want task commands generated (yes/no)
+- **Restart requirement**: Inform user to restart Claude Code for new commands to be visible
 
 ## Error Handling
 
 If issues arise during the workflow:
 - **Requirements unclear**: Ask targeted questions to clarify
-- **Design too complex**: Suggest breaking into smaller components
+- **Design too complex**: Suggest breaking into smaller components  
 - **Tasks too broad**: Break into smaller, more atomic tasks
 - **Implementation blocked**: Document the blocker and suggest alternatives
+- **Template not found**: Inform user that templates should be generated during setup
 
 ## Success Criteria
 
 A successful spec workflow completion includes:
-- ✅ Complete requirements with user stories and acceptance criteria
-- ✅ Comprehensive design with architecture and components
-- ✅ Detailed task breakdown with requirement references
-- ✅ Working implementation validated against requirements
-- ✅ All phases explicitly approved by user
-- ✅ All tasks completed and integrated
+- ✅ Complete requirements with user stories and acceptance criteria (using requirements template)
+- ✅ Comprehensive design with architecture and components (using design template)
+- ✅ Detailed task breakdown with requirement references (using tasks template)
+- ✅ All phases explicitly approved by user before proceeding
+- ✅ Task commands generated (if user chooses)
+- ✅ Ready for implementation phase
 
-## Example
+## Example Usage
 \`\`\`
 /spec-create user-authentication "Allow users to sign up and log in securely"
 \`\`\`
 
-## Next Steps
-After user approval, proceed to \`/spec-design\` phase.
+## Implementation Phase
+After completing all phases and generating task commands, Display the following information to the user:
+0. **RESTART Claude Code** for new commands to be visible
+1. **Use individual task commands**: \`/user-authentication-task-1\`, \`/user-authentication-task-2\`, etc.
+2. **Or use spec-execute**: Execute tasks individually as needed
+3. **Track progress**: Use \`/spec-status user-authentication\` to monitor progress
 `;
 }
 
@@ -178,24 +255,24 @@ You are working on the requirements phase of the spec workflow.
    - **Analyze codebase**: Search for similar features and patterns
 
 3. **Generate Requirements Document**
-   - Use EARS format (Easy Approach to Requirements Syntax)
-   - Structure: Introduction, Requirements with User Stories and Acceptance Criteria
+   - **Template to Follow**: Use the exact structure from \`.claude/templates/requirements-template.md\`
+   - **Use EARS format**: Easy Approach to Requirements Syntax for acceptance criteria
    - Each requirement should have:
      - User story: "As a [role], I want [feature], so that [benefit]"
      - Numbered acceptance criteria: "WHEN [event] THEN [system] SHALL [response]"
    - **Ensure alignment**: Verify requirements support goals outlined in product.md
 
-### Process
-1. Parse the feature description provided by the user
-2. Create user stories in format: "As a [role], I want [feature], so that [benefit]"
-3. Generate acceptance criteria using EARS format:
+### Requirements Creation Process
+1. **Read the requirements template**: Load \`.claude/templates/requirements-template.md\` and follow its exact structure
+2. Parse the feature description provided by the user
+3. Create user stories in format: "As a [role], I want [feature], so that [benefit]"
+4. Generate acceptance criteria using EARS format:
    - WHEN [event] THEN [system] SHALL [response]
    - IF [condition] THEN [system] SHALL [response]
-4. Consider edge cases, error scenarios, and non-functional requirements
-5. Present complete requirements document
-6. Ask: "Do the requirements look good? If so, we can move on to the design."
-7. **CRITICAL**: Wait for explicit approval before proceeding
-8. **NEXT PHASE**: Proceed to \`/spec-design\` (DO NOT run scripts yet)
+5. Consider edge cases, error scenarios, and non-functional requirements
+6. Present complete requirements document following the template structure
+7. Ask: "Do the requirements look good? If so, we can move on to the design phase."
+8. **CRITICAL**: Wait for explicit approval before proceeding to the design phase
 
 4. **Content Guidelines**
    - Consider edge cases and error handling
@@ -206,52 +283,15 @@ You are working on the requirements phase of the spec workflow.
 
 5. **Approval Process**
    - Present the complete requirements document
-   - Ask: "Do the requirements look good? If so, we can move on to the design."
+   - Ask: "Do the requirements look good? If so, we can move on to the design phase."
    - Make revisions based on feedback
    - Continue until explicit approval is received
    - **CRITICAL**: Do not proceed without explicit approval
 
-## Requirements Format
-\`\`\`markdown
-# Requirements Document
-
-## Introduction
-[Brief summary of the feature]
-
-## Alignment with Product Vision
-[Explain how this feature supports the goals outlined in product.md]
-
-## Requirements
-
-### Requirement 1
-**User Story:** As a [role], I want [feature], so that [benefit]
-
-#### Acceptance Criteria
-1. WHEN [event] THEN [system] SHALL [response]
-2. IF [condition] THEN [system] SHALL [response]
-3. WHEN [event] AND [condition] THEN [system] SHALL [response]
-
-### Requirement 2
-**User Story:** As a [role], I want [feature], so that [benefit]
-
-#### Acceptance Criteria
-1. WHEN [event] THEN [system] SHALL [response]
-2. IF [precondition] THEN [system] SHALL [response]
-
-## Non-Functional Requirements
-
-### Performance
-- [Performance requirements]
-
-### Security
-- [Security requirements]
-
-### Reliability
-- [Reliability requirements]
-
-### Usability
-- [Usability requirements]
-\`\`\`
+## Template Usage
+- **Follow exact structure**: Use \`.claude/templates/requirements-template.md\` precisely
+- **Include all sections**: Don't omit any required template sections
+- **EARS format**: Use proper WHEN/IF/THEN statements for acceptance criteria
 
 ## Critical Rules
 - **NEVER** proceed to the next phase without explicit user approval
@@ -260,7 +300,7 @@ You are working on the requirements phase of the spec workflow.
 - Continue revision cycle until explicit approval is received
 
 ## Next Phase
-After approval, proceed to \`/spec-design\`.
+After approval, the next phase is design creation. The user can proceed to work on the design document.
 `;
 }
 
@@ -291,18 +331,19 @@ You are working on the design phase of the spec workflow.
      - Check for .claude/steering/product.md for product context
    - Research existing codebase patterns and architecture
 
-2. **Process**
-   1. Research existing codebase patterns and architecture
-   2. Create comprehensive design document including:
+2. **Design Creation Process**
+   1. **Read the design template**: Load \`.claude/templates/design-template.md\` and follow its exact structure
+   2. Research existing codebase patterns and architecture
+   3. Create comprehensive design document following the template including:
       - System overview and architecture
       - Component specifications and interfaces
       - Data models and validation rules
       - Error handling strategies
       - Testing approach
-   3. Include Mermaid diagrams for visual representation
-   4. Present complete design document
-   5. Ask: "Does the design look good? If so, we can move on to the implementation plan."
-   6. **CRITICAL**: Wait for explicit approval before proceeding
+   4. Include Mermaid diagrams for visual representation
+   5. Present complete design document following the template structure
+   6. Ask: "Does the design look good? If so, we can move on to the implementation planning phase."
+   7. **CRITICAL**: Wait for explicit approval before proceeding to the tasks phase
 
 3. **Codebase Research Phase** (MANDATORY)
    - **Map existing patterns**: Identify data models, API patterns, component structures that match your needs
@@ -329,69 +370,15 @@ You are working on the design phase of the spec workflow.
    - Present the complete design document
    - **Highlight code reuse**: Clearly show what existing code will be leveraged
    - **Show steering document alignment**: Note how design follows tech.md and structure.md
-   - Ask: "Does the design look good? If so, we can move on to the implementation plan."
+   - Ask: "Does the design look good? If so, we can move on to the implementation planning phase."
    - Incorporate feedback and revisions
    - Continue until explicit approval
    - **CRITICAL**: Do not proceed without explicit approval
 
-## Design Sections Required
-- Overview
-- Architecture (with Mermaid diagrams)
-- Components and Interfaces
-- Data Models
-- Error Handling
-- Testing Strategy
-
-## Design Structure
-\`\`\`markdown
-# Design Document
-
-## Overview
-[High-level description of the feature and its place in the overall system]
-
-## Steering Document Alignment
-
-### Technical Standards (tech.md)
-[How the design follows documented technical patterns and standards]
-
-### Project Structure (structure.md)
-[How the implementation will follow project organization conventions]
-
-## Code Reuse Analysis
-[What existing code will be leveraged, extended, or integrated]
-
-## Architecture
-[Describe the overall architecture and design patterns used]
-
-\`\`\`mermaid
-graph TD
-    A[Component A] --> B[Component B]
-    B --> C[Component C]
-\`\`\`
-
-## Components and Interfaces
-
-### Component 1
-- **Purpose:** [What this component does]
-- **Interfaces:** [Public methods/APIs]
-- **Dependencies:** [What it depends on]
-- **Reuses:** [Existing components/utilities it builds upon]
-
-### Component 2
-- **Purpose:** [What this component does]
-- **Interfaces:** [Public methods/APIs]
-- **Dependencies:** [What it depends on]
-- **Reuses:** [Existing components/utilities it builds upon]
-
-## Data Models
-[Data structures following established patterns]
-
-## Error Handling
-[Error scenarios consistent with current approach]
-
-## Testing Strategy
-[Testing approach using existing utilities and patterns]
-\`\`\`
+## Template Usage
+- **Follow exact structure**: Use \`.claude/templates/design-template.md\` precisely
+- **Include all sections**: Don't omit any required template sections (Overview, Architecture, Components, Data Models, Error Handling, Testing Strategy)
+- **Add Mermaid diagrams**: Include visual representations as shown in template
 
 ## Critical Rules
 - **NEVER** proceed to the next phase without explicit user approval
@@ -400,7 +387,7 @@ graph TD
 - Continue revision cycle until explicit approval is received
 
 ## Next Phase
-After approval, proceed to \`/spec-tasks\`.
+After approval, the next phase is task planning. The user can proceed to work on the implementation plan.
 `;
 }
 
@@ -436,20 +423,22 @@ You are working on the tasks phase of the spec workflow.
      - Check for .claude/steering/tech.md for technical patterns
    - Understand the complete feature scope
 
-2. **Process**
-   1. Convert design into atomic, executable coding tasks
-   2. Ensure each task:
+2. **Task Creation Process**
+   1. **Read the task template**: Load \`.claude/templates/tasks-template.md\` and follow its exact structure
+   2. Convert design into atomic, executable coding tasks
+   3. Ensure each task:
       - Has a clear, actionable objective
       - References specific requirements using _Requirements: X.Y_ format
+      - References existing code to leverage using _Leverage: path/to/file.ts_ format
       - Builds incrementally on previous tasks
       - Focuses on coding activities only
-   3. Use checkbox format with hierarchical numbering
-   4. Present complete task list
-   5. Ask: "Do the tasks look good?"
-   6. **CRITICAL**: Wait for explicit approval before proceeding
-   7. **AFTER APPROVAL**: Ask "Would you like me to generate individual task commands for easier execution? (yes/no)"
-   8. **IF YES**: Execute \`npx @pimzino/claude-code-spec-workflow@latest generate-task-commands {feature-name}\`
-   9. **IF NO**: Continue with traditional \`/spec-execute\` approach
+   4. Use checkbox format with hierarchical numbering as shown in template
+   5. Present complete task list following the template structure
+   6. Ask: "Do the tasks look good?"
+   7. **CRITICAL**: Wait for explicit approval before proceeding
+   8. **AFTER APPROVAL**: Ask "Would you like me to generate individual task commands for easier execution? (yes/no)"
+   9. **IF YES**: Execute \`npx @pimzino/claude-code-spec-workflow@latest generate-task-commands {feature-name}\`
+   10. **IF NO**: Continue with traditional task execution approach
 
 3. **Generate Task List** (prioritize code reuse and follow conventions)
    - Break design into atomic, executable coding tasks
@@ -467,32 +456,11 @@ You are working on the tasks phase of the spec workflow.
    - Reference requirements using _Requirements: X.Y_ format
    - Use test-driven development approach leveraging existing test patterns
 
-### Task Format
-Use this exact format for all tasks:
-
-\`\`\`markdown
-- [ ] 1. Task description
-  - Specific implementation details
-  - Files to create/modify
-  - _Requirements: 1.1, 2.3_
-  - _Leverage: existing-component.ts, utils/helpers.js_
-
-- [ ] 2. Another task description
-  - Implementation details for this task
-  - _Requirements: 2.1_
-
-- [ ] 2.1 Subtask description
-  - Subtask implementation details
-  - _Requirements: 2.1_
-  - _Leverage: shared/component.ts_
-\`\`\`
-
-**Format Rules:**
-- Start with \`- [ ]\` (dash, space, left bracket, space, right bracket, space)
-- Follow with task number and period: \`1.\` or \`2.1\`
-- Add task description after the period and space
-- Include indented details with \`- \` prefix
-- Add metadata lines with \`_Requirements:\` and \`_Leverage:\` as needed
+## Template Usage
+- **Follow exact structure**: Use \`.claude/templates/tasks-template.md\` precisely
+- **Include all sections**: Don't omit any required template sections
+- **Use checkbox format**: Follow the exact task format with requirement and leverage references
+- **See template for format rules**: The template includes detailed formatting guidelines
 
 ### Excluded Task Types
 - User acceptance testing
@@ -520,45 +488,12 @@ Use this exact format for all tasks:
 - **WAIT**: Do not run command generation until user explicitly approves tasks
 - **ASK USER**: "Would you like me to generate individual task commands for easier execution? (yes/no)"
 - **IF YES**: Execute \`npx @pimzino/claude-code-spec-workflow@latest generate-task-commands {feature-name}\`
-- **IF NO**: Continue with traditional \`/spec-execute\` approach
+- **IF NO**: Continue with traditional task execution approach
 - **PURPOSE**: Creates individual task commands in \`.claude/commands/{feature-name}/\`
 - **RESULT**: Each task gets its own command: \`/{feature-name}-task-{task-id}\`
 - **EXAMPLE**: Creates \`/{feature-name}-task-1\`, \`/{feature-name}-task-2.1\`, etc.
 - **RESTART REQUIRED**: Inform user to restart Claude Code for new commands to be visible
 
-## Task Structure Example
-\`\`\`markdown
-# Implementation Plan
-
-## Task Overview
-[Brief description of the implementation approach]
-
-## Steering Document Compliance
-[How tasks follow structure.md conventions and tech.md patterns]
-
-## Tasks
-
-- [ ] 1. Set up project structure and core interfaces
-  - Create directory structure following existing patterns
-  - Define core interfaces extending existing base classes
-  - Set up basic configuration
-  - _Leverage: src/types/base.ts, src/models/BaseModel.ts_
-  - _Requirements: 1.1_
-
-- [ ] 2. Implement data models and validation
-- [ ] 2.1 Create base model classes
-  - Define data structures/schemas
-  - Implement validation methods
-  - Write unit tests for models
-  - _Leverage: src/utils/validation.ts, tests/helpers/testUtils.ts_
-  - _Requirements: 2.1, 2.2_
-
-- [ ] 2.2 Implement specific model classes
-  - Create concrete model implementations
-  - Add relationship handling
-  - Test model interactions
-  - _Requirements: 2.3_
-\`\`\`
 
 ## Critical Rules
 - **NEVER** proceed to the next phase without explicit user approval
@@ -570,8 +505,8 @@ Use this exact format for all tasks:
 After approval and command generation:
 1. **RESTART Claude Code** for new commands to be visible
 2. Then you can:
-   - Use \`/spec-execute\` to implement tasks
-   - Use individual task commands: \`/{feature-name}-task-1\`, \`/{feature-name}-task-2\`, etc.
+   - Use individual task commands (if generated): \`/{feature-name}-task-1\`, \`/{feature-name}-task-2\`, etc.
+   - Or execute tasks individually as needed
    - Check progress with \`/spec-status {feature-name}\`
 `;
 }
@@ -945,34 +880,14 @@ You are helping create a new bug fix workflow. This is designed for smaller fixe
    - Use structured format for consistency
 
 4. **Generate Bug Report**
-   - Use the bug report template from \`.claude/templates/bug-report-template.md\`
-   - Create detailed bug description including:
-     - Expected vs actual behavior
-     - Steps to reproduce
-     - Environment details
-     - Impact assessment
-     - Initial analysis
+   - **Template to Follow**: Use the exact structure from \`.claude/templates/bug-report-template.md\`
+   - **Read and follow**: Load the template and follow all sections precisely
+   - Create detailed bug description following the template structure
 
-### Bug Report Structure
-\`\`\`markdown
-## Bug Summary
-[Clear description of the issue]
-
-## Bug Details
-- Expected Behavior: [What should happen]
-- Actual Behavior: [What actually happens]
-- Steps to Reproduce: [Numbered steps]
-- Environment: [Platform, version, config details]
-
-## Impact Assessment
-- Severity: [Critical/High/Medium/Low]
-- Affected Users: [Who is impacted]
-- Affected Features: [What functionality is broken]
-
-## Initial Analysis
-- Suspected Root Cause: [Initial thoughts]
-- Affected Components: [Files/modules that might be involved]
-\`\`\`
+## Template Usage
+- **Follow exact structure**: Use \`.claude/templates/bug-report-template.md\` precisely
+- **Include all sections**: Don't omit any required template sections
+- **Structured format**: Follow the template's format for consistency
 
 5. **Request User Input**
    - Ask for bug details if not provided in description
@@ -1063,28 +978,14 @@ You are working on the analysis phase of the bug fix workflow.
       - Identify potential risks
 
 3. **Create Analysis Document**
-   - Use the bug analysis template
-   - Document investigation findings
-   - Include specific code locations affected
-   - Provide implementation plan for the fix
+   - **Template to Follow**: Use the exact structure from \`.claude/templates/bug-analysis-template.md\`
+   - **Read and follow**: Load the template and follow all sections precisely
+   - Document investigation findings following the template structure
 
-### Analysis Structure
-\`\`\`markdown
-## Root Cause Analysis
-- Investigation Summary: [What you found]
-- Root Cause: [The underlying issue]
-- Contributing Factors: [Secondary issues]
-
-## Technical Details
-- Affected Code Locations: [Specific files and functions]
-- Data Flow Analysis: [How data moves and where it breaks]
-- Dependencies: [External factors involved]
-
-## Solution Approach
-- Fix Strategy: [How to solve it]
-- Alternative Solutions: [Other options considered]
-- Implementation Plan: [Specific changes needed]
-\`\`\`
+## Template Usage
+- **Follow exact structure**: Use \`.claude/templates/bug-analysis-template.md\` precisely
+- **Include all sections**: Don't omit any required template sections
+- **Detailed analysis**: Follow the template's format for comprehensive investigation
 
 4. **Investigation Guidelines**
    - **Follow tech.md standards**: Understand existing patterns before proposing changes
@@ -1301,32 +1202,14 @@ You are working on the verification phase of the bug fix workflow.
    - **Code Quality**: Changes follow project conventions
 
 4. **Create Verification Document**
-   - Use the bug verification template
-   - Document all test results
-   - Include verification checklist completion
-   - Note any observations or follow-up needed
+   - **Template to Follow**: Use the exact structure from \`.claude/templates/bug-verification-template.md\`
+   - **Read and follow**: Load the template and follow all sections precisely
+   - Document all test results following the template structure
 
-### Verification Structure
-\`\`\`markdown
-## Fix Implementation Summary
-[Brief description of what was changed]
-
-## Test Results
-- Original Bug Reproduction: [Before/After results]
-- Regression Testing: [Related functionality status]
-- Edge Case Testing: [Boundary condition results]
-
-## Code Quality Checks
-- Automated Tests: [Test suite results]
-- Code Style: [Standards compliance]
-- Error Handling: [Error scenario testing]
-
-## Closure Checklist
-- [ ] Original issue resolved
-- [ ] No regressions introduced
-- [ ] Tests passing
-- [ ] Documentation updated
-\`\`\`
+## Template Usage
+- **Follow exact structure**: Use \`.claude/templates/bug-verification-template.md\` precisely
+- **Include all sections**: Don't omit any required template sections
+- **Complete checklist**: Follow the template's checklist format for thoroughness
 
 5. **Final Approval**
    - Present complete verification results
