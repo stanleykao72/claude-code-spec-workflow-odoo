@@ -497,13 +497,25 @@
 
                   <!-- Next Task -->
                   <div v-if="getNextTask(activeTask)" class="mb-3">
-                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300"
-                      >Next Up:</span
-                    >
-                    <span class="text-sm text-gray-600 dark:text-gray-400 ml-2">
-                      Task {{ getNextTask(activeTask).id }}: {{ getNextTask(activeTask).description
-                      }}
-                    </span>
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300"
+                          >Next Up:</span
+                        >
+                        <span class="text-sm text-gray-600 dark:text-gray-400 ml-2">
+                          Task {{ getNextTask(activeTask).id }}: {{ getNextTask(activeTask).description
+                          }}
+                        </span>
+                      </div>
+                      <button
+                        @click.stop="copyTaskCommand(activeTask.specName, getNextTask(activeTask).id)"
+                        class="ml-2 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
+                        :title="`Copy command: /spec-exec ${activeTask.specName} ${getNextTask(activeTask).id}`"
+                      >
+                        <i class="fas fa-copy"></i>
+                        <span>/spec-exec</span>
+                      </button>
+                    </div>
                   </div>
 
                   <!-- Task Details - Flattened on one line -->
