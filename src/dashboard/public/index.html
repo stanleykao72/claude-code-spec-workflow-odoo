@@ -449,7 +449,7 @@
                 </h3>
                 <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
                   <p>
-                    Run <button @click.stop="copyCommand('/spec-steering-setup')" class="inline-flex items-center gap-1 bg-yellow-100 dark:bg-yellow-800 px-1.5 py-0.5 rounded text-xs font-mono hover:bg-yellow-200 dark:hover:bg-yellow-700 transition-colors"><i class="fas fa-copy"></i>/spec-steering-setup</button> to create missing steering documents:
+                    Run <button @click.stop="copyCommand('/spec-steering-setup', $event)" class="inline-flex items-center gap-1 bg-yellow-100 dark:bg-yellow-800 px-1.5 py-0.5 rounded text-xs font-mono hover:bg-yellow-200 dark:hover:bg-yellow-700 transition-colors"><i class="fas fa-copy"></i>/spec-steering-setup</button> to create missing steering documents:
                   </p>
                   <ul class="list-disc list-inside mt-1">
                     <li v-if="!steeringStatus.hasProduct">Product vision and goals (product.md)</li>
@@ -694,7 +694,7 @@
                             </span>
                             <button
                               v-if="!task.completed"
-                              @click.stop="copyTaskCommand(spec.name, task.id)"
+                              @click.stop="copyTaskCommand(spec.name, task.id, $event)"
                               class="ml-2 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
                               :title="`Copy command: /spec-exec ${spec.name} ${task.id}`"
                             >
