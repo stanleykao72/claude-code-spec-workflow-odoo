@@ -472,18 +472,16 @@
 
                   <!-- Current Task -->
                   <div class="mb-4">
-                    <div class="flex items-center justify-between">
-                      <div class="flex-1">
-                        <div class="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1">
-                          Current Task
-                        </div>
-                        <h4 class="text-lg font-medium text-gray-900 dark:text-white">
-                          {{ activeTask.task.description }}
-                        </h4>
-                      </div>
+                    <div class="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1">
+                      Current Task
+                    </div>
+                    <div class="flex items-start flex-wrap gap-2">
+                      <h4 class="text-lg font-medium text-gray-900 dark:text-white">
+                        Task {{ activeTask.task.id }}: {{ activeTask.task.description }}
+                      </h4>
                       <button
                         @click.stop="copyTaskCommand(activeTask.specName, activeTask.task.id, $event)"
-                        class="ml-4 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
+                        class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
                         :title="`Copy command: /spec-exec ${activeTask.specName} ${activeTask.task.id}`"
                       >
                         <i class="fas fa-copy"></i>
