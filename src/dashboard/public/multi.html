@@ -475,7 +475,7 @@
                     <div class="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1">
                       Current Task
                     </div>
-                    <div class="flex items-start flex-wrap gap-2">
+                    <div class="flex items-center flex-wrap gap-2">
                       <h4 class="text-lg font-medium text-gray-900 dark:text-white">
                         Task {{ activeTask.task.id }}: {{ activeTask.task.description }}
                       </h4>
@@ -510,7 +510,7 @@
 
                   <!-- Next Task -->
                   <div v-if="getNextTask(activeTask)" class="mb-3">
-                    <div class="flex items-start flex-wrap gap-2">
+                    <div class="flex items-center flex-wrap gap-2">
                       <span class="text-sm font-medium text-gray-700 dark:text-gray-300"
                         >Next Up:</span
                       >
