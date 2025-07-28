@@ -58,27 +58,66 @@ function getStatusLabel(status) {
 }
 
 /**
- * Copy a command to clipboard
+ * Copy a command to clipboard with visual feedback
  */
-function copyCommand(command) {
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(command).then(() => {
+function copyCommand(command, event) {
+  // Find the button that was clicked
+  const button = event?.currentTarget || event?.target?.closest('button') || document.activeElement;
+  
+  const copyToClipboard = () => {
+    if (navigator.clipboard) {
+      return navigator.clipboard.writeText(command);
+    } else {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = command;
+      textArea.style.position = 'fixed';
+      textArea.style.opacity = '0';
+      document.body.appendChild(textArea);
+      textArea.select();
+      
+      return new Promise((resolve, reject) => {
+        try {
+          document.execCommand('copy');
+          document.body.removeChild(textArea);
+          resolve();
+        } catch (err) {
+          document.body.removeChild(textArea);
+          reject(err);
+        }
+      });
+    }
+  };
+
+  copyToClipboard()
+    .then(() => {
+      // Success feedback
+      if (button) {
+        const originalContent = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        button.classList.add('text-green-600', 'dark:text-green-400');
+        
+        setTimeout(() => {
+          button.innerHTML = originalContent;
+          button.classList.remove('text-green-600', 'dark:text-green-400');
+        }, 2000);
+      }
       console.log('Command copied to clipboard:', command);
-    }).catch(err => {
+    })
+    .catch(err => {
+      // Error feedback
+      if (button) {
+        const originalContent = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-times"></i> Failed';
+        button.classList.add('text-red-600', 'dark:text-red-400');
+        
+        setTimeout(() => {
+          button.innerHTML = originalContent;
+          button.classList.remove('text-red-600', 'dark:text-red-400');
+        }, 2000);
+      }
       console.error('Failed to copy command:', err);
     });
-  } else {
-    // Fallback for older browsers
-    const textArea = document.createElement('textarea');
-    textArea.value = command;
-    textArea.style.position = 'fixed';
-    textArea.style.opacity = '0';
-    document.body.appendChild(textArea);
-    textArea.select();
-    document.execCommand('copy');
-    document.body.removeChild(textArea);
-    console.log('Command copied to clipboard (fallback):', command);
-  }
 }
 
 /**
@@ -175,7 +214,9 @@ const BaseAppState = {
   formatDate,
   getStatusClass,
   getStatusLabel,
-  copyCommand,
+  copyCommand(command, event) {
+    return copyCommand(command, event || window.event);
+  },
   renderMarkdown,
   formatAcceptanceCriteria,
   
@@ -207,9 +248,9 @@ const BaseAppState = {
     return spec.tasks.taskList;
   },
   
-  copyTaskCommand(specName, taskId) {
+  copyTaskCommand(specName, taskId, event) {
     const command = `/spec-exec ${specName} ${taskId}`;
-    this.copyCommand(command);
+    this.copyCommand.call(this, command, event);
   },
   
   // Markdown preview methods
@@ -311,7 +352,7 @@ function SteeringWarningTemplate(steeringStatus) {
           </h3>
           <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
             <p>
-              Run <button @click.stop="copyCommand('/spec-steering-setup')" 
+              Run <button @click.stop="copyCommand('/spec-steering-setup', $event)" 
                          class="inline-flex items-center gap-1 bg-yellow-100 dark:bg-yellow-800 px-1.5 py-0.5 rounded text-xs font-mono hover:bg-yellow-200 dark:hover:bg-yellow-700 transition-colors">
                 <i class="fas fa-copy"></i>/spec-steering-setup
               </button> to create missing steering documents:
