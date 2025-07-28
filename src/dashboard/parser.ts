@@ -190,8 +190,9 @@ export class SpecParser {
       const taskList = this.parseTasks(content);
       const completed = this.countCompletedTasks(taskList);
       const total = this.countTotalTasks(taskList);
+      const inProgressTaskId = (taskList as any)._inProgressTaskId;
 
-      debug('Parsed task counts - Total:', total, 'Completed:', completed);
+      debug('Parsed task counts - Total:', total, 'Completed:', completed, 'In Progress:', inProgressTaskId);
 
       spec.tasks = {
         exists: true,
@@ -206,8 +207,8 @@ export class SpecParser {
           spec.status = 'tasks';
         } else if (completed < total) {
           spec.status = 'in-progress';
-          // Find current task
-          spec.tasks.inProgress = this.findInProgressTask(taskList);
+          // Use the explicitly marked in-progress task if available
+          spec.tasks.inProgress = inProgressTaskId || this.findInProgressTask(taskList);
         } else {
           spec.status = 'completed';
         }
@@ -248,9 +249,11 @@ export class SpecParser {
     const taskRegex = /^(\s*)- \[([ x])\] (?:\*\*)?(\d+(?:\.\d+)*)\. (.+?)(?:\*\*)?$/;
     const requirementsRegex = /_Requirements: ([\d., ]+)/;
     const leverageRegex = /_Leverage: (.+)$/;
+    const inProgressRegex = /_In Progress:/;
 
     let currentTask: Task | null = null;
     let parentStack: { level: number; task: Task }[] = [];
+    let inProgressTaskId: string | undefined;
 
     for (const line of lines) {
       const match = line.match(taskRegex);
@@ -291,7 +294,17 @@ export class SpecParser {
         if (levMatch) {
           currentTask.leverage = levMatch[1].trim();
         }
+
+        // Check for in progress marker
+        if (line.match(inProgressRegex)) {
+          inProgressTaskId = currentTask.id;
+        }
       }
+    }
+
+    // Store the in progress task ID in the tasks array metadata
+    if (inProgressTaskId) {
+      (tasks as any)._inProgressTaskId = inProgressTaskId;
     }
 
     return tasks;
