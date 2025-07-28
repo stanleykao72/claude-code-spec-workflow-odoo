@@ -127,14 +127,19 @@ This command executes a specific task from the ${specName} specification.
 3. **Prioritize code reuse**: Use existing components and utilities identified above
 4. Follow all implementation guidelines from the main /spec-execute command
 5. Mark the task as complete in tasks.md
-6. Stop and wait for user review
+6. Remove the \`_In Progress:\` marker from the completed task
+7. Find the next incomplete task ([ ]) and add \`_In Progress: Ready to start\` to it
+8. Report which task is now marked as in progress
+9. Stop and wait for user review
 
 **Important**: This command follows the same rules as /spec-execute:
 - Execute ONLY this specific task
 - **Leverage existing code** whenever possible to avoid rebuilding functionality
 - Mark task as complete by changing [ ] to [x] in tasks.md
+- **ALWAYS** remove \`_In Progress:\` from completed task and add it to the next incomplete task
 - Stop after completion and wait for user approval
 - Do not automatically proceed to the next task
+- Report which task is now in progress (if any)
 
 ## Next Steps
 After task completion, you can:

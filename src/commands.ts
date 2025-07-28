@@ -367,9 +367,12 @@ You are executing implementation tasks from the spec workflow.
 
 5. **Completion**
    - **CRITICAL**: Mark task as complete in tasks.md by changing [ ] to [x]
+   - Remove the \`_In Progress:\` marker from the completed task
+   - Find the next incomplete task ([ ]) and add \`_In Progress: Ready to start\` to it
    - Update execution log with completion details
+   - Report which task is now marked as in progress
    - Stop and wait for user review
-   - DO NOT automatically proceed to next task
+   - DO NOT automatically proceed to implement the next task
    - Confirm task completion status to user
 
 ## Task Selection
@@ -387,9 +390,11 @@ If no task-id specified:
 ## Important Rules
 - Only execute ONE task at a time
 - **ALWAYS** mark completed tasks as [x] in tasks.md
+- **ALWAYS** remove \`_In Progress:\` from completed task and add it to the next incomplete task
 - Always stop after completing a task
 - Wait for user approval before continuing
 - Never skip tasks or jump ahead
+- Report which task is now in progress (if any)
 - Confirm task completion status to user
 `;
 }
