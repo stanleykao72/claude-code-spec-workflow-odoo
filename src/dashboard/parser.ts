@@ -206,9 +206,8 @@ export class SpecParser {
       const taskList = this.parseTasks(content);
       const completed = this.countCompletedTasks(taskList);
       const total = this.countTotalTasks(taskList);
-      const inProgressTaskId = (taskList as any)._inProgressTaskId;
 
-      debug('Parsed task counts - Total:', total, 'Completed:', completed, 'In Progress:', inProgressTaskId);
+      debug('Parsed task counts - Total:', total, 'Completed:', completed);
 
       spec.tasks = {
         exists: true,
@@ -223,8 +222,8 @@ export class SpecParser {
           spec.status = 'tasks';
         } else if (completed < total) {
           spec.status = 'in-progress';
-          // Use the explicitly marked in-progress task if available
-          spec.tasks.inProgress = inProgressTaskId || this.findInProgressTask(taskList);
+          // Always use the first uncompleted task as in-progress
+          spec.tasks.inProgress = this.findInProgressTask(taskList);
         } else {
           spec.status = 'completed';
         }
@@ -265,11 +264,10 @@ export class SpecParser {
     const taskRegex = /^(\s*)- \[([ x])\] (?:\*\*)?(\d+(?:\.\d+)*)\. (.+?)(?:\*\*)?$/;
     const requirementsRegex = /_Requirements: ([\d., ]+)/;
     const leverageRegex = /_Leverage: (.+)$/;
-    const inProgressRegex = /_In Progress:/;
+    // Removed _In Progress: parsing - now automatically using first uncompleted task
 
     let currentTask: Task | null = null;
     let parentStack: { level: number; task: Task }[] = [];
-    let inProgressTaskId: string | undefined;
 
     for (const line of lines) {
       const match = line.match(taskRegex);
@@ -311,17 +309,11 @@ export class SpecParser {
           currentTask.leverage = levMatch[1].trim();
         }
 
-        // Check for in progress marker
-        if (line.match(inProgressRegex)) {
-          inProgressTaskId = currentTask.id;
-        }
+        // Removed in-progress marker check - now using first uncompleted task automatically
       }
     }
 
-    // Store the in progress task ID in the tasks array metadata
-    if (inProgressTaskId) {
-      (tasks as any)._inProgressTaskId = inProgressTaskId;
-    }
+    // No longer storing in-progress task ID - automatically determined by first uncompleted task
 
     return tasks;
   }

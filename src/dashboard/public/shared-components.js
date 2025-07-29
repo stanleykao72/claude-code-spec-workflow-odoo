@@ -264,7 +264,7 @@ const BaseAppState = {
   },
   
   copyTaskCommand(specName, taskId, event) {
-    const command = `/spec-execute ${specName} ${taskId}`;
+    const command = `/clear\n/spec-execute ${specName} ${taskId}`;
     this.copyCommand.call(this, command, event);
   },
   
