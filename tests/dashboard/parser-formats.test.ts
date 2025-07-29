@@ -273,4 +273,37 @@ Some architecture details...
       expect(spec!.design!.codeReuseContent![0].items).toContain('Base servlet class for consistent error handling');
     });
   });
+  
+  describe('Title Extraction', () => {
+    it('should extract title without document type prefix', async () => {
+      const specDir = join(tempDir, '.claude', 'specs', 'api-spec');
+      await mkdir(specDir, { recursive: true });
+      
+      // Requirements with prefix
+      await writeFile(join(specDir, 'requirements.md'), `# Requirements: Public Disposition API
+
+## Overview
+Test content`);
+
+      // Design with prefix
+      await writeFile(join(specDir, 'design.md'), `# Design: Public Disposition API
+
+## Overview
+Test content`);
+
+      // Tasks with prefix
+      await writeFile(join(specDir, 'tasks.md'), `# Implementation Plan: Public Disposition API
+
+## Tasks
+- [ ] Task 1`);
+
+      const spec = await parser.getSpec('api-spec');
+      
+      expect(spec).not.toBeNull();
+      expect(spec!.displayName).toBe('Public Disposition API');
+      expect(spec!.displayName).not.toContain('Requirements:');
+      expect(spec!.displayName).not.toContain('Design:');
+      expect(spec!.displayName).not.toContain('Implementation Plan:');
+    });
+  });
 });
