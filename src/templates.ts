@@ -248,8 +248,21 @@ export function getProductTemplate(): string {
 2. **[Principle 2]**: [Explanation]
 3. **[Principle 3]**: [Explanation]
 
+## Monitoring & Visibility (if applicable)
+[How do users track progress and monitor the system?]
+
+- **Dashboard Type**: [e.g., Web-based, CLI, Desktop app]
+- **Real-time Updates**: [e.g., WebSocket, polling, push notifications]
+- **Key Metrics Displayed**: [What information is most important to surface]
+- **Sharing Capabilities**: [e.g., read-only links, exports, reports]
+
 ## Future Vision
 [Where do we see this product evolving in the future?]
+
+### Potential Enhancements
+- **Remote Access**: [e.g., Tunnel features for sharing dashboards with stakeholders]
+- **Analytics**: [e.g., Historical trends, performance metrics]
+- **Collaboration**: [e.g., Multi-user support, commenting]
 `;
 }
 
@@ -284,6 +297,12 @@ export function getTechTemplate(): string {
 - **Protocols**: [e.g., HTTP/REST, gRPC, WebSocket, TCP/IP]
 - **Authentication**: [e.g., OAuth, API keys, certificates]
 
+### Monitoring & Dashboard Technologies (if applicable)
+- **Dashboard Framework**: [e.g., React, Vue, vanilla JS, terminal UI]
+- **Real-time Communication**: [e.g., WebSocket, Server-Sent Events, polling]
+- **Visualization Libraries**: [e.g., Chart.js, D3, terminal graphs]
+- **State Management**: [e.g., Redux, Vuex, file system as source of truth]
+
 ## Development Environment
 
 ### Build & Development Tools
@@ -301,6 +320,11 @@ export function getTechTemplate(): string {
 - **VCS**: [e.g., Git, Mercurial, SVN]
 - **Branching Strategy**: [e.g., Git Flow, GitHub Flow, trunk-based]
 - **Code Review Process**: [How code reviews are conducted]
+
+### Dashboard Development (if applicable)
+- **Live Reload**: [e.g., Hot module replacement, file watchers]
+- **Port Management**: [e.g., Dynamic allocation, configurable ports]
+- **Multi-Instance Support**: [e.g., Running multiple dashboards simultaneously]
 
 ## Deployment & Distribution (if applicable)
 - **Target Platform(s)**: [Where/how the project runs: cloud, on-premise, desktop, mobile, embedded]
@@ -466,6 +490,25 @@ Suggested guidelines:
 - **Function/Method size**: [Define maximum lines per function]
 - **Class/Module complexity**: [Define complexity limits]
 - **Nesting depth**: [Maximum nesting levels]
+
+## Dashboard/Monitoring Structure (if applicable)
+[How dashboard or monitoring components are organized]
+
+### Example Structure:
+\`\`\`
+src/
+└── dashboard/          # Self-contained dashboard subsystem
+    ├── server/        # Backend server components
+    ├── client/        # Frontend assets
+    ├── shared/        # Shared types/utilities
+    └── public/        # Static assets
+\`\`\`
+
+### Separation of Concerns
+- Dashboard isolated from core business logic
+- Own CLI entry point for independent operation
+- Minimal dependencies on main application
+- Can be disabled without affecting core functionality
 
 ## Documentation Standards
 - All public APIs must have documentation
