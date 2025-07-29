@@ -213,4 +213,66 @@ The API must return lead information
       expect(newUS).toBeDefined();
     });
   });
+  
+  describe('Code Reuse Analysis Parsing', () => {
+    it('should parse old format code reuse analysis', async () => {
+      const specDir = join(tempDir, '.claude', 'specs', 'reuse-old');
+      await mkdir(specDir, { recursive: true });
+      
+      const content = `# Design: Test Feature
+
+## Code Reuse Analysis
+
+1. **Configuration Infrastructure**
+   - Use existing ConfigLoader class
+   - Leverage validation utilities
+   
+2. **Database Access**
+   - Reuse existing repository patterns
+   - Use shared connection pool
+
+## Other Section`;
+
+      await writeFile(join(specDir, 'design.md'), content);
+      
+      const spec = await parser.getSpec('reuse-old');
+      
+      expect(spec).not.toBeNull();
+      expect(spec!.design!.hasCodeReuseAnalysis).toBe(true);
+      expect(spec!.design!.codeReuseContent).toHaveLength(2);
+      expect(spec!.design!.codeReuseContent![0].title).toBe('Configuration Infrastructure');
+      expect(spec!.design!.codeReuseContent![0].items).toHaveLength(2);
+    });
+    
+    it('should parse new format code reuse section', async () => {
+      const specDir = join(tempDir, '.claude', 'specs', 'reuse-new');
+      await mkdir(specDir, { recursive: true });
+      
+      const content = `# Design: Public API
+
+## Architecture
+
+Some architecture details...
+
+### Existing Components to Reuse
+1. **PhenixServlet**: Base servlet class for consistent error handling
+2. **LeadGen.withApiKey()**: Existing authentication query
+3. **Potion ORM patterns**: For database access
+4. **Lead entity relationships**: Contact, Campaign associations
+5. **JSON utilities**: JsonMap for response building
+
+### New Components Required
+1. **Stage mapping**: Utility to map Heat enum`;
+
+      await writeFile(join(specDir, 'design.md'), content);
+      
+      const spec = await parser.getSpec('reuse-new');
+      
+      expect(spec).not.toBeNull();
+      expect(spec!.design!.hasCodeReuseAnalysis).toBe(true);
+      expect(spec!.design!.codeReuseContent).toHaveLength(5);
+      expect(spec!.design!.codeReuseContent![0].title).toBe('PhenixServlet');
+      expect(spec!.design!.codeReuseContent![0].items).toContain('Base servlet class for consistent error handling');
+    });
+  });
 });

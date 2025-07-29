@@ -136,19 +136,29 @@ function renderMarkdown(content) {
  * Format acceptance criteria with EARS keywords using syntax highlighting
  */
 function formatAcceptanceCriteria(criteria) {
-  // Define EARS keywords
+  // Define EARS keywords for old format
   const earsKeywords = ['WHEN', 'THEN', 'IF', 'SHALL NOT', 'SHALL'];
   
   let formattedCriteria = criteria;
   
-  // Replace EARS keywords with syntax highlighted spans
+  // First, handle new format with **GIVEN**, **WHEN**, **THEN**
+  // Replace **KEYWORD** with styled spans
+  formattedCriteria = formattedCriteria.replace(/\*\*(GIVEN|WHEN|THEN)\*\*/g, 
+    '<span class="ears-keyword font-semibold">$1</span>'
+  );
+  
+  // Then handle old format EARS keywords (without markdown bold)
   // Process SHALL NOT before SHALL to avoid partial matches
   earsKeywords.forEach(keyword => {
-    const regex = new RegExp(`\\b(${keyword})\\b`, 'g');
+    // Only match if not already inside a span tag
+    const regex = new RegExp(`(?<!<span[^>]*>)\\b(${keyword})\\b(?![^<]*<\/span>)`, 'g');
     formattedCriteria = formattedCriteria.replace(regex, 
       `<span class="ears-keyword">$1</span>`
     );
   });
+  
+  // Also handle other markdown bold formatting for better display
+  formattedCriteria = formattedCriteria.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   
   return formattedCriteria;
 }
@@ -249,7 +259,7 @@ const BaseAppState = {
   },
   
   copyTaskCommand(specName, taskId, event) {
-    const command = `/spec-exec ${specName} ${taskId}`;
+    const command = `/spec-execute ${specName} ${taskId}`;
     this.copyCommand.call(this, command, event);
   },
   

@@ -482,10 +482,10 @@
                       <button
                         @click.stop="copyTaskCommand(activeTask.specName, activeTask.task.id, $event)"
                         class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
-                        :title="`Copy command: /spec-exec ${activeTask.specName} ${activeTask.task.id}`"
+                        :title="`Copy command: /spec-execute ${activeTask.specName} ${activeTask.task.id}`"
                       >
                         <i class="fas fa-copy"></i>
-                        <span>/spec-exec</span>
+                        <span>/spec-execute</span>
                       </button>
                     </div>
                   </div>
@@ -521,10 +521,10 @@
                       <button
                         @click.stop="copyTaskCommand(activeTask.specName, getNextTask(activeTask).id, $event)"
                         class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
-                        :title="`Copy command: /spec-exec ${activeTask.specName} ${getNextTask(activeTask).id}`"
+                        :title="`Copy command: /spec-execute ${activeTask.specName} ${getNextTask(activeTask).id}`"
                       >
                         <i class="fas fa-copy"></i>
-                        <span>/spec-exec</span>
+                        <span>/spec-execute</span>
                       </button>
                     </div>
                   </div>
@@ -944,10 +944,10 @@
                               v-if="!task.completed"
                               @click.stop="copyTaskCommand(spec.name, task.id, $event)"
                               class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
-                              :title="`Copy command: /spec-exec ${spec.name} ${task.id}`"
+                              :title="`Copy command: /spec-execute ${spec.name} ${task.id}`"
                             >
                               <i class="fas fa-copy"></i>
-                              <span>/spec-exec</span>
+                              <span>/spec-execute</span>
                             </button>
                             <span
                               v-if="task.requirements && task.requirements.length > 0"

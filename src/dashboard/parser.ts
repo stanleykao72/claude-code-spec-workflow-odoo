@@ -164,11 +164,17 @@ export class SpecParser {
         }
       }
       
+      const codeReuseContent = this.extractCodeReuseAnalysis(content);
+      
       spec.design = {
         exists: true,
         approved: content.includes('✅ APPROVED'),
-        hasCodeReuseAnalysis: content.includes('## Code Reuse Analysis'),
-        codeReuseContent: this.extractCodeReuseAnalysis(content),
+        hasCodeReuseAnalysis: content.includes('## Code Reuse Analysis') || 
+                             content.includes('### Existing Components to Reuse') ||
+                             content.includes('## Existing Components') ||
+                             content.includes('## Code Reuse') ||
+                             codeReuseContent.length > 0,
+        codeReuseContent: codeReuseContent,
       };
       // If design is approved, we move to tasks phase
       if (spec.design.approved) {
@@ -581,32 +587,50 @@ export class SpecParser {
     let currentCategory: CodeReuseCategory | null = null;
 
     for (const line of lines) {
-      if (line.includes('## Code Reuse Analysis')) {
+      // Look for various code reuse section headers
+      if (line.includes('## Code Reuse Analysis') || 
+          line.includes('### Existing Components to Reuse') ||
+          line.includes('## Existing Components') ||
+          line.includes('## Code Reuse')) {
         inCodeReuseSection = true;
         continue;
       }
 
       if (inCodeReuseSection) {
         // Stop at next major section
-        if (line.startsWith('## ') && !line.includes('Code Reuse')) {
+        if ((line.startsWith('## ') || line.startsWith('### ')) && 
+            !line.includes('Code Reuse') && 
+            !line.includes('Existing Components')) {
           break;
         }
 
-        // Look for numbered categories like "1. **Configuration Infrastructure**"
-        const categoryMatch = line.match(/^\d+\.\s*\*\*(.+?)\*\*/);
+        // Look for numbered categories like "1. **Configuration Infrastructure**" or just "1. Item Name:"
+        const categoryMatch = line.match(/^\d+\.\s*(?:\*\*(.+?)\*\*|(.+?)(?::|\s*$))/);
         if (categoryMatch) {
-          // Save previous category
+          const categoryName = categoryMatch[1] || categoryMatch[2];
+          
+          // In phenix format, the numbered items ARE the reuse items, not categories
+          // So we'll treat them as single-item categories for consistency
           if (currentCategory) {
             categories.push(currentCategory);
           }
-          // Start new category
+          
           currentCategory = {
-            title: categoryMatch[1].trim(),
+            title: categoryName.trim(),
             items: [],
           };
+          
+          // Check if there's content on the same line after colon
+          const colonIndex = line.indexOf(':');
+          if (colonIndex > -1 && colonIndex < line.length - 1) {
+            const afterColon = line.substring(colonIndex + 1).trim();
+            if (afterColon) {
+              currentCategory.items.push(afterColon);
+            }
+          }
         }
         // Look for bullet points under categories
-        else if (currentCategory && (line.startsWith('   - ') || line.startsWith('  - '))) {
+        else if (currentCategory && (line.startsWith('   - ') || line.startsWith('  - ') || line.startsWith('- '))) {
           const item = line.replace(/^\s*-\s*/, '').trim();
           if (item) {
             // Clean up markdown formatting
