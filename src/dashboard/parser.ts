@@ -133,11 +133,14 @@ export class SpecParser {
         spec.displayName = titleMatch[1].trim();
       }
 
+      const extractedRequirements = this.extractRequirements(content);
+      const extractedStories = this.extractUserStories(content);
+      
       spec.requirements = {
         exists: true,
-        userStories: (content.match(/(\*\*User Story:\*\*|## User Story \d+)/g) || []).length,
+        userStories: extractedStories.length,
         approved: content.includes('✅ APPROVED') || content.includes('**Approved:** ✓'),
-        content: this.extractRequirements(content),
+        content: extractedRequirements,
       };
       // Set initial status
       spec.status = 'requirements';
@@ -370,6 +373,10 @@ export class SpecParser {
         /^## Requirement (\d+): (.+)$/,            // ## Requirement 1: Title
         /^### (\d+)\. (.+)$/,                      // ### 1. Title
         /^## (\d+)\. (.+)$/,                       // ## 1. Title
+        /^### (FR-\d+): (.+)$/,                    // ### FR-1: Title (Functional Requirement)
+        /^### (NFR-\d+): (.+)$/,                   // ### NFR-1: Title (Non-Functional Requirement)
+        /^### (AC-\d+): (.+)$/,                    // ### AC-1: Title (Acceptance Criteria)
+        /^### (US-\d+): (.+)$/,                    // ### US-1: Title (User Story)
       ];
 
       let matchFound = false;
@@ -394,15 +401,60 @@ export class SpecParser {
       }
 
       if (!matchFound) {
-        // Look for user story
+        // Look for user story in requirement body
         if (currentRequirement && line.includes('**User Story:**')) {
           currentRequirement.userStory = line.replace('**User Story:**', '').trim();
+        }
+        // Look for user story parts in new format
+        else if (currentRequirement && (line.includes('**As a**') || line.includes('**I want**') || line.includes('**So that**'))) {
+          if (!currentRequirement.userStory) {
+            currentRequirement.userStory = '';
+          }
+          currentRequirement.userStory += ' ' + line.trim();
         }
         // Look for acceptance criteria section
         else if (currentRequirement && line.includes('#### Acceptance Criteria')) {
           inAcceptanceCriteria = true;
         }
-        // Collect acceptance criteria items
+        // Look for GIVEN/WHEN/THEN format in new style
+        else if (currentRequirement && (line.includes('**GIVEN**') || line.includes('**WHEN**') || line.includes('**THEN**'))) {
+          if (!currentRequirement.acceptanceCriteria) {
+            currentRequirement.acceptanceCriteria = [];
+          }
+          
+          // For AC-N style requirements, we need to collect GIVEN/WHEN/THEN as a group
+          if (currentRequirement.id && currentRequirement.id.startsWith('AC-')) {
+            // Start collecting a new acceptance criteria scenario
+            let scenario = line.trim();
+            let j = i + 1;
+            
+            // Collect WHEN and THEN parts that follow
+            while (j < lines.length) {
+              const nextLine = lines[j].trim();
+              if (nextLine.startsWith('**WHEN**') || nextLine.startsWith('**THEN**')) {
+                scenario += ' ' + nextLine;
+                j++;
+              } else if (nextLine === '' || nextLine.startsWith('**GIVEN**')) {
+                // Empty line or new GIVEN indicates end of this scenario
+                break;
+              } else if (nextLine.startsWith('###') || nextLine.startsWith('##')) {
+                // Section header indicates end
+                break;
+              } else {
+                // Continuation of current line
+                scenario += ' ' + nextLine;
+                j++;
+              }
+            }
+            
+            currentRequirement.acceptanceCriteria.push(scenario);
+            i = j - 1; // Skip lines we've already processed
+          } else {
+            // Old format - just collect the line
+            currentRequirement.acceptanceCriteria.push(line.trim());
+          }
+        }
+        // Collect acceptance criteria items (old format)
         else if (currentRequirement && inAcceptanceCriteria && line.match(/^\d+\. /)) {
           currentRequirement.acceptanceCriteria.push(line.replace(/^\d+\. /, '').trim());
         }
@@ -425,8 +477,25 @@ export class SpecParser {
       requirements.push(currentRequirement);
     }
 
-    debug(`Extracted ${requirements.length} requirements:`, requirements.map(r => `${r.id}: ${r.title}`));
-    return requirements;
+    // Clean up user stories that might have extra spaces
+    requirements.forEach(req => {
+      if (req.userStory) {
+        req.userStory = req.userStory.trim().replace(/\s+/g, ' ');
+      }
+    });
+
+    // In the new format, AC-* entries are acceptance criteria, not requirements
+    // We should filter them out from the main requirements list
+    // But first, let's extract their criteria and associate them with functional requirements
+    const acceptanceCriteria = requirements.filter(r => r.id && r.id.startsWith('AC-'));
+    const mainRequirements = requirements.filter(r => !r.id || !r.id.startsWith('AC-'));
+    
+    // For now, we'll just return the non-AC requirements
+    // In a future enhancement, we could map AC-* to their related FR-* requirements
+    
+    debug(`Extracted ${mainRequirements.length} requirements (filtered out ${acceptanceCriteria.length} AC entries):`, 
+          mainRequirements.map(r => `${r.id}: ${r.title}`));
+    return mainRequirements;
   }
 
   private extractUserStories(content: string): string[] {
@@ -434,9 +503,12 @@ export class SpecParser {
     const lines = content.split('\n');
     let currentStory = '';
     let inStorySection = false;
+    let currentStoryTitle = '';
 
-    for (const line of lines) {
-      // Check if line contains a user story
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      
+      // Check for old format: **User Story:**
       if (line.includes('**User Story:**')) {
         if (currentStory) {
           stories.push(currentStory.trim());
@@ -444,7 +516,36 @@ export class SpecParser {
         // Extract the story content after "**User Story:**"
         currentStory = line.replace('**User Story:**', '').trim();
         inStorySection = true;
-      } else if (inStorySection && line.trim()) {
+        currentStoryTitle = '';
+      } 
+      // Check for new format: ### US-N: Title
+      else if (line.match(/^### US-\d+: (.+)$/)) {
+        if (currentStory) {
+          stories.push(currentStory.trim());
+        }
+        const match = line.match(/^### US-\d+: (.+)$/);
+        currentStoryTitle = match![1].trim();
+        currentStory = currentStoryTitle;
+        inStorySection = true;
+        
+        // Look ahead for the user story content in the new format
+        // Format: **As a** X **I want** Y **So that** Z
+        let storyParts: string[] = [];
+        for (let j = i + 1; j < lines.length && j < i + 10; j++) {
+          const nextLine = lines[j].trim();
+          if (nextLine.startsWith('**As a**') || 
+              nextLine.startsWith('**I want**') || 
+              nextLine.startsWith('**So that**')) {
+            storyParts.push(nextLine);
+          } else if (nextLine.startsWith('###') || nextLine.startsWith('##')) {
+            break;
+          }
+        }
+        if (storyParts.length > 0) {
+          currentStory = currentStoryTitle + ': ' + storyParts.join(' ');
+        }
+      } 
+      else if (inStorySection && line.trim()) {
         // Stop at next major section (### or ##) or next user story
         if (line.startsWith('###') || line.startsWith('##') || line.includes('**User Story:**')) {
           if (currentStory) {
@@ -454,11 +555,12 @@ export class SpecParser {
           // If this line is another user story, process it
           if (line.includes('**User Story:**')) {
             currentStory = line.replace('**User Story:**', '').trim();
+            currentStoryTitle = '';
           } else {
             inStorySection = false;
           }
-        } else if (!line.startsWith('#') && line.trim()) {
-          // Continue building the story if it's not a heading
+        } else if (!line.startsWith('#') && line.trim() && !currentStoryTitle) {
+          // Continue building the story if it's not a heading (old format only)
           currentStory += ' ' + line.trim();
         }
       }
