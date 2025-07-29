@@ -305,5 +305,25 @@ Test content`);
       expect(spec!.displayName).not.toContain('Design:');
       expect(spec!.displayName).not.toContain('Implementation Plan:');
     });
+    
+    it('should extract title with hyphen separator', async () => {
+      const specDir = join(tempDir, '.claude', 'specs', 'clean-code');
+      await mkdir(specDir, { recursive: true });
+      
+      // Requirements with hyphen
+      await writeFile(join(specDir, 'requirements.md'), `# Requirements - Clean Code
+
+**Status:** ✅ APPROVED
+
+## Overview
+Test content`);
+
+      const spec = await parser.getSpec('clean-code');
+      
+      expect(spec).not.toBeNull();
+      expect(spec!.displayName).toBe('Clean Code');
+      expect(spec!.displayName).not.toContain('Requirements -');
+      expect(spec!.displayName).not.toContain('Requirements');
+    });
   });
 });

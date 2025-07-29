@@ -128,8 +128,8 @@ export class SpecParser {
       const content = await readFile(requirementsPath, 'utf-8');
 
       // Try to extract title from the first heading
-      // Handle formats like "# Requirements: Feature Name" or "# Feature Name Requirements"
-      const titleMatch = content.match(/^#\s+(?:Requirements:\s+)?(.+?)(?:\s+Requirements)?$/m);
+      // Handle formats like "# Requirements: Feature Name", "# Requirements - Feature Name", or "# Feature Name Requirements"
+      const titleMatch = content.match(/^#\s+(?:Requirements\s*[-:]\s+)?(.+?)(?:\s+Requirements)?$/m);
       if (titleMatch && titleMatch[1].trim() && titleMatch[1].trim().toLowerCase() !== 'requirements') {
         spec.displayName = titleMatch[1].trim();
       }
@@ -159,8 +159,8 @@ export class SpecParser {
       
       // If we haven't found a display name yet, try to extract from design
       if (spec.displayName === this.formatDisplayName(name)) {
-        // Handle formats like "# Design: Feature Name" or "# Feature Name Design"
-        const titleMatch = content.match(/^#\s+(?:Design:\s+)?(.+?)(?:\s+Design(?:\s+Document)?)?$/m);
+        // Handle formats like "# Design: Feature Name", "# Design - Feature Name", or "# Feature Name Design"
+        const titleMatch = content.match(/^#\s+(?:Design\s*[-:]\s+)?(.+?)(?:\s+Design(?:\s+Document)?)?$/m);
         if (titleMatch && titleMatch[1].trim() && titleMatch[1].trim().toLowerCase() !== 'design') {
           spec.displayName = titleMatch[1].trim();
         }
@@ -194,8 +194,8 @@ export class SpecParser {
       
       // If we still haven't found a display name, try to extract from tasks
       if (spec.displayName === this.formatDisplayName(name)) {
-        // Handle formats like "# Tasks: Feature Name" or "# Implementation Plan: Feature Name"
-        const titleMatch = content.match(/^#\s+(?:(?:Tasks|Implementation Plan):\s+)?(.+?)(?:\s+(?:Tasks|Plan))?$/m);
+        // Handle formats like "# Tasks: Feature Name", "# Tasks - Feature Name", or "# Implementation Plan: Feature Name"
+        const titleMatch = content.match(/^#\s+(?:(?:Tasks|Implementation Plan)\s*[-:]\s+)?(.+?)(?:\s+(?:Tasks|Plan))?$/m);
         if (titleMatch && titleMatch[1].trim() && 
             titleMatch[1].trim().toLowerCase() !== 'tasks' && 
             titleMatch[1].trim().toLowerCase() !== 'implementation plan') {
