@@ -119,15 +119,13 @@ The API must return lead information
       expect(spec!.requirements!.userStories).toBe(2);
       expect(spec!.requirements!.approved).toBe(true);
       
-      // Should extract US and FR as requirements (AC entries are filtered out)
+      // Should extract only FR and NFR as requirements (US and AC entries are filtered out)
       const reqContent = spec!.requirements!.content!;
-      expect(reqContent.length).toBeGreaterThanOrEqual(4); // US-1, US-2, FR-1, FR-2
+      expect(reqContent.length).toBeGreaterThanOrEqual(2); // FR-1, FR-2 (NFR entries if present)
       
-      // Check User Story extraction
+      // US entries should be filtered out (they're user stories, not requirements)
       const us1 = reqContent.find(r => r.id === 'US-1');
-      expect(us1).toBeDefined();
-      expect(us1!.title).toBe('Lead Generator Authentication');
-      expect(us1!.userStory).toContain('**As a** lead generator');
+      expect(us1).toBeUndefined();
       
       // Check Functional Requirement
       const fr1 = reqContent.find(r => r.id === 'FR-1');
@@ -201,16 +199,16 @@ The API must return lead information
       
       expect(spec).not.toBeNull();
       expect(spec!.requirements!.exists).toBe(true);
-      expect(spec!.requirements!.content!.length).toBeGreaterThanOrEqual(3);
+      expect(spec!.requirements!.content!.length).toBeGreaterThanOrEqual(2); // Only old req + FR-1
       
-      // Should find both old and new format requirements
+      // Should find both old and new format requirements, but not user stories
       const oldReq = spec!.requirements!.content!.find(r => r.id === '1');
       const newFR = spec!.requirements!.content!.find(r => r.id === 'FR-1');
       const newUS = spec!.requirements!.content!.find(r => r.id === 'US-1');
       
       expect(oldReq).toBeDefined();
       expect(newFR).toBeDefined();
-      expect(newUS).toBeDefined();
+      expect(newUS).toBeUndefined(); // US entries are user stories, not requirements
     });
   });
   

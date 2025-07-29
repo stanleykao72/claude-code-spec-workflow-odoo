@@ -467,6 +467,7 @@
               <div
                 v-for="spec in specs"
                 :key="spec.name"
+                :data-spec-name="spec.name"
                 class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all"
                 :class="spec.status === 'completed' ? 'opacity-75' : ''"
               >
@@ -556,6 +557,9 @@
                         class="text-sm text-gray-600 dark:text-gray-400"
                       >
                         <p>{{ spec.requirements.userStories }} user stories</p>
+                        <p v-if="spec.requirements.content && spec.requirements.content.length > 0" class="mt-1">
+                          {{ spec.requirements.content.length }} requirements
+                        </p>
                         <p class="flex items-center mt-1">
                           <i
                             class="fas mr-1"
@@ -563,6 +567,19 @@
                           ></i>
                           {{ spec.requirements.approved ? 'Approved' : 'Pending approval' }}
                         </p>
+                        <!-- Jump to requirement list -->
+                        <div v-if="spec.requirements.content && spec.requirements.content.length > 0" class="mt-2 space-y-1">
+                          <a v-for="req in spec.requirements.content.slice(0, 5)" 
+                             :key="req.id"
+                             href="#"
+                             @click.prevent="scrollToRequirement(req.id)"
+                             class="block text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 truncate">
+                            {{ req.id }}: {{ req.title }}
+                          </a>
+                          <span v-if="spec.requirements.content.length > 5" class="text-xs text-gray-500 dark:text-gray-400">
+                            and {{ spec.requirements.content.length - 5 }} more...
+                          </span>
+                        </div>
                       </div>
                       <p v-else class="text-sm text-gray-400 dark:text-gray-500">Not created</p>
                     </div>
@@ -620,20 +637,20 @@
                     </div>
                   </div>
 
-                  <!-- User Stories and Acceptance Criteria -->
+                  <!-- Requirements Details -->
                   <div v-if="spec.requirements && spec.requirements.content && spec.requirements.content.length > 0" class="mt-4">
                     <h4 class="font-medium text-gray-700 dark:text-gray-300 mb-3">
-                      <i class="fas fa-check-double mr-1"></i> Acceptance Criteria
+                      <i class="fas fa-list-check mr-1"></i> Requirements Details
                     </h4>
                     <div class="space-y-4">
                       <div v-for="req in spec.requirements.content" :key="req.id" 
+                           :id="'requirement-' + req.id"
                            class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
                         <div class="mb-2">
                           <span class="text-sm font-semibold text-gray-600 dark:text-gray-400">Requirement {{ req.id }}:</span>
                           <span class="text-sm font-medium text-gray-900 dark:text-white ml-1">{{ req.title }}</span>
                         </div>
-                        <div v-if="req.userStory" class="text-sm text-gray-600 dark:text-gray-400 mb-3 italic">
-                          "{{ req.userStory }}"
+                        <div v-if="req.userStory" class="text-sm text-gray-600 dark:text-gray-400 mb-3 italic" v-html="formatUserStory(req.userStory)">
                         </div>
                         <div v-if="req.acceptanceCriteria.length > 0" class="space-y-2">
                           <div v-for="(criteria, index) in req.acceptanceCriteria" :key="index" 

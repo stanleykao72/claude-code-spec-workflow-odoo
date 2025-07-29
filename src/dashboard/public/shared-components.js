@@ -229,6 +229,11 @@ const BaseAppState = {
   },
   renderMarkdown,
   formatAcceptanceCriteria,
+  formatUserStory(story) {
+    if (!story) return '';
+    // Replace **text** with <strong>text</strong>
+    return story.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  },
   
   // Task management methods
   getCompletedTaskCount(spec) {
@@ -306,6 +311,34 @@ const BaseAppState = {
         this.closeMarkdownPreview();
       }
     });
+  },
+  
+  scrollToRequirement(reqId) {
+    const element = document.getElementById('requirement-' + reqId);
+    if (element) {
+      // Ensure the spec is expanded first
+      if (!this.selectedSpec || this.selectedSpec.name !== element.closest('[data-spec-name]')?.dataset.specName) {
+        // Find and select the spec
+        const specElement = element.closest('[data-spec-name]');
+        if (specElement) {
+          const specName = specElement.dataset.specName;
+          const spec = this.specs.find(s => s.name === specName);
+          if (spec) {
+            this.selectedSpec = spec;
+          }
+        }
+      }
+      
+      // Wait a tick for the expansion animation
+      setTimeout(() => {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Add highlight effect
+        element.classList.add('ring-2', 'ring-indigo-500');
+        setTimeout(() => {
+          element.classList.remove('ring-2', 'ring-indigo-500');
+        }, 2000);
+      }, 100);
+    }
   }
 };
 
@@ -389,5 +422,9 @@ window.DashboardShared = {
   getStatusLabel,
   copyCommand,
   renderMarkdown,
-  formatAcceptanceCriteria
+  formatAcceptanceCriteria,
+  formatUserStory(story) {
+    if (!story) return '';
+    return story.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  }
 };

@@ -490,16 +490,19 @@ export class SpecParser {
       }
     });
 
-    // In the new format, AC-* entries are acceptance criteria, not requirements
-    // We should filter them out from the main requirements list
-    // But first, let's extract their criteria and associate them with functional requirements
+    // In the new format, we need to separate different types of entries:
+    // - US-* are user stories, not requirements
+    // - FR-*, NFR-* are the actual requirements
+    // - AC-* are acceptance criteria, not requirements
+    const userStories = requirements.filter(r => r.id && r.id.startsWith('US-'));
+    const functionalRequirements = requirements.filter(r => r.id && (r.id.startsWith('FR-') || r.id.startsWith('NFR-')));
     const acceptanceCriteria = requirements.filter(r => r.id && r.id.startsWith('AC-'));
-    const mainRequirements = requirements.filter(r => !r.id || !r.id.startsWith('AC-'));
+    const otherRequirements = requirements.filter(r => !r.id || (!r.id.startsWith('US-') && !r.id.startsWith('FR-') && !r.id.startsWith('NFR-') && !r.id.startsWith('AC-')));
     
-    // For now, we'll just return the non-AC requirements
-    // In a future enhancement, we could map AC-* to their related FR-* requirements
+    // Return functional requirements and old-style requirements
+    const mainRequirements = [...functionalRequirements, ...otherRequirements];
     
-    debug(`Extracted ${mainRequirements.length} requirements (filtered out ${acceptanceCriteria.length} AC entries):`, 
+    debug(`Extracted ${mainRequirements.length} requirements (${userStories.length} user stories, ${acceptanceCriteria.length} AC entries):`, 
           mainRequirements.map(r => `${r.id}: ${r.title}`));
     return mainRequirements;
   }
