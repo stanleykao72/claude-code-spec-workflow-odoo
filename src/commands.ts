@@ -387,6 +387,26 @@ When completing any task during \`/spec-execute\`:
    3. **Stop execution**: Do not proceed to next task automatically
    4. **Wait for instruction**: Let user decide next steps
 
+7. **Post-Implementation Review (if agent available)**
+After marking a task complete, use the \`spec-task-implementation-reviewer\` agent:
+
+\`\`\`
+Use the spec-task-implementation-reviewer agent to review the implementation of task {task-id} for the {feature-name} specification.
+
+The agent should:
+1. Load all specification documents from .claude/specs/{feature-name}/
+2. Load steering documents from .claude/steering/ (if available)
+3. Review the implementation for correctness and compliance
+4. Provide structured feedback on the implementation quality
+5. Identify any issues that need to be addressed
+
+Context files to review:
+- .claude/specs/{feature-name}/requirements.md
+- .claude/specs/{feature-name}/design.md
+- .claude/specs/{feature-name}/tasks.md
+- Implementation changes for task {task-id}
+\`\`\`
+
 ## Critical Workflow Rules
 
 ### Task Execution
@@ -430,7 +450,8 @@ If no feature-name specified:
 
 ## Next Steps
 After task completion, you can:
-- Review the implementation
+- Review the implementation (automated if spec-task-implementation-reviewer agent is available)
+- Address any issues identified in the review
 - Run tests if applicable
 - Execute the next task using \`/spec-execute [next-task-id]\`
 - Check overall progress with \`/spec-status {feature-name}\`

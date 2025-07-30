@@ -25,6 +25,7 @@ import {
   requirementsValidatorAgent,
   designValidatorAgent,
   atomicTaskValidatorAgent,
+  taskImplementationReviewerAgent,
   getAgentDefinitionFileContent
 } from './agents';
 // CLAUDE.md generation removed - all workflow instructions now in individual commands
@@ -134,7 +135,8 @@ export class SpecWorkflowSetup {
       taskExecutorAgent,
       requirementsValidatorAgent,
       designValidatorAgent,
-      atomicTaskValidatorAgent
+      atomicTaskValidatorAgent,
+      taskImplementationReviewerAgent
     ];
 
     for (const agent of agents) {

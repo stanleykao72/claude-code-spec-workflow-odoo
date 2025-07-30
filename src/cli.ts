@@ -127,10 +127,11 @@ program
       // Show agents section if enabled
       if (setup && setup['createAgents']) {
         console.log(chalk.white.bold('🤖 Sub-Agents (automatic):'));
-        console.log(chalk.gray('  spec-task-executor           - Specialized task implementation agent'));
-        console.log(chalk.gray('  spec-requirements-validator  - Requirements quality validation agent'));
-        console.log(chalk.gray('  spec-design-validator        - Design quality validation agent'));
-        console.log(chalk.gray('  spec-task-validator          - Task atomicity validation agent'));
+        console.log(chalk.gray('  spec-task-executor                - Specialized task implementation agent'));
+        console.log(chalk.gray('  spec-requirements-validator       - Requirements quality validation agent'));
+        console.log(chalk.gray('  spec-design-validator             - Design quality validation agent'));
+        console.log(chalk.gray('  spec-task-validator               - Task atomicity validation agent'));
+        console.log(chalk.gray('  spec-task-implementation-reviewer - Post-implementation review agent'));
         console.log();
       }
       
