@@ -2,9 +2,6 @@ import { promises as fs } from 'fs';
 import { join } from 'path';
 import {
   getSpecCreateCommand,
-  getSpecRequirementsCommand,
-  getSpecDesignCommand,
-  getSpecTasksCommand,
   getSpecExecuteCommand,
   getSpecStatusCommand,
   getSpecListCommand,
@@ -91,9 +88,6 @@ export class SpecWorkflowSetup {
   async createSlashCommands(): Promise<void> {
     const commands = {
       'spec-create': getSpecCreateCommand(),
-      'spec-requirements': getSpecRequirementsCommand(),
-      'spec-design': getSpecDesignCommand(),
-      'spec-tasks': getSpecTasksCommand(),
       'spec-execute': getSpecExecuteCommand(),
       'spec-status': getSpecStatusCommand(),
       'spec-list': getSpecListCommand(),

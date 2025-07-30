@@ -64,34 +64,41 @@ The setup automatically creates:
 
 ## 🔄 Workflow Overview
 
-### 📊 Spec Workflow (for new features)
+### 📊 Spec Driven Development Workflow
 
-#### 0. **Steering Setup** (`/spec-steering-setup`)
+#### Steering Setup (`/spec-steering-setup`)
 ##### Only relevant to run first if running in a current project, otherwise start from `/spec-create`
 - Creates persistent project context documents
 - Analyzes your codebase and gathers project information
 - Generates product.md, tech.md, and structure.md
 - Ensures all specs align with your project's vision and standards
 
-#### 1. **Requirements Phase** (`/spec-requirements`)
-- Generates user stories and acceptance criteria
-- Uses EARS format (WHEN/IF/THEN statements)
-- Aligns with product vision from steering documents
-- Ensures comprehensive requirement coverage
+#### Complete Workflow (`/spec-create`)
+The `/spec-create` command handles the entire spec workflow in one seamless process:
 
-#### 2. **Design Phase** (`/spec-design`)
-- Creates technical architecture and design
-- Follows technical standards from steering documents
-- Includes Mermaid diagrams for visualization
-- Plans components, interfaces, and data models
+1. **Requirements Phase**
+   - Generates user stories and acceptance criteria
+   - Uses EARS format (WHEN/IF/THEN statements)
+   - Aligns with product vision from steering documents
+   - Automatically validated before user review
 
-#### 3. **Tasks Phase** (`/spec-tasks`)
-- Breaks design into atomic coding tasks
-- Respects project structure conventions
-- References specific requirements
-- Focuses on test-driven development
+2. **Design Phase**
+   - Creates technical architecture and design
+   - Follows technical standards from steering documents
+   - Includes Mermaid diagrams for visualization
+   - Validates against requirements coverage
 
-#### 4. **Implementation Phase** (`/spec-execute`)
+3. **Tasks Phase**
+   - Breaks design into atomic coding tasks
+   - Ensures all requirements and design components are covered
+   - References specific requirements for traceability
+   - Validates task atomicity for agent execution
+
+4. **Task Generation** (Optional)
+   - Generates individual task commands for granular execution
+   - Each task becomes its own executable command
+
+#### Implementation Phase (`/spec-execute`)
 - Executes tasks systematically
 - Follows all steering document guidelines
 - Validates against requirements
@@ -133,21 +140,12 @@ After setup, use these commands in Claude Code:
 # Set up steering documents (recommended first step!)
 /spec-steering-setup
 
-# Create a new feature spec
+# Create a new feature spec (handles complete workflow)
 /spec-create user-authentication "Secure login system"
-
-# Generate requirements document
-/spec-requirements
-
-# Create design document
-/spec-design
-
-# Generate implementation tasks
-/spec-tasks
 
 # Execute specific tasks (two ways):
 /spec-execute 1                    # Traditional way
-/user-authentication-task-1       # New auto-generated command
+/user-authentication-task-1       # Auto-generated command (after task generation)
 
 # Execute subtasks
 /user-authentication-task-2.1     # Auto-generated for subtasks
@@ -307,14 +305,11 @@ Run `/spec-steering-setup` to create these documents. Claude will analyze your p
 your-project/
 ├── .claude/
 │   ├── commands/
-│   │   ├── spec-create.md
-│   │   ├── spec-requirements.md
-│   │   ├── spec-design.md
-│   │   ├── spec-tasks.md
+│   │   ├── spec-create.md            # Complete workflow
 │   │   ├── spec-execute.md
 │   │   ├── spec-status.md
 │   │   ├── spec-list.md
-│   │   ├── spec-steering-setup.md    # NEW!
+│   │   ├── spec-steering-setup.md
 │   │   └── {spec-name}/              # Auto-generated
 │   │       ├── task-1.md
 │   │       ├── task-2.md
