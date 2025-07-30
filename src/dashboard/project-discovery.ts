@@ -14,6 +14,8 @@ export interface DiscoveredProject {
   hasActiveSession: boolean;
   lastActivity?: Date;
   specCount?: number;
+  bugCount?: number;
+  hasSteeringDocs?: boolean;
   gitBranch?: string;
   gitCommit?: string;
 }
@@ -111,7 +113,20 @@ export class ProjectDiscovery {
     const name = projectPath.split('/').pop() || 'Unknown';
 
     // Check if any active Claude session is in this project directory
-    const hasActiveSession = activeSessions.some((session) => session.includes(projectPath));
+    const hasActiveSession = activeSessions.some((session) => {
+      // Normalize paths for comparison
+      const normalizedSession = session.replace(/\/$/, '');
+      const normalizedProject = projectPath.replace(/\/$/, '');
+      const isMatch = normalizedSession === normalizedProject || normalizedSession.startsWith(normalizedProject + '/');
+      if (isMatch) {
+        debug(`Found active session match: ${session} matches ${projectPath}`);
+      }
+      return isMatch;
+    });
+    
+    if (!hasActiveSession && name === 'beejax') {
+      debug(`No active session found for beejax. Active sessions: ${activeSessions.join(', ')}, Project path: ${projectPath}`);
+    }
 
     // Get git info (do this outside the try block so it always runs)
     const gitInfo = await this.getGitInfo(projectPath);
@@ -190,6 +205,7 @@ export class ProjectDiscovery {
         }
       }
 
+      debug(`Found ${sessions.length} active Claude sessions:`, sessions);
       return sessions;
     } catch {
       return [];
