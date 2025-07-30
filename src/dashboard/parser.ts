@@ -65,8 +65,9 @@ export class SpecParser {
   private steeringLoader: SteeringLoader;
 
   constructor(projectPath: string) {
-    // Normalize and resolve the project path to handle different path formats
-    this.projectPath = normalize(resolve(projectPath));
+    // Normalize path to handle Windows/Unix separators before resolving
+    const normalizedInput = projectPath.replace(/\\/g, '/');
+    this.projectPath = normalize(resolve(normalizedInput));
     this.specsPath = join(this.projectPath, '.claude', 'specs');
     this.steeringLoader = new SteeringLoader(this.projectPath);
   }

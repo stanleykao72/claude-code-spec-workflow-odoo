@@ -1,5 +1,5 @@
 import { promises as fs } from 'fs';
-import { join } from 'path';
+import { join, normalize } from 'path';
 
 export interface SteeringDocuments {
   product?: string;
@@ -11,7 +11,8 @@ export class SteeringLoader {
   private steeringDir: string;
 
   constructor(projectRoot: string = process.cwd()) {
-    this.steeringDir = join(projectRoot, '.claude', 'steering');
+    const root = normalize(projectRoot.replace(/\\/g, '/'));
+    this.steeringDir = join(root, '.claude', 'steering');
   }
 
   async loadSteeringDocuments(): Promise<SteeringDocuments> {
