@@ -67,6 +67,7 @@ The setup automatically creates:
 ### 📊 Spec Workflow (for new features)
 
 #### 0. **Steering Setup** (`/spec-steering-setup`)
+##### Only relevant to run first if running in a current project, otherwise start from `/spec-create`
 - Creates persistent project context documents
 - Analyzes your codebase and gathers project information
 - Generates product.md, tech.md, and structure.md
