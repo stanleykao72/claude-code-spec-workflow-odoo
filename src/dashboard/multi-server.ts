@@ -214,9 +214,10 @@ export class MultiProjectDashboardServer {
 
       // Also send updated active tasks
       const activeTasks = await this.collectActiveTasks();
+      debug(`[Multi-server] Collected ${activeTasks.length} active tasks after spec update`);
       const activeTasksMessage = JSON.stringify({
         type: 'active-tasks-update',
-        activeTasks,
+        data: activeTasks,
       });
 
       this.clients.forEach((client) => {
@@ -313,17 +314,20 @@ export class MultiProjectDashboardServer {
 
     for (const [projectPath, state] of this.projects) {
       const specs = await state.parser.getAllSpecs();
+      debug(`[collectActiveTasks] Project ${state.project.name}: ${specs.length} specs`);
 
       let hasActiveTaskInProject = false;
       
       for (const spec of specs) {
-        if (spec.tasks && spec.tasks.taskList.length > 0 && spec.tasks.inProgress) {
-          // Only get the currently active task (marked as in progress)
-          const activeTask = this.findTaskById(spec.tasks.taskList, spec.tasks.inProgress);
+        if (spec.tasks && spec.tasks.taskList.length > 0) {
+          debug(`[collectActiveTasks] Spec ${spec.name}: ${spec.tasks.taskList.length} tasks, inProgress: ${spec.tasks.inProgress}`);
+          if (spec.tasks.inProgress) {
+            // Only get the currently active task (marked as in progress)
+            const activeTask = this.findTaskById(spec.tasks.taskList, spec.tasks.inProgress);
 
-          if (activeTask) {
-            hasActiveTaskInProject = true;
-            activeTasks.push({
+            if (activeTask) {
+              hasActiveTaskInProject = true;
+              activeTasks.push({
               projectPath,
               projectName: state.project.name,
               specName: spec.name,
@@ -337,6 +341,7 @@ export class MultiProjectDashboardServer {
           }
         }
       }
+    }
       
       // Update the project's active session status based on whether it has active tasks
       if (state.project.hasActiveSession !== hasActiveTaskInProject) {
@@ -371,6 +376,7 @@ export class MultiProjectDashboardServer {
       return a.projectName.localeCompare(b.projectName);
     });
 
+    debug(`[collectActiveTasks] Total active tasks found: ${activeTasks.length}`);
     return activeTasks;
   }
 

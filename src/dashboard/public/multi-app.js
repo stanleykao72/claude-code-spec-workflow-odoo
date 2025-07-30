@@ -139,7 +139,7 @@ PetiteVue.createApp({
 
       case 'active-tasks-update':
         this.activeTasks = Array.isArray(message.data) ? message.data : [];
-        console.log(`Active tasks updated: ${this.activeTasks.length} tasks`);
+        console.log(`Active tasks updated: ${this.activeTasks.length} tasks`, this.activeTasks);
         break;
 
       default:

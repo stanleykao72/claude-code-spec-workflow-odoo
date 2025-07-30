@@ -779,14 +779,14 @@
                           >
                             <div v-if="requirement && requirement.id">
                               <h5 class="text-sm font-medium text-gray-900 dark:text-white mb-2">
-                                <strong>Requirement {{ requirement.id }}:</strong> {{
+                                <strong>{{ requirement.id }}:</strong> {{
                                 requirement.title || 'No title' }}
                               </h5>
                               <div
                                 v-if="requirement.userStory"
                                 class="text-xs text-blue-600 dark:text-blue-400 mb-2 italic"
+                                v-html="formatUserStory(requirement.userStory)"
                               >
-                                {{ requirement.userStory }}
                               </div>
                               <div
                                 v-if="requirement.acceptanceCriteria && requirement.acceptanceCriteria.length > 0"

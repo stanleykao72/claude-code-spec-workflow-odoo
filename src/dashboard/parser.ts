@@ -370,6 +370,11 @@ export class SpecParser {
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
 
+      // Skip non-requirement section headers
+      if (line.match(/^###\s+(Non-Functional Requirements|Technical Constraints|Edge Cases)\s*$/)) {
+        continue;
+      }
+
       // Check if line contains a numbered requirement - try multiple patterns
       const requirementPatterns = [
         /^### Requirement (\d+): (.+)$/,           // ### Requirement 1: Title
@@ -403,63 +408,76 @@ export class SpecParser {
         }
       }
 
-      if (!matchFound) {
-        // Look for user story in requirement body
-        if (currentRequirement && line.includes('**User Story:**')) {
-          currentRequirement.userStory = line.replace('**User Story:**', '').trim();
+      if (!matchFound && currentRequirement) {
+        // Debug every line to see what we're getting
+        if (line.trim()) {
+          debug(`Processing line for ${currentRequirement.id}: "${line}"`);
         }
-        // Look for user story parts in new format
-        else if (currentRequirement && (line.includes('**As a**') || line.includes('**I want**') || line.includes('**So that**'))) {
+        
+        // Look for user story in requirement body
+        if (line.includes('**User Story:**')) {
+          currentRequirement.userStory = line.replace('**User Story:**', '').trim();
+          debug(`Found user story for ${currentRequirement.id}: ${currentRequirement.userStory}`);
+        }
+        // Look for user story parts in new format - check more broadly
+        else if (line.includes('As a') || line.includes('I want') || line.includes('So that')) {
           if (!currentRequirement.userStory) {
             currentRequirement.userStory = '';
           }
           currentRequirement.userStory += ' ' + line.trim();
+          debug(`Building user story for ${currentRequirement.id}: ${line.trim()}`);
         }
         // Look for acceptance criteria section
-        else if (currentRequirement && line.includes('#### Acceptance Criteria')) {
+        else if (line.includes('#### Acceptance Criteria') || line.includes('**Acceptance Criteria**')) {
           inAcceptanceCriteria = true;
+          debug(`Found acceptance criteria section for ${currentRequirement.id}`);
         }
-        // Look for GIVEN/WHEN/THEN format in new style
-        else if (currentRequirement && (line.includes('**GIVEN**') || line.includes('**WHEN**') || line.includes('**THEN**'))) {
+        // Look for GIVEN/WHEN/THEN format in new style (might be direct under requirement)
+        else if (line.includes('GIVEN') || line.includes('WHEN') || line.includes('THEN')) {
           if (!currentRequirement.acceptanceCriteria) {
             currentRequirement.acceptanceCriteria = [];
           }
           
-          // For AC-N style requirements, we need to collect GIVEN/WHEN/THEN as a group
-          if (currentRequirement.id && currentRequirement.id.startsWith('AC-')) {
-            // Start collecting a new acceptance criteria scenario
-            let scenario = line.trim();
-            let j = i + 1;
-            
-            // Collect WHEN and THEN parts that follow
-            while (j < lines.length) {
-              const nextLine = lines[j].trim();
-              if (nextLine.startsWith('**WHEN**') || nextLine.startsWith('**THEN**')) {
-                scenario += ' ' + nextLine;
-                j++;
-              } else if (nextLine === '' || nextLine.startsWith('**GIVEN**')) {
-                // Empty line or new GIVEN indicates end of this scenario
-                break;
-              } else if (nextLine.startsWith('###') || nextLine.startsWith('##')) {
-                // Section header indicates end
-                break;
-              } else {
-                // Continuation of current line
-                scenario += ' ' + nextLine;
-                j++;
-              }
+          // Collect GIVEN/WHEN/THEN as a group for better formatting
+          // Start collecting a new acceptance criteria scenario
+          let scenario = line.trim();
+          let j = i + 1;
+          
+          // Collect WHEN and THEN parts that follow
+          while (j < lines.length) {
+            const nextLine = lines[j].trim();
+            if (nextLine.startsWith('**WHEN**') || nextLine.startsWith('**THEN**')) {
+              scenario += ' ' + nextLine;
+              j++;
+            } else if (nextLine === '') {
+              // Empty line indicates end of this scenario
+              break;
+            } else if (nextLine.startsWith('**GIVEN**')) {
+              // New GIVEN means this is a separate scenario - save current and start new
+              currentRequirement.acceptanceCriteria.push(scenario);
+              scenario = nextLine;
+              j++;
+              continue;
+            } else if (nextLine.startsWith('###') || nextLine.startsWith('##')) {
+              // Section header indicates end
+              break;
+            } else {
+              // Continuation of current line
+              scenario += ' ' + nextLine;
+              j++;
             }
-            
-            currentRequirement.acceptanceCriteria.push(scenario);
-            i = j - 1; // Skip lines we've already processed
-          } else {
-            // Old format - just collect the line
-            currentRequirement.acceptanceCriteria.push(line.trim());
           }
+          
+          currentRequirement.acceptanceCriteria.push(scenario);
+          i = j - 1; // Skip lines we've already processed
         }
-        // Collect acceptance criteria items (old format)
+        // Collect acceptance criteria items (numbered format)
         else if (currentRequirement && inAcceptanceCriteria && line.match(/^\d+\. /)) {
-          currentRequirement.acceptanceCriteria.push(line.replace(/^\d+\. /, '').trim());
+          const criterion = line.replace(/^\d+\. /, '').trim();
+          if (criterion) {
+            currentRequirement.acceptanceCriteria.push(criterion);
+            debug(`Found acceptance criterion for ${currentRequirement.id}: ${criterion}`);
+          }
         }
         // Also collect bullet point acceptance criteria (- WHEN...)
         else if (currentRequirement && inAcceptanceCriteria && line.match(/^[-•]\s+/)) {
@@ -468,9 +486,29 @@ export class SpecParser {
             currentRequirement.acceptanceCriteria.push(criterion);
           }
         }
-        // Stop at next major section
-        else if (line.startsWith('### Requirement') || line.startsWith('### ') || line.startsWith('## ')) {
-          inAcceptanceCriteria = false;
+        // For FR/NFR requirements, collect bullet points directly as acceptance criteria
+        else if (currentRequirement && !inAcceptanceCriteria && line.match(/^[-•]\s+/) && 
+                 currentRequirement.id && (currentRequirement.id.startsWith('FR-') || currentRequirement.id.startsWith('NFR-'))) {
+          if (!currentRequirement.acceptanceCriteria) {
+            currentRequirement.acceptanceCriteria = [];
+          }
+          const criterion = line.replace(/^[-•]\s+/, '').trim();
+          if (criterion) {
+            currentRequirement.acceptanceCriteria.push(criterion);
+            debug(`Found bullet criterion for ${currentRequirement.id}: ${criterion}`);
+          }
+        }
+        // For FR/NFR requirements, also collect regular text as part of description
+        else if (currentRequirement && line.trim() && !line.startsWith('#') &&
+                 currentRequirement.id && (currentRequirement.id.startsWith('FR-') || currentRequirement.id.startsWith('NFR-'))) {
+          // If it's descriptive text, add it to the user story
+          if (!currentRequirement.userStory) {
+            currentRequirement.userStory = line.trim();
+          } else if (!line.match(/^[-•]\s+/)) {
+            // Continue building the description if it's not a bullet point
+            currentRequirement.userStory += ' ' + line.trim();
+          }
+          debug(`Adding description for ${currentRequirement.id}: ${line.trim()}`);
         }
       }
     }
@@ -496,12 +534,17 @@ export class SpecParser {
     const acceptanceCriteria = requirements.filter(r => r.id && r.id.startsWith('AC-'));
     const otherRequirements = requirements.filter(r => !r.id || (!r.id.startsWith('US-') && !r.id.startsWith('FR-') && !r.id.startsWith('NFR-') && !r.id.startsWith('AC-')));
     
-    // Return functional requirements and old-style requirements
-    const mainRequirements = [...functionalRequirements, ...otherRequirements];
+    // Return ALL requirements (including user stories and acceptance criteria)
+    // The filtering was preventing US-* and AC-* from being displayed
+    const allRequirements = requirements;
     
-    debug(`Extracted ${mainRequirements.length} requirements (${userStories.length} user stories, ${acceptanceCriteria.length} AC entries):`, 
-          mainRequirements.map(r => `${r.id}: ${r.title}`));
-    return mainRequirements;
+    debug(`Extracted ${allRequirements.length} requirements total:`, 
+          allRequirements.map(r => `${r.id}: ${r.title}`));
+    debug(`  Breakdown: ${functionalRequirements.length} FR/NFR, ${userStories.length} US, ${acceptanceCriteria.length} AC, ${otherRequirements.length} other`);
+    allRequirements.forEach(req => {
+      debug(`  ${req.id}: userStory="${req.userStory || 'none'}", acceptanceCriteria=${req.acceptanceCriteria?.length || 0}`);
+    });
+    return allRequirements;
   }
 
   private extractUserStories(content: string): string[] {

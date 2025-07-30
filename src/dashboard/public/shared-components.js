@@ -231,8 +231,18 @@ const BaseAppState = {
   formatAcceptanceCriteria,
   formatUserStory(story) {
     if (!story) return '';
-    // Replace **text** with <strong>text</strong>
-    return story.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    let formatted = story;
+    
+    // First, handle user story keywords with special formatting
+    // The regex needs to be more flexible to handle various formats
+    formatted = formatted.replace(/\*\*(As a|I want|So that)\*\*/gi, 
+      '<span class="ears-keyword font-semibold">$1</span>'
+    );
+    
+    // Then handle any remaining bold text
+    formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    
+    return formatted;
   },
   
   // Task management methods
@@ -260,11 +270,15 @@ const BaseAppState = {
       return spec.tasks.taskList.filter(task => !task.completed);
     }
     
-    return spec.tasks.taskList;
+    // Sort tasks: incomplete first (in original order), then completed (in original order)
+    const incompleteTasks = spec.tasks.taskList.filter(task => !task.completed);
+    const completedTasks = spec.tasks.taskList.filter(task => task.completed);
+    
+    return [...incompleteTasks, ...completedTasks];
   },
   
   copyTaskCommand(specName, taskId, event) {
-    const command = `/clear\n/spec-execute ${specName} ${taskId}`;
+    const command = `/spec-execute ${specName} ${taskId}`;
     this.copyCommand.call(this, command, event);
   },
   
@@ -425,6 +439,17 @@ window.DashboardShared = {
   formatAcceptanceCriteria,
   formatUserStory(story) {
     if (!story) return '';
-    return story.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    let formatted = story;
+    
+    // First, handle user story keywords with special formatting
+    // The regex needs to be more flexible to handle various formats
+    formatted = formatted.replace(/\*\*(As a|I want|So that)\*\*/gi, 
+      '<span class="ears-keyword font-semibold">$1</span>'
+    );
+    
+    // Then handle any remaining bold text
+    formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    
+    return formatted;
   }
 };
