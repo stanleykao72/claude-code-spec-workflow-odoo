@@ -60,3 +60,6 @@ coverage/
 # AI
 CLAUDE.md
 .claude
+
+# Tests
+local_testing.md

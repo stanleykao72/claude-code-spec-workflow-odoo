@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2025-07-30 🚀
+
+### Added - Claude Code Sub-Agents Revolution!
+- **Intelligent Quality Gates**: Introduced 4 powerful sub-agents for automated validation
+  - `spec-task-executor` - Specialized implementation agent for maximum context and flawless task execution
+  - `spec-requirements-validator` - Rigorous requirements quality validation with template compliance
+  - `spec-design-validator` - Comprehensive design validation with cross-phase requirement coverage
+  - `spec-task-validator` - Atomic task validation ensuring 90%+ agent success rates
+
+### Enhanced - Atomic Task Engineering
+- **Atomic Task Criteria**: Revolutionary task granularity with 1-3 file scope, 15-30 minute timeboxing
+- **Agent-Friendly Design**: Tasks engineered for autonomous execution without human intervention
+- **Cross-Phase Validation**: Validators now ensure complete traceability across Requirements → Design → Tasks
+- **Template Structure Validation**: Every document validated against official templates for consistency
+
+### Changed - Priority-Based Execution
+- **Smart Agent Detection**: Automatic fallback from agent-based to manual execution
+- **Optional Agent Setup**: User choice during installation - no forced agent adoption
+- **Validation-First Workflow**: Documents automatically validated before user review
+- **Tool Restriction Removal**: Agents now have access to all tools with explicit behavioral constraints
+
+This is a **game-changing update** that transforms spec-driven development with intelligent automation!
+
 ## [1.3.6] - 2025-07-29
 
 ### Fixed

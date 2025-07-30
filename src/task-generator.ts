@@ -142,9 +142,36 @@ ${task.description}
 \`\`\`
 
 ## Instructions
-This command executes a specific task from the ${specName} specification.
 
-**Automatic Execution**: This command will automatically execute:
+**Agent-Based Execution (Recommended)**: If the \`spec-task-executor\` agent is available, use it for optimal task implementation:
+
+\`\`\`
+Use the spec-task-executor agent to implement task ${task.id}: "${task.description}" for the ${specName} specification.
+
+The agent should:
+1. Load all specification context from .claude/specs/${specName}/
+2. Load steering documents from .claude/steering/ (if available)
+3. Implement ONLY task ${task.id}: "${task.description}"
+4. Follow all project conventions and leverage existing code
+5. Mark the task as complete in tasks.md
+6. Provide a completion summary
+
+Context files to load:
+- .claude/specs/${specName}/requirements.md
+- .claude/specs/${specName}/design.md  
+- .claude/specs/${specName}/tasks.md
+- .claude/steering/product.md (if exists)
+- .claude/steering/tech.md (if exists)
+- .claude/steering/structure.md (if exists)
+
+Task details:
+- ID: ${task.id}
+- Description: ${task.description}${task.leverage ? `
+- Leverage: ${task.leverage}` : ''}${task.requirements ? `
+- Requirements: ${task.requirements}` : ''}
+\`\`\`
+
+**Fallback Execution**: If the agent is not available, you can execute:
 \`\`\`
 /spec-execute ${task.id} ${specName}
 \`\`\`
@@ -163,7 +190,7 @@ Before executing the task, you MUST load all relevant context:
 **Process**:
 1. Load all context documents listed above
 2. Execute task ${task.id}: "${task.description}"
-3. **Prioritize code reuse**: Use existing components and utilities identified above
+3. **Prioritize code reuse**: Use existing components and utilities${task.leverage ? ` identified above` : ''}
 4. Follow all implementation guidelines from the main /spec-execute command
 5. **Follow steering documents**: Adhere to patterns in tech.md and conventions in structure.md
 6. **CRITICAL**: Mark the task as complete in tasks.md by changing [ ] to [x]

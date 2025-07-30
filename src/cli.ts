@@ -59,7 +59,7 @@ program
       }
 
       // Check for existing .claude directory
-      const setup = new SpecWorkflowSetup(projectPath);
+      let setup = new SpecWorkflowSetup(projectPath);
       const claudeExists = await setup.claudeDirectoryExists();
 
       if (claudeExists && !options.force) {
@@ -93,19 +93,17 @@ program
         console.log(chalk.gray('  📖 Complete workflow instructions embedded in each command'));
         console.log();
 
-        const { confirm } = await inquirer.prompt([
+        const { useAgents } = await inquirer.prompt([
           {
             type: 'confirm',
-            name: 'confirm',
-            message: 'Proceed with setup?',
+            name: 'useAgents',
+            message: 'Enable Claude Code sub-agents for enhanced task execution?',
             default: true
           }
         ]);
 
-        if (!confirm) {
-          console.log(chalk.yellow('Setup cancelled.'));
-          process.exit(0);
-        }
+        // Create setup instance with agent preference
+        setup = new SpecWorkflowSetup(process.cwd(), useAgents);
       }
 
       // Run setup
@@ -128,6 +126,17 @@ program
       console.log(chalk.gray('  /spec-status                 - Show status'));
       console.log(chalk.gray('  /spec-list                   - List all specs'));
       console.log();
+      
+      // Show agents section if enabled
+      if (setup && setup['createAgents']) {
+        console.log(chalk.white.bold('🤖 Sub-Agents (automatic):'));
+        console.log(chalk.gray('  spec-task-executor           - Specialized task implementation agent'));
+        console.log(chalk.gray('  spec-requirements-validator  - Requirements quality validation agent'));
+        console.log(chalk.gray('  spec-design-validator        - Design quality validation agent'));
+        console.log(chalk.gray('  spec-task-validator          - Task atomicity validation agent'));
+        console.log();
+      }
+      
       console.log(chalk.white.bold('🐛 Bug Fix Workflow (for bug fixes):'));
       console.log(chalk.gray('  /bug-create <bug-name>       - Start bug fix'));
       console.log(chalk.gray('  /bug-analyze                 - Analyze root cause'));

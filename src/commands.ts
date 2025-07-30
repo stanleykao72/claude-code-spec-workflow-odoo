@@ -87,9 +87,25 @@ You are helping create a new feature specification through the complete workflow
 - **Use exact structure**: Follow all sections and formatting from the template
 - **Include all sections**: Don't omit any required template sections
 
-### Requirements Approval
-- **Present the complete requirements document**
-- **Include codebase analysis summary**: Briefly note what existing code can be leveraged
+### Requirements Validation and Approval
+- **Automatic Validation (if agent available)**: FIRST use the \`spec-requirements-validator\` agent to validate the requirements:
+
+\`\`\`
+Use the spec-requirements-validator agent to validate the requirements document for the {feature-name} specification.
+
+The agent should:
+1. Read the requirements document from .claude/specs/{feature-name}/requirements.md
+2. Validate against all quality criteria (structure, user stories, acceptance criteria, etc.)
+3. Check alignment with steering documents (product.md, tech.md, structure.md)
+4. Provide specific feedback and improvement suggestions
+5. Rate the overall quality as PASS, NEEDS_IMPROVEMENT, or MAJOR_ISSUES
+
+If validation fails, use the feedback to improve the requirements before presenting to the user.
+\`\`\`
+
+- **If validation agent not available**: Review the requirements manually against template criteria first
+- **Only present to user after validation passes or improvements are made**
+- **Present the validated requirements document with codebase analysis summary**
 - Ask: "Do the requirements look good? If so, we can move on to the design phase."
 - **CRITICAL**: Wait for explicit approval before proceeding to Phase 2
 - Accept only clear affirmative responses: "yes", "approved", "looks good", etc.
@@ -125,10 +141,26 @@ You are helping create a new feature specification through the complete workflow
 - **Use exact structure**: Follow all sections and formatting from the template
 - **Include Mermaid diagrams**: Add visual representations as shown in template
 
-### Design Approval
-- **Present the complete design document**
-- **Highlight code reuse**: Clearly show what existing code will be leveraged
-- **Show steering document alignment**: Note how design follows tech.md and structure.md
+### Design Validation and Approval
+- **Automatic Validation (if agent available)**: FIRST use the \`spec-design-validator\` agent to validate the design:
+
+\`\`\`
+Use the spec-design-validator agent to validate the design document for the {feature-name} specification.
+
+The agent should:
+1. Read the design document from .claude/specs/{feature-name}/design.md
+2. Read the requirements document for context
+3. Validate technical soundness, architecture quality, and completeness
+4. Check alignment with tech.md standards and structure.md conventions
+5. Verify proper leverage of existing code and integration points
+6. Rate the overall quality as PASS, NEEDS_IMPROVEMENT, or MAJOR_ISSUES
+
+If validation fails, use the feedback to improve the design before presenting to the user.
+\`\`\`
+
+- **If validation agent not available**: Review the design manually against architectural best practices first
+- **Only present to user after validation passes or improvements are made**
+- **Present the validated design document** with code reuse highlights and steering document alignment
 - Ask: "Does the design look good? If so, we can move on to the implementation planning."
 - **CRITICAL**: Wait for explicit approval before proceeding to Phase 3
 
@@ -141,22 +173,61 @@ You are helping create a new feature specification through the complete workflow
    - Ensure design.md exists and is approved
    - Load both requirements.md and design.md for complete context
 
-2. **Generate Task List**
-   - Break design into atomic, executable coding tasks
+2. **Generate Atomic Task List**
+   - Break design into atomic, executable coding tasks following these criteria:
+   
+   **Atomic Task Requirements**:
+   - **File Scope**: Each task touches 1-3 related files maximum
+   - **Time Boxing**: Completable in 15-30 minutes by an experienced developer
+   - **Single Purpose**: One testable outcome per task
+   - **Specific Files**: Must specify exact files to create/modify
+   - **Agent-Friendly**: Clear input/output with minimal context switching
+   
+   **Task Granularity Examples**:
+   - ❌ Bad: "Implement authentication system"
+   - ✅ Good: "Create User model in models/user.py with email/password fields"
+   - ❌ Bad: "Add user management features" 
+   - ✅ Good: "Add password hashing utility in utils/auth.py using bcrypt"
+   
+   **Implementation Guidelines**:
    - **Follow structure.md**: Ensure tasks respect project file organization
    - **Prioritize extending/adapting existing code** over building from scratch
    - Use checkbox format with numbered hierarchy
    - Each task should reference specific requirements AND existing code to leverage
    - Focus ONLY on coding tasks (no deployment, user testing, etc.)
+   - Break large concepts into file-level operations
 
 ### Task Template Usage
 - **Read and follow**: \`.claude/templates/tasks-template.md\`
 - **Use exact structure**: Follow all sections and formatting from the template
 - **Use checkbox format**: Follow the exact task format with requirement references
 
-### Task Approval and Command Generation
-- **Present the complete task list**
-- Ask: "Do the tasks look good?"
+### Task Validation and Approval
+- **Automatic Validation (if agent available)**: FIRST use the \`spec-task-validator\` agent to validate the tasks:
+
+\`\`\`
+Use the spec-task-validator agent to validate the task breakdown for the {feature-name} specification.
+
+The agent should:
+1. Read the tasks document from .claude/specs/{feature-name}/tasks.md
+2. Read requirements.md and design.md for context
+3. Validate each task against atomicity criteria (file scope, time boxing, single purpose)
+4. Check for agent-friendly formatting and clear specifications
+5. Verify requirement references and leverage information are accurate
+6. Rate the overall quality as PASS, NEEDS_IMPROVEMENT, or MAJOR_ISSUES
+
+If validation fails, use the feedback to break down tasks further and improve atomicity before presenting to the user.
+\`\`\`
+
+- **If validation agent not available**: Self-validate each task against atomic criteria first:
+  - Does each task specify exact files to modify/create?
+  - Can each task be completed in 15-30 minutes?
+  - Does each task have a single, testable outcome?
+  - Are any tasks still too broad (>100 characters description)?
+- **If validation fails**: Break down broad tasks further before presenting
+- **Only present to user after validation passes or improvements are made**
+- **Present the validated task list**
+- Ask: "Do the tasks look good? Each task should be atomic and agent-friendly."
 - **CRITICAL**: Wait for explicit approval before proceeding
 - **AFTER APPROVAL**: Ask "Would you like me to generate individual task commands for easier execution? (yes/no)"
 - **IF YES**: Execute \`npx @pimzino/claude-code-spec-workflow@latest generate-task-commands {feature-name}\`
@@ -281,7 +352,24 @@ You are working on the requirements phase of the spec workflow.
    - **Align with product vision**: Ensure all requirements support product.md goals
    - Ensure requirements are testable and verifiable
 
-5. **Approval Process**
+5. **Validation and Approval Process**
+   - **Automatic Validation (if agent available)**: Use the \`spec-requirements-validator\` agent to validate the requirements:
+
+\`\`\`
+Use the spec-requirements-validator agent to validate the requirements document for the {feature-name} specification.
+
+The agent should:
+1. Read the requirements document from .claude/specs/{feature-name}/requirements.md
+2. Validate against all quality criteria (structure, user stories, acceptance criteria, etc.)
+3. Check alignment with steering documents (product.md, tech.md, structure.md)
+4. Provide specific feedback and improvement suggestions
+5. Rate the overall quality as PASS, NEEDS_IMPROVEMENT, or MAJOR_ISSUES
+
+If validation fails, use the feedback to improve the requirements before presenting to the user.
+\`\`\`
+
+   - **If validation agent not available**: Review the requirements manually against template criteria
+   - **Only present to user after validation passes or improvements are made**
    - Present the complete requirements document
    - Ask: "Do the requirements look good? If so, we can move on to the design phase."
    - Make revisions based on feedback
@@ -366,7 +454,25 @@ You are working on the design phase of the spec workflow.
    - Plan error handling consistent with current approach
    - Outline testing approach using existing test utilities
 
-5. **Approval Process**
+5. **Validation and Approval Process**
+   - **Automatic Validation (if agent available)**: Use the \`spec-design-validator\` agent to validate the design:
+
+\`\`\`
+Use the spec-design-validator agent to validate the design document for the {feature-name} specification.
+
+The agent should:
+1. Read the design document from .claude/specs/{feature-name}/design.md
+2. Read the requirements document for context
+3. Validate technical soundness, architecture quality, and completeness
+4. Check alignment with tech.md standards and structure.md conventions
+5. Verify proper leverage of existing code and integration points
+6. Rate the overall quality as PASS, NEEDS_IMPROVEMENT, or MAJOR_ISSUES
+
+If validation fails, use the feedback to improve the design before presenting to the user.
+\`\`\`
+
+   - **If validation agent not available**: Review the design manually against architectural best practices
+   - **Only present to user after validation passes or improvements are made**
    - Present the complete design document
    - **Highlight code reuse**: Clearly show what existing code will be leveraged
    - **Show steering document alignment**: Note how design follows tech.md and structure.md
@@ -440,13 +546,31 @@ You are working on the tasks phase of the spec workflow.
    9. **IF YES**: Execute \`npx @pimzino/claude-code-spec-workflow@latest generate-task-commands {feature-name}\`
    10. **IF NO**: Continue with traditional task execution approach
 
-3. **Generate Task List** (prioritize code reuse and follow conventions)
-   - Break design into atomic, executable coding tasks
+3. **Generate Atomic Task List** (prioritize code reuse and follow conventions)
+   - Break design into atomic, executable coding tasks following these criteria:
+   
+   **Atomic Task Requirements**:
+   - **File Scope**: Each task touches 1-3 related files maximum
+   - **Time Boxing**: Completable in 15-30 minutes by an experienced developer
+   - **Single Purpose**: One testable outcome per task
+   - **Specific Files**: Must specify exact files to create/modify
+   - **Agent-Friendly**: Clear input/output with minimal context switching
+   
+   **Task Granularity Examples**:
+   - ❌ Bad: "Implement authentication system"
+   - ✅ Good: "Create User model in models/user.py with email/password fields"
+   - ❌ Bad: "Add user management features" 
+   - ✅ Good: "Add password hashing utility in utils/auth.py using bcrypt"
+   - ❌ Bad: "Build complete dashboard"
+   - ✅ Good: "Create Dashboard component in components/Dashboard.tsx with navigation"
+   
+   **Implementation Guidelines**:
    - **Follow structure.md**: Ensure tasks respect project file organization
    - **Prioritize extending/adapting existing code** over building from scratch
    - Use checkbox format with numbered hierarchy
    - Each task should reference specific requirements AND existing code to leverage
    - Focus ONLY on coding tasks (no deployment, user testing, etc.)
+   - Break large concepts into file-level operations
 
 4. **Task Guidelines**
    - Tasks should be concrete and actionable
@@ -469,9 +593,33 @@ You are working on the tasks phase of the spec workflow.
 - User training or documentation
 - Business process changes
 
-5. **Approval Process**
-   - Present the complete task list
-   - Ask: "Do the tasks look good?"
+5. **Task Validation and Approval Process**
+   - **Automatic Validation (if agent available)**: Use the \`spec-task-validator\` agent to validate the tasks:
+
+\`\`\`
+Use the spec-task-validator agent to validate the task breakdown for the {feature-name} specification.
+
+The agent should:
+1. Read the tasks document from .claude/specs/{feature-name}/tasks.md
+2. Read requirements.md and design.md for context
+3. Validate each task against atomicity criteria (file scope, time boxing, single purpose)
+4. Check for agent-friendly formatting and clear specifications
+5. Verify requirement references and leverage information are accurate
+6. Rate the overall quality as PASS, NEEDS_IMPROVEMENT, or MAJOR_ISSUES
+
+If validation fails, use the feedback to break down tasks further and improve atomicity before presenting to the user.
+\`\`\`
+
+   - **If validation agent not available**: Self-validate each task against atomic criteria:
+     - Does each task specify exact files to modify/create?
+     - Can each task be completed in 15-30 minutes?
+     - Does each task have a single, testable outcome?
+     - Are any tasks still too broad (>100 characters description)?
+     - Do tasks avoid complexity keywords like "system", "integration", "complete"?
+   - **If validation fails**: Break down broad tasks further before presenting
+   - **Only present to user after validation passes or improvements are made**
+   - **Present the complete task list**
+   - Ask: "Do the tasks look good? Each task should be atomic and agent-friendly."
    - Make revisions based on feedback
    - Continue until explicit approval
    - **CRITICAL**: Do not proceed without explicit approval
@@ -527,7 +675,32 @@ Execute specific tasks from the approved task list.
 This is Phase 4 of the spec workflow. Your goal is to implement individual tasks from the approved task list, one at a time.
 
 ## Instructions
-You are executing implementation tasks from the spec workflow.
+
+**Agent-Based Execution (Recommended)**: If the \`spec-task-executor\` agent is available, use it for optimal task implementation:
+
+\`\`\`
+Use the spec-task-executor agent to implement the specified task for the {feature-name} specification.
+
+The agent should:
+1. Load all specification context from .claude/specs/{feature-name}/
+2. Load steering documents from .claude/steering/ (if available)  
+3. Implement ONLY the specified task
+4. Follow all project conventions and leverage existing code
+5. Mark the task as complete in tasks.md
+6. Provide a completion summary
+
+Context files to load:
+- .claude/specs/{feature-name}/requirements.md
+- .claude/specs/{feature-name}/design.md
+- .claude/specs/{feature-name}/tasks.md  
+- .claude/steering/product.md (if exists)
+- .claude/steering/tech.md (if exists)
+- .claude/steering/structure.md (if exists)
+
+Task to implement: {task-id}
+\`\`\`
+
+**Manual Execution (Fallback)**: If the agent is not available, follow this process:
 
 1. **Prerequisites**
    - Ensure tasks.md exists and is approved

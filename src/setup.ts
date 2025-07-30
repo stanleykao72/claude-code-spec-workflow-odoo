@@ -23,6 +23,13 @@ import {
   getBugAnalysisTemplate,
   getBugVerificationTemplate
 } from './templates';
+import {
+  taskExecutorAgent,
+  requirementsValidatorAgent,
+  designValidatorAgent,
+  atomicTaskValidatorAgent,
+  getAgentDefinitionFileContent
+} from './agents';
 // CLAUDE.md generation removed - all workflow instructions now in individual commands
 // Script imports removed in v1.2.5 - task command generation now uses NPX command
 
@@ -35,8 +42,10 @@ export class SpecWorkflowSetup {
   // scriptsDir removed in v1.2.5 - no longer creating scripts
   private steeringDir: string;
   private bugsDir: string;
+  private agentsDir: string;
+  private createAgents: boolean;
 
-  constructor(projectRoot: string = process.cwd()) {
+  constructor(projectRoot: string = process.cwd(), enableAgents: boolean = false) {
     this.projectRoot = projectRoot;
     this.claudeDir = join(projectRoot, '.claude');
     this.commandsDir = join(this.claudeDir, 'commands');
@@ -45,6 +54,8 @@ export class SpecWorkflowSetup {
     // scriptsDir initialization removed in v1.2.5
     this.steeringDir = join(this.claudeDir, 'steering');
     this.bugsDir = join(this.claudeDir, 'bugs');
+    this.agentsDir = join(this.claudeDir, 'agents');
+    this.createAgents = enableAgents;
   }
 
   async claudeDirectoryExists(): Promise<boolean> {
@@ -66,6 +77,11 @@ export class SpecWorkflowSetup {
       this.steeringDir,
       this.bugsDir
     ];
+
+    // Only create agents directory if agents are enabled
+    if (this.createAgents) {
+      directories.push(this.agentsDir);
+    }
 
     for (const dir of directories) {
       await fs.mkdir(dir, { recursive: true });
@@ -113,6 +129,27 @@ export class SpecWorkflowSetup {
 
   // NOTE: Script creation removed in v1.2.5 - task command generation now uses NPX command
 
+  async setupAgents(): Promise<void> {
+    // Only create agents if enabled
+    if (!this.createAgents) {
+      return;
+    }
+
+    // Create all spec workflow agents
+    const agents = [
+      taskExecutorAgent,
+      requirementsValidatorAgent,
+      designValidatorAgent,
+      atomicTaskValidatorAgent
+    ];
+
+    for (const agent of agents) {
+      const agentFile = join(this.agentsDir, `${agent.name}.md`);
+      const agentContent = getAgentDefinitionFileContent(agent);
+      await fs.writeFile(agentFile, agentContent, 'utf-8');
+    }
+  }
+
   async createConfigFile(): Promise<void> {
     const config = {
       spec_workflow: {
@@ -121,7 +158,8 @@ export class SpecWorkflowSetup {
         auto_reference_requirements: true,
         enforce_approval_workflow: true,
         default_feature_prefix: 'feature-',
-        supported_formats: ['markdown', 'mermaid']
+        supported_formats: ['markdown', 'mermaid'],
+        agents_enabled: this.createAgents
       }
     };
 
@@ -135,6 +173,7 @@ export class SpecWorkflowSetup {
     await this.setupDirectories();
     await this.createSlashCommands();
     await this.createTemplates();
+    await this.setupAgents();
     // Script creation removed in v1.2.5 - using NPX command instead
     await this.createConfigFile();
     // CLAUDE.md creation removed - all workflow instructions now in individual commands

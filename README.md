@@ -5,6 +5,12 @@
 
 > Automated workflows for Claude Code. Features **spec-driven development** for new features (**Requirements → Design → Tasks → Implementation**) and **streamlined bug fix workflow** for quick issue resolution (**Report → Analyze → Fix → Verify**).
 
+## ☕ Support This Project
+
+If you support my work and enjoy this project, please help contribute to keeping me and awake releasing updates by buying me a coffee! ❤️
+
+<a href="https://buymeacoffee.com/Pimzino" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
+
 ## 🚀 Quick Start
 
 Install and run in any project directory:
