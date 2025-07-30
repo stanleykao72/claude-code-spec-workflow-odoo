@@ -7,7 +7,7 @@
 
 ## ☕ Support This Project
 
-If you support my work and enjoy this project, please help contribute to keeping me and awake releasing updates by buying me a coffee! ❤️
+If you support my work and enjoy this project, please help contribute to keeping me awake and releasing updates by buying me a coffee! ❤️
 
 <a href="https://buymeacoffee.com/Pimzino" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 
