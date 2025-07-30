@@ -52,9 +52,9 @@ npx claude-spec-setup
 
 ## 🎯 What It Does
 
-The setup automatically creates:
+- The setup automatically creates:
 - **📁 .claude/ directory structure** with all necessary files
-- **📝 13 slash commands** (8 spec workflow + 5 bug fix workflow)
+- **📝 10 slash commands** (5 spec workflow + 5 bug fix workflow)
 - **🎯 Steering documents** for persistent project context
 - **🤖 Auto-generated task commands** for each spec
 - **📋 Document templates** for both workflows
@@ -192,7 +192,13 @@ After setup, use these commands in Claude Code:
 
 ### 🆕 Auto-Generated Task Commands
 
-The workflow now automatically creates individual commands for each task:
+During `/spec-create` you will be asked if you want task commands generated. If
+you answer **yes**, Claude Code automatically runs
+`npx @pimzino/claude-code-spec-workflow@latest generate-task-commands <spec-name>`
+to create commands for each approved task. You can also run this command
+yourself later.
+
+Benefits of task commands:
 - **Easier execution**: `/user-auth-task-1` instead of `/spec-execute 1 user-authentication`
 - **Better organization**: Commands grouped by spec in `.claude/commands/{spec-name}/`
 - **Auto-completion**: Claude Code can suggest spec-specific commands

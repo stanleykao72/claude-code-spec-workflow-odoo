@@ -47,13 +47,15 @@ describe('SpecWorkflowSetup', () => {
     const commandsDir = join(tempDir, '.claude', 'commands');
     const expectedCommands = [
       'spec-create.md',
-      'spec-requirements.md',
-      'spec-design.md',
-      'spec-tasks.md',
       'spec-execute.md',
       'spec-status.md',
       'spec-list.md',
-      'spec-steering-setup.md'
+      'spec-steering-setup.md',
+      'bug-create.md',
+      'bug-analyze.md',
+      'bug-fix.md',
+      'bug-verify.md',
+      'bug-status.md'
     ];
 
     for (const command of expectedCommands) {
