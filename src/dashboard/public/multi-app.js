@@ -142,6 +142,34 @@ PetiteVue.createApp({
         console.log(`Active tasks updated: ${this.activeTasks.length} tasks`, this.activeTasks);
         break;
 
+      case 'bug-update':
+        const bugEvent = message.data;
+        const bugProjectPath = message.projectPath;
+        
+        // Find the project
+        const bugProjectIndex = this.projects.findIndex((p) => p.path === bugProjectPath);
+        if (bugProjectIndex >= 0) {
+          const project = this.projects[bugProjectIndex];
+          
+          if (!project.bugs) {
+            project.bugs = [];
+          }
+          
+          if (bugEvent.data) {
+            // Add or update bug
+            const bugIndex = project.bugs.findIndex((b) => b.name === bugEvent.data.name);
+            if (bugIndex >= 0) {
+              project.bugs[bugIndex] = bugEvent.data;
+            } else {
+              project.bugs.push(bugEvent.data);
+            }
+          } else if (bugEvent.type === 'removed') {
+            // Remove bug
+            project.bugs = project.bugs.filter((b) => b.name !== bugEvent.bug);
+          }
+        }
+        break;
+
       default:
         console.log('Unknown message type:', message.type);
     }
@@ -185,6 +213,16 @@ PetiteVue.createApp({
     return project.specs.reduce((total, spec) => {
       return total + (spec.tasks?.total || 0);
     }, 0);
+  },
+
+  getOpenSpecsCount(project) {
+    if (!project.specs) return 0;
+    return project.specs.filter((s) => s.status !== 'completed').length;
+  },
+
+  getOpenBugsCount(project) {
+    if (!project.bugs) return 0;
+    return project.bugs.filter((b) => b.status !== 'resolved').length;
   },
 
   // Sort projects: active sessions first, then by last activity
@@ -321,6 +359,29 @@ PetiteVue.createApp({
       docType, 
       this.selectedProject.path
     );
+  },
+
+  // View bug markdown
+  async viewBugMarkdown(projectPath, bugName, docType) {
+    this.markdownPreview.loading = true;
+    this.markdownPreview.show = true;
+    this.markdownPreview.title = `${bugName} - ${docType}`;
+    this.markdownPreview.content = 'Loading...';
+    
+    try {
+      const encodedPath = encodeURIComponent(projectPath);
+      const response = await fetch(`/api/projects/${encodedPath}/bugs/${bugName}/${docType}`);
+      if (!response.ok) throw new Error('Failed to fetch document');
+      
+      const data = await response.json();
+      const html = marked.parse(data.content);
+      this.markdownPreview.content = html;
+    } catch (error) {
+      console.error('Error loading bug markdown:', error);
+      this.markdownPreview.content = '<p class="text-red-500">Error loading document</p>';
+    } finally {
+      this.markdownPreview.loading = false;
+    }
   },
 
   // Get current task for a spec

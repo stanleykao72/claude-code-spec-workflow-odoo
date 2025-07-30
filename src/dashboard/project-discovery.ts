@@ -134,6 +134,7 @@ export class ProjectDiscovery {
     // Get last activity by checking file modification times
     let lastActivity: Date | undefined;
     let specCount = 0;
+    let bugCount = 0;
     
     try {
       const specsPath = join(claudePath, 'specs');
@@ -159,12 +160,37 @@ export class ProjectDiscovery {
       debug(`Could not read specs for ${projectPath}, but continuing with git info`);
     }
 
+    // Count bugs
+    try {
+      const bugsPath = join(claudePath, 'bugs');
+      const bugDirs = await fs.readdir(bugsPath);
+      bugCount = bugDirs.filter((d) => !d.startsWith('.')).length;
+      
+      // Check bug modification times for last activity
+      for (const bugDir of bugDirs) {
+        if (bugDir.startsWith('.')) continue;
+        const bugPath = join(bugsPath, bugDir);
+        try {
+          const stat = await fs.stat(bugPath);
+          if (!lastActivity || stat.mtime > lastActivity) {
+            lastActivity = stat.mtime;
+          }
+        } catch {
+          // Error reading bug directory
+        }
+      }
+    } catch {
+      // No bugs directory or error reading it
+      debug(`Could not read bugs for ${projectPath}`);
+    }
+
     const result = {
       path: projectPath,
       name,
       hasActiveSession,
       lastActivity,
       specCount,
+      bugCount,
       ...gitInfo,
     };
     

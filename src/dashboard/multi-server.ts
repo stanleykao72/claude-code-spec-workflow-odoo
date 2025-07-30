@@ -129,6 +129,20 @@ export class MultiProjectDashboardServer {
       return specs;
     });
 
+    this.app.get('/api/projects/:projectPath/bugs', async (request, reply) => {
+      const { projectPath } = request.params as { projectPath: string };
+      const decodedPath = normalize(resolve(decodeURIComponent(projectPath)));
+      const projectState = this.projects.get(decodedPath);
+
+      if (!projectState) {
+        reply.code(404).send({ error: 'Project not found' });
+        return;
+      }
+
+      const bugs = await projectState.parser.getAllBugs();
+      return bugs;
+    });
+
     // Get raw markdown content for a specific document
     this.app.get('/api/projects/:projectPath/specs/:name/:document', async (request, reply) => {
       const { projectPath, name, document } = request.params as { projectPath: string; name: string; document: string };
@@ -147,6 +161,33 @@ export class MultiProjectDashboardServer {
       }
 
       const docPath = join(decodedPath, '.claude', 'specs', name, `${document}.md`);
+      
+      try {
+        const content = await readFile(docPath, 'utf-8');
+        return { content };
+      } catch {
+        reply.code(404).send({ error: 'Document not found' });
+      }
+    });
+
+    // Get raw markdown content for bug documents
+    this.app.get('/api/projects/:projectPath/bugs/:name/:document', async (request, reply) => {
+      const { projectPath, name, document } = request.params as { projectPath: string; name: string; document: string };
+      const decodedPath = normalize(resolve(decodeURIComponent(projectPath)));
+      const projectState = this.projects.get(decodedPath);
+
+      if (!projectState) {
+        reply.code(404).send({ error: 'Project not found' });
+        return;
+      }
+
+      const allowedDocs = ['report', 'analysis', 'verification'];
+      if (!allowedDocs.includes(document)) {
+        reply.code(400).send({ error: 'Invalid document type' });
+        return;
+      }
+
+      const docPath = join(decodedPath, '.claude', 'bugs', name, `${document}.md`);
       
       try {
         const content = await readFile(docPath, 'utf-8');
@@ -272,6 +313,24 @@ export class MultiProjectDashboardServer {
       });
     });
 
+    // Handle bug change events
+    watcher.on('bug-change', async (event) => {
+      debug(`[Multi-server] Bug change detected for ${project.name}:`, event);
+      
+      // Send bug update to all clients
+      const message = JSON.stringify({
+        type: 'bug-update',
+        projectPath: project.path,
+        data: event,
+      });
+
+      this.clients.forEach((client) => {
+        if (client.readyState === 1) {
+          client.send(message);
+        }
+      });
+    });
+
     await watcher.start();
 
     this.projects.set(project.path, {
@@ -285,10 +344,12 @@ export class MultiProjectDashboardServer {
     const projects = await Promise.all(
       Array.from(this.projects.entries()).map(async ([, state]) => {
         const specs = await state.parser.getAllSpecs();
+        const bugs = await state.parser.getAllBugs();
         const steeringStatus = await state.parser.getProjectSteeringStatus();
         const projectData = {
           ...state.project,
           specs,
+          bugs,
           steering: steeringStatus,
         };
         debug(`Sending project ${projectData.name}`);
@@ -412,8 +473,10 @@ export class MultiProjectDashboardServer {
           await this.initializeProject(project);
 
           // Notify all clients about the new project
-          const specs = (await this.projects.get(project.path)?.parser.getAllSpecs()) || [];
-          const projectData = { ...project, specs };
+          const parser = this.projects.get(project.path)?.parser;
+          const specs = (await parser?.getAllSpecs()) || [];
+          const bugs = (await parser?.getAllBugs()) || [];
+          const projectData = { ...project, specs, bugs };
 
           const message = JSON.stringify({
             type: 'new-project',

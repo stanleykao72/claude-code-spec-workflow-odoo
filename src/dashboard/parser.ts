@@ -32,6 +32,33 @@ export interface SteeringStatus {
   hasStructure: boolean;
 }
 
+export interface Bug {
+  name: string;
+  displayName: string;
+  status: 'reported' | 'analyzing' | 'fixing' | 'verifying' | 'resolved';
+  report?: {
+    exists: boolean;
+    severity?: 'critical' | 'high' | 'medium' | 'low';
+    reproductionSteps?: string[];
+    expectedBehavior?: string;
+    actualBehavior?: string;
+    impact?: string;
+  };
+  analysis?: {
+    exists: boolean;
+    rootCause?: string;
+    proposedFix?: string;
+    filesAffected?: string[];
+  };
+  verification?: {
+    exists: boolean;
+    verified: boolean;
+    testsPassed?: boolean;
+    regressionChecks?: string[];
+  };
+  lastModified?: Date;
+}
+
 export interface Spec {
   name: string;
   displayName: string;
@@ -62,6 +89,7 @@ export interface Spec {
 export class SpecParser {
   private projectPath: string;
   private specsPath: string;
+  private bugsPath: string;
   private steeringLoader: SteeringLoader;
 
   constructor(projectPath: string) {
@@ -69,11 +97,43 @@ export class SpecParser {
     const normalizedInput = projectPath.replace(/\\/g, '/');
     this.projectPath = normalize(resolve(normalizedInput));
     this.specsPath = join(this.projectPath, '.claude', 'specs');
+    this.bugsPath = join(this.projectPath, '.claude', 'bugs');
     this.steeringLoader = new SteeringLoader(this.projectPath);
   }
 
   async getProjectSteeringStatus(): Promise<SteeringStatus> {
     return this.getSteeringStatus();
+  }
+
+  async getAllBugs(): Promise<Bug[]> {
+    try {
+      // Check if bugs directory exists first
+      try {
+        await access(this.bugsPath, constants.F_OK);
+      } catch {
+        // Bugs directory doesn't exist, return empty array
+        return [];
+      }
+
+      debug('Reading bugs from:', this.bugsPath);
+      const dirs = await readdir(this.bugsPath);
+      debug('Found bug directories:', dirs);
+      const bugs = await Promise.all(
+        dirs.filter((dir) => !dir.startsWith('.')).map((dir) => this.getBug(dir))
+      );
+      const validBugs = bugs.filter((bug) => bug !== null) as Bug[];
+      debug('Parsed bugs:', validBugs.length);
+      // Sort by last modified date, newest first
+      validBugs.sort((a, b) => {
+        const dateA = a.lastModified ? new Date(a.lastModified).getTime() : 0;
+        const dateB = b.lastModified ? new Date(b.lastModified).getTime() : 0;
+        return dateB - dateA;
+      });
+      return validBugs;
+    } catch (error) {
+      console.error('Error reading bugs from', this.bugsPath, ':', error);
+      return [];
+    }
   }
 
   async getAllSpecs(): Promise<Spec[]> {
@@ -245,6 +305,100 @@ export class SpecParser {
     spec.lastModified = lastModified;
 
     return spec;
+  }
+
+  async getBug(name: string): Promise<Bug | null> {
+    const bugPath = join(this.bugsPath, name);
+
+    try {
+      await access(bugPath, constants.F_OK);
+    } catch {
+      return null;
+    }
+
+    const bug: Bug = {
+      name,
+      displayName: this.formatDisplayName(name),
+      status: 'reported',
+    };
+
+    // Check report
+    const reportPath = join(bugPath, 'report.md');
+    if (await this.fileExists(reportPath)) {
+      const content = await readFile(reportPath, 'utf-8');
+
+      // Try to extract title from the first heading
+      const titleMatch = content.match(/^#\s+(?:Bug Report\s*[-:]\s+)?(.+?)(?:\s+Bug Report)?$/m);
+      if (titleMatch && titleMatch[1].trim() && titleMatch[1].trim().toLowerCase() !== 'bug report') {
+        bug.displayName = titleMatch[1].trim();
+      }
+
+      bug.report = {
+        exists: true,
+        severity: this.extractBugSeverity(content),
+        reproductionSteps: this.extractReproductionSteps(content),
+        expectedBehavior: this.extractSection(content, 'Expected Behavior'),
+        actualBehavior: this.extractSection(content, 'Actual Behavior'),
+        impact: this.extractSection(content, 'Impact'),
+      };
+    }
+
+    // Check analysis
+    const analysisPath = join(bugPath, 'analysis.md');
+    if (await this.fileExists(analysisPath)) {
+      const content = await readFile(analysisPath, 'utf-8');
+      
+      bug.analysis = {
+        exists: true,
+        rootCause: this.extractSection(content, 'Root Cause'),
+        proposedFix: this.extractSection(content, 'Proposed Fix'),
+        filesAffected: this.extractFilesAffected(content),
+      };
+      // If analysis exists, we're at least analyzing
+      bug.status = 'analyzing';
+      
+      // If root cause and proposed fix are identified, we're ready to fix
+      if (bug.analysis.rootCause && bug.analysis.proposedFix) {
+        bug.status = 'fixing';
+      }
+    }
+
+    // Check verification
+    const verificationPath = join(bugPath, 'verification.md');
+    if (await this.fileExists(verificationPath)) {
+      const content = await readFile(verificationPath, 'utf-8');
+      
+      bug.verification = {
+        exists: true,
+        verified: content.includes('✅ VERIFIED') || content.includes('**Verified:** ✓'),
+        testsPassed: this.extractTestStatus(content),
+        regressionChecks: this.extractRegressionChecks(content),
+      };
+      
+      if (bug.verification.exists) {
+        bug.status = 'verifying';
+      }
+      
+      if (bug.verification.verified) {
+        bug.status = 'resolved';
+      }
+    }
+
+    // Get last modified time
+    const files = ['report.md', 'analysis.md', 'verification.md'];
+    let lastModified = new Date(0);
+    for (const file of files) {
+      const filePath = join(bugPath, file);
+      if (await this.fileExists(filePath)) {
+        const stats = await import('fs').then((fs) => fs.promises.stat(filePath));
+        if (stats.mtime > lastModified) {
+          lastModified = stats.mtime;
+        }
+      }
+    }
+    bug.lastModified = lastModified;
+
+    return bug;
   }
 
   private parseTasks(content: string): Task[] {
@@ -726,5 +880,133 @@ export class SpecParser {
         hasStructure: false
       };
     }
+  }
+
+  private extractBugSeverity(content: string): 'critical' | 'high' | 'medium' | 'low' | undefined {
+    const severityMatch = content.match(/\*\*Severity\*\*:\s*(critical|high|medium|low)/i);
+    if (severityMatch) {
+      return severityMatch[1].toLowerCase() as 'critical' | 'high' | 'medium' | 'low';
+    }
+    return undefined;
+  }
+
+  private extractReproductionSteps(content: string): string[] {
+    const steps: string[] = [];
+    const lines = content.split('\n');
+    let inReproductionSection = false;
+
+    for (const line of lines) {
+      if (line.includes('## Reproduction Steps') || line.includes('### Reproduction Steps')) {
+        inReproductionSection = true;
+        continue;
+      }
+
+      if (inReproductionSection) {
+        // Stop at next section
+        if (line.startsWith('## ') || line.startsWith('### ')) {
+          break;
+        }
+
+        // Look for numbered steps
+        const stepMatch = line.match(/^\d+\.\s+(.+)$/);
+        if (stepMatch) {
+          steps.push(stepMatch[1].trim());
+        }
+      }
+    }
+
+    return steps;
+  }
+
+  private extractSection(content: string, sectionName: string): string | undefined {
+    const lines = content.split('\n');
+    let inSection = false;
+    let sectionContent = '';
+
+    for (const line of lines) {
+      if (line.includes(`## ${sectionName}`) || line.includes(`### ${sectionName}`)) {
+        inSection = true;
+        continue;
+      }
+
+      if (inSection) {
+        // Stop at next section
+        if (line.startsWith('## ') || line.startsWith('### ')) {
+          break;
+        }
+
+        if (line.trim()) {
+          sectionContent += line.trim() + ' ';
+        }
+      }
+    }
+
+    return sectionContent.trim() || undefined;
+  }
+
+  private extractFilesAffected(content: string): string[] {
+    const files: string[] = [];
+    const lines = content.split('\n');
+    let inFilesSection = false;
+
+    for (const line of lines) {
+      if (line.includes('Files Affected') || line.includes('Affected Files')) {
+        inFilesSection = true;
+        continue;
+      }
+
+      if (inFilesSection) {
+        // Stop at next section
+        if (line.startsWith('## ') || line.startsWith('### ')) {
+          break;
+        }
+
+        // Look for file paths (basic heuristic: contains / or .)
+        const fileMatch = line.match(/[-•]\s*(.+\.[a-zA-Z]+)/) || line.match(/[-•]\s*(.+\/.+)/);
+        if (fileMatch) {
+          files.push(fileMatch[1].trim());
+        }
+      }
+    }
+
+    return files;
+  }
+
+  private extractTestStatus(content: string): boolean | undefined {
+    if (content.includes('✅ All tests passed') || content.includes('Tests: PASSED')) {
+      return true;
+    }
+    if (content.includes('❌ Tests failed') || content.includes('Tests: FAILED')) {
+      return false;
+    }
+    return undefined;
+  }
+
+  private extractRegressionChecks(content: string): string[] {
+    const checks: string[] = [];
+    const lines = content.split('\n');
+    let inRegressionSection = false;
+
+    for (const line of lines) {
+      if (line.includes('Regression Checks') || line.includes('Regression Testing')) {
+        inRegressionSection = true;
+        continue;
+      }
+
+      if (inRegressionSection) {
+        // Stop at next section
+        if (line.startsWith('## ') || line.startsWith('### ')) {
+          break;
+        }
+
+        // Look for check items
+        const checkMatch = line.match(/[-•✅❌]\s+(.+)$/);
+        if (checkMatch) {
+          checks.push(checkMatch[1].trim());
+        }
+      }
+    }
+
+    return checks;
   }
 }
