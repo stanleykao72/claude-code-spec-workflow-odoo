@@ -225,6 +225,16 @@ PetiteVue.createApp({
     return project.bugs.filter((b) => b.status !== 'resolved').length;
   },
 
+  getBugsInProgress(project) {
+    if (!project.bugs) return 0;
+    return project.bugs.filter((b) => ['analyzing', 'fixing', 'verifying'].includes(b.status)).length;
+  },
+
+  getBugsResolved(project) {
+    if (!project.bugs) return 0;
+    return project.bugs.filter((b) => b.status === 'resolved').length;
+  },
+
   // Sort projects: active sessions first, then by last activity
   sortProjects() {
     this.projects.sort((a, b) => {

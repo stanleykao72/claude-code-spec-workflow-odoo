@@ -624,6 +624,29 @@
                   >{{ getTotalTasks(selectedProject) }}</span
                 >
               </div>
+              <div v-if="(selectedProject.bugs?.length || 0) > 0" class="flex items-center gap-1.5">
+                <i class="fas fa-bug text-gray-400 dark:text-gray-500"></i>
+                <span class="hidden md:inline text-gray-600 dark:text-gray-400">Bugs:</span>
+                <span class="font-semibold text-gray-900 dark:text-white"
+                  >{{ selectedProject.bugs?.length || 0 }}</span
+                >
+              </div>
+              <div v-if="getBugsInProgress(selectedProject) > 0" class="flex items-center gap-1.5">
+                <span class="hidden md:inline text-gray-600 dark:text-gray-400"
+                  >Active:</span
+                >
+                <span class="font-semibold text-orange-600 dark:text-orange-400"
+                  >{{ getBugsInProgress(selectedProject) }}</span
+                >
+              </div>
+              <div v-if="getBugsResolved(selectedProject) > 0" class="flex items-center gap-1.5">
+                <span class="hidden md:inline text-gray-600 dark:text-gray-400"
+                  >Resolved:</span
+                >
+                <span class="font-semibold text-green-600 dark:text-green-400"
+                  >{{ getBugsResolved(selectedProject) }}</span
+                >
+              </div>
             </div>
           </div>
 

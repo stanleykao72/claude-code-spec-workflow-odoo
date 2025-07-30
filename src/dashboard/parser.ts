@@ -370,7 +370,10 @@ export class SpecParser {
       
       bug.verification = {
         exists: true,
-        verified: content.includes('✅ VERIFIED') || content.includes('**Verified:** ✓'),
+        verified: content.includes('✅ VERIFIED') || 
+                 content.includes('**Verified:** ✓') ||
+                 content.includes('**Production Verified**') ||
+                 (content.includes('✅') && content.toLowerCase().includes('verified')),
         testsPassed: this.extractTestStatus(content),
         regressionChecks: this.extractRegressionChecks(content),
       };
