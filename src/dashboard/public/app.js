@@ -47,6 +47,7 @@ PetiteVue.createApp({
     console.log('Dashboard initializing...');
     this.initTheme();
     this.setupKeyboardHandlers();
+    this.setupCodeBlockCopyHandlers();
     await this.fetchProjectInfo();
     await this.fetchSpecs();
     await this.fetchBugs();

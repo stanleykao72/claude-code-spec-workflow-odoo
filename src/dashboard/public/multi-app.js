@@ -25,6 +25,7 @@ PetiteVue.createApp({
     console.log('Multi-project dashboard initializing...');
     this.initTheme();
     this.setupKeyboardHandlers();
+    this.setupCodeBlockCopyHandlers();
     this.connectWebSocket();
   },
 

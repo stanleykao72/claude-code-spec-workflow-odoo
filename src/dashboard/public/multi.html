@@ -280,6 +280,89 @@
       .markdown-content > *:last-child {
         margin-bottom: 0 !important;
       }
+      
+      /* Code block copy button styles */
+      .code-block-wrapper {
+        position: relative;
+        margin: 1rem 0;
+      }
+      
+      /* Code copy button - hidden by default, shown on hover */
+      .code-copy-btn {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+        background-color: rgba(55, 65, 81, 0.9); /* gray-700 with opacity */
+        color: white;
+        border-radius: 0.25rem;
+        opacity: 0;
+        transition: opacity 200ms ease-in-out, background-color 150ms ease-in-out;
+        cursor: pointer;
+        border: none;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+      
+      /* Dark mode adjustments for code copy button */
+      .dark .code-copy-btn {
+        background-color: rgba(75, 85, 99, 0.9); /* gray-600 with opacity */
+      }
+      
+      /* Show copy button on code block hover */
+      .code-block-wrapper:hover .code-copy-btn,
+      .code-copy-btn:focus {
+        opacity: 1;
+      }
+      
+      /* Hover state for copy button */
+      .code-copy-btn:hover {
+        background-color: rgba(75, 85, 99, 1); /* gray-600 */
+      }
+      
+      .dark .code-copy-btn:hover {
+        background-color: rgba(107, 114, 128, 1); /* gray-500 */
+      }
+      
+      /* Ensure proper spacing for code blocks with copy buttons */
+      .code-block-wrapper pre {
+        margin: 0;
+        padding-right: 4rem; /* Make room for copy button */
+      }
+      
+      /* Modal header copy button styles */
+      .modal-copy-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.25rem 0.75rem;
+        color: rgb(156, 163, 175); /* gray-400 */
+        border-radius: 0.375rem;
+        transition: color 150ms ease-in-out, background-color 150ms ease-in-out;
+        background-color: transparent;
+        border: none;
+        cursor: pointer;
+        font-size: 0.875rem;
+      }
+      
+      .modal-copy-btn:hover {
+        color: rgb(107, 114, 128); /* gray-500 */
+        background-color: rgb(243, 244, 246); /* gray-100 */
+      }
+      
+      .dark .modal-copy-btn:hover {
+        color: rgb(209, 213, 219); /* gray-300 */
+        background-color: rgb(55, 65, 81); /* gray-700 */
+      }
+      
+      /* Focus styles for accessibility */
+      .code-copy-btn:focus,
+      .modal-copy-btn:focus {
+        outline: 2px solid rgb(99, 102, 241); /* indigo-500 */
+        outline-offset: 2px;
+      }
     </style>
     <script>
       tailwind.config = {
@@ -1090,12 +1173,22 @@
           <h3 class="text-lg font-medium text-gray-900 dark:text-white">
             <i class="fas fa-file-alt mr-2"></i>{{ markdownPreview.title }}
           </h3>
-          <button 
-            @click="closeMarkdownPreview()" 
-            class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-          >
-            <i class="fas fa-times text-xl"></i>
-          </button>
+          <div class="flex items-center gap-2">
+            <button 
+              @click="copyCommand(markdownPreview.rawContent, $event)" 
+              class="modal-copy-btn"
+              title="Copy markdown"
+            >
+              <i class="fas fa-copy"></i>
+              <span>Copy</span>
+            </button>
+            <button 
+              @click="closeMarkdownPreview()" 
+              class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+            >
+              <i class="fas fa-times text-xl"></i>
+            </button>
+          </div>
         </div>
         
         <!-- Modal Content -->

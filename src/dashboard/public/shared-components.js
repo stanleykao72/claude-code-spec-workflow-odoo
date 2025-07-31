@@ -121,7 +121,7 @@ function copyCommand(command, event) {
 }
 
 /**
- * Render markdown content using marked library
+ * Render markdown content using marked library with enhanced code blocks
  */
 function renderMarkdown(content) {
   if (!content) return '';
@@ -129,7 +129,40 @@ function renderMarkdown(content) {
     console.error('Marked library not loaded');
     return content;
   }
-  return marked.parse(content);
+  
+  // Create a custom renderer for code blocks
+  const renderer = new marked.Renderer();
+  
+  // Override the code block rendering
+  renderer.code = function(code, language, isEscaped) {
+    // Escape the code for HTML display
+    const escapedCode = code.replace(/[&<>"']/g, (match) => {
+      const escapeMap = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      };
+      return escapeMap[match];
+    });
+    
+    // Base64 encode the original code for data attribute
+    const encodedCode = btoa(unescape(encodeURIComponent(code)));
+    
+    // Generate HTML with copy button
+    const langClass = language ? ` language-${language}` : '';
+    return `<div class="code-block-wrapper relative group">
+      <pre data-code-content="${encodedCode}"><code class="hljs${langClass}">${escapedCode}</code></pre>
+      <button class="code-copy-btn" title="Copy code">
+        <i class="fas fa-copy"></i>
+        <span>Copy</span>
+      </button>
+    </div>`;
+  };
+  
+  // Use the custom renderer
+  return marked.parse(content, { renderer });
 }
 
 /**
@@ -212,6 +245,7 @@ const BaseAppState = {
     show: false,
     title: '',
     content: '',
+    rawContent: '',  // NEW: Store raw markdown for copying
     loading: false
   },
   
@@ -305,6 +339,7 @@ const BaseAppState = {
       
       const data = await response.json();
       this.markdownPreview.content = data.content;
+      this.markdownPreview.rawContent = data.content;  // Store raw markdown
     } catch (error) {
       console.error(`Error fetching ${docType} content:`, error);
       this.markdownPreview.content = `# Error loading ${docType} content\n\n${error.message}`;
@@ -317,12 +352,58 @@ const BaseAppState = {
     this.markdownPreview.show = false;
     this.markdownPreview.title = '';
     this.markdownPreview.content = '';
+    this.markdownPreview.rawContent = '';
   },
   
   setupKeyboardHandlers() {
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && this.markdownPreview.show) {
         this.closeMarkdownPreview();
+      }
+    });
+  },
+  
+  // Code block copy functionality
+  copyCodeBlock(event) {
+    const button = event.currentTarget;
+    const pre = button.parentElement.querySelector('pre[data-code-content]');
+    
+    if (!pre) {
+      console.error('Could not find code content');
+      return;
+    }
+    
+    const encodedCode = pre.getAttribute('data-code-content');
+    
+    try {
+      // Decode the base64 content
+      const decodedCode = decodeURIComponent(escape(atob(encodedCode)));
+      
+      // Use the existing copyCommand function for consistent behavior
+      copyCommand(decodedCode, event);
+    } catch (err) {
+      console.error('Failed to decode code content:', err);
+      
+      // Show error feedback
+      const originalContent = button.innerHTML;
+      button.innerHTML = '<i class="fas fa-times"></i> Error';
+      button.classList.add('text-red-600', 'dark:text-red-400');
+      
+      setTimeout(() => {
+        button.innerHTML = originalContent;
+        button.classList.remove('text-red-600', 'dark:text-red-400');
+      }, 2000);
+    }
+  },
+  
+  setupCodeBlockCopyHandlers() {
+    // Use event delegation on the document body to catch all code copy buttons
+    document.addEventListener('click', (event) => {
+      const button = event.target.closest('.code-copy-btn');
+      if (button) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.copyCodeBlock(event);
       }
     });
   },
