@@ -2,4 +2,4 @@ export { SpecWorkflowSetup } from './setup';
 export { detectProjectType, validateClaudeCode } from './utils';
 export * from './commands';
 export * from './templates';
-export * from './claude-md';
+// claude-md export removed - workflow instructions now in individual commands

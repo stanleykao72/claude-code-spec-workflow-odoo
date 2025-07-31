@@ -401,9 +401,9 @@
               ></span>
               {{ project.name }}
               <span
-                v-if="(project.specs?.length || 0) > 0"
+                v-if="(getOpenSpecsCount(project) + getOpenBugsCount(project)) > 0"
                 class="text-xs text-gray-500 dark:text-gray-500"
-                >({{ getSpecsCompleted(project) }}/{{ project.specs?.length || 0 }})</span
+                >({{ getOpenSpecsCount(project) }}/{{ getOpenBugsCount(project) }})</span
               >
             </button>
           </div>
@@ -482,10 +482,10 @@
                       <button
                         @click.stop="copyTaskCommand(activeTask.specName, activeTask.task.id, $event)"
                         class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
-                        :title="`Copy command: /spec-exec ${activeTask.specName} ${activeTask.task.id}`"
+                        :title="`Copy command: /spec-execute ${activeTask.specName} ${activeTask.task.id}`"
                       >
                         <i class="fas fa-copy"></i>
-                        <span>/spec-exec</span>
+                        <span>/spec-execute</span>
                       </button>
                     </div>
                   </div>
@@ -521,10 +521,10 @@
                       <button
                         @click.stop="copyTaskCommand(activeTask.specName, getNextTask(activeTask).id, $event)"
                         class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
-                        :title="`Copy command: /spec-exec ${activeTask.specName} ${getNextTask(activeTask).id}`"
+                        :title="`Copy command: /spec-execute ${activeTask.specName} ${getNextTask(activeTask).id}`"
                       >
                         <i class="fas fa-copy"></i>
-                        <span>/spec-exec</span>
+                        <span>/spec-execute</span>
                       </button>
                     </div>
                   </div>
@@ -622,6 +622,29 @@
                 <span class="hidden md:inline text-gray-600 dark:text-gray-400">Tasks:</span>
                 <span class="font-semibold text-gray-900 dark:text-white"
                   >{{ getTotalTasks(selectedProject) }}</span
+                >
+              </div>
+              <div v-if="(selectedProject.bugs?.length || 0) > 0" class="flex items-center gap-1.5">
+                <i class="fas fa-bug text-gray-400 dark:text-gray-500"></i>
+                <span class="hidden md:inline text-gray-600 dark:text-gray-400">Bugs:</span>
+                <span class="font-semibold text-gray-900 dark:text-white"
+                  >{{ selectedProject.bugs?.length || 0 }}</span
+                >
+              </div>
+              <div v-if="getBugsInProgress(selectedProject) > 0" class="flex items-center gap-1.5">
+                <span class="hidden md:inline text-gray-600 dark:text-gray-400"
+                  >Active:</span
+                >
+                <span class="font-semibold text-orange-600 dark:text-orange-400"
+                  >{{ getBugsInProgress(selectedProject) }}</span
+                >
+              </div>
+              <div v-if="getBugsResolved(selectedProject) > 0" class="flex items-center gap-1.5">
+                <span class="hidden md:inline text-gray-600 dark:text-gray-400"
+                  >Resolved:</span
+                >
+                <span class="font-semibold text-green-600 dark:text-green-400"
+                  >{{ getBugsResolved(selectedProject) }}</span
                 >
               </div>
             </div>
@@ -779,14 +802,14 @@
                           >
                             <div v-if="requirement && requirement.id">
                               <h5 class="text-sm font-medium text-gray-900 dark:text-white mb-2">
-                                <strong>Requirement {{ requirement.id }}:</strong> {{
+                                <strong>{{ requirement.id }}:</strong> {{
                                 requirement.title || 'No title' }}
                               </h5>
                               <div
                                 v-if="requirement.userStory"
                                 class="text-xs text-blue-600 dark:text-blue-400 mb-2 italic"
+                                v-html="formatUserStory(requirement.userStory)"
                               >
-                                {{ requirement.userStory }}
                               </div>
                               <div
                                 v-if="requirement.acceptanceCriteria && requirement.acceptanceCriteria.length > 0"
@@ -944,10 +967,10 @@
                               v-if="!task.completed"
                               @click.stop="copyTaskCommand(spec.name, task.id, $event)"
                               class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
-                              :title="`Copy command: /spec-exec ${spec.name} ${task.id}`"
+                              :title="`Copy command: /spec-execute ${spec.name} ${task.id}`"
                             >
                               <i class="fas fa-copy"></i>
-                              <span>/spec-exec</span>
+                              <span>/spec-execute</span>
                             </button>
                             <span
                               v-if="task.requirements && task.requirements.length > 0"
@@ -963,6 +986,86 @@
                             </span>
                           </div>
                         </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bugs Section -->
+          <div v-if="selectedProject.bugs && selectedProject.bugs.length > 0" class="mt-6">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              <i class="fas fa-bug mr-2"></i>Bug Tracking
+            </h2>
+            <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+              <div class="divide-y divide-gray-200 dark:divide-gray-700">
+                <div
+                  v-for="bug in selectedProject.bugs"
+                  :key="bug.name"
+                  class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all p-4"
+                >
+                  <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                      <h3 class="text-base font-medium text-gray-900 dark:text-white">
+                        {{ bug.displayName }}
+                      </h3>
+                      
+                      <!-- Bug Status -->
+                      <div class="mt-2 flex items-center gap-4 text-sm">
+                        <span 
+                          class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                          :class="{
+                            'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200': bug.status === 'reported',
+                            'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200': bug.status === 'analyzing',
+                            'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200': bug.status === 'fixing',
+                            'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200': bug.status === 'verifying',
+                            'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': bug.status === 'resolved'
+                          }"
+                        >
+                          {{ bug.status }}
+                        </span>
+                        
+                        <span v-if="bug.report?.severity" 
+                          class="inline-flex items-center text-xs"
+                          :class="{
+                            'text-red-600 dark:text-red-400': bug.report.severity === 'critical',
+                            'text-orange-600 dark:text-orange-400': bug.report.severity === 'high',
+                            'text-yellow-600 dark:text-yellow-400': bug.report.severity === 'medium',
+                            'text-gray-600 dark:text-gray-400': bug.report.severity === 'low'
+                          }"
+                        >
+                          <i class="fas fa-exclamation-circle mr-1"></i>
+                          {{ bug.report.severity }}
+                        </span>
+                      </div>
+                      
+                      <!-- Bug Documents -->
+                      <div class="mt-3 flex items-center gap-3">
+                        <button
+                          v-if="bug.report?.exists"
+                          @click="viewBugMarkdown(selectedProject.path, bug.name, 'report')"
+                          class="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                        >
+                          <i class="fas fa-file-alt mr-1"></i>Report
+                        </button>
+                        
+                        <button
+                          v-if="bug.analysis?.exists"
+                          @click="viewBugMarkdown(selectedProject.path, bug.name, 'analysis')"
+                          class="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                        >
+                          <i class="fas fa-search mr-1"></i>Analysis
+                        </button>
+                        
+                        <button
+                          v-if="bug.verification?.exists"
+                          @click="viewBugMarkdown(selectedProject.path, bug.name, 'verification')"
+                          class="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                        >
+                          <i class="fas fa-check-circle mr-1"></i>Verification
+                        </button>
                       </div>
                     </div>
                   </div>

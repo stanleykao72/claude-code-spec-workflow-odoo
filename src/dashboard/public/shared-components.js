@@ -136,19 +136,29 @@ function renderMarkdown(content) {
  * Format acceptance criteria with EARS keywords using syntax highlighting
  */
 function formatAcceptanceCriteria(criteria) {
-  // Define EARS keywords
+  // Define EARS keywords for old format
   const earsKeywords = ['WHEN', 'THEN', 'IF', 'SHALL NOT', 'SHALL'];
   
   let formattedCriteria = criteria;
   
-  // Replace EARS keywords with syntax highlighted spans
+  // First, handle new format with **GIVEN**, **WHEN**, **THEN**
+  // Replace **KEYWORD** with styled spans
+  formattedCriteria = formattedCriteria.replace(/\*\*(GIVEN|WHEN|THEN)\*\*/g, 
+    '<span class="ears-keyword font-semibold">$1</span>'
+  );
+  
+  // Then handle old format EARS keywords (without markdown bold)
   // Process SHALL NOT before SHALL to avoid partial matches
   earsKeywords.forEach(keyword => {
-    const regex = new RegExp(`\\b(${keyword})\\b`, 'g');
+    // Only match if not already inside a span tag
+    const regex = new RegExp(`(?<!<span[^>]*>)\\b(${keyword})\\b(?![^<]*<\/span>)`, 'g');
     formattedCriteria = formattedCriteria.replace(regex, 
       `<span class="ears-keyword">$1</span>`
     );
   });
+  
+  // Also handle other markdown bold formatting for better display
+  formattedCriteria = formattedCriteria.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   
   return formattedCriteria;
 }
@@ -219,6 +229,21 @@ const BaseAppState = {
   },
   renderMarkdown,
   formatAcceptanceCriteria,
+  formatUserStory(story) {
+    if (!story) return '';
+    let formatted = story;
+    
+    // First, handle user story keywords with special formatting
+    // The regex needs to be more flexible to handle various formats
+    formatted = formatted.replace(/\*\*(As a|I want|So that)\*\*/gi, 
+      '<span class="ears-keyword font-semibold">$1</span>'
+    );
+    
+    // Then handle any remaining bold text
+    formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    
+    return formatted;
+  },
   
   // Task management methods
   getCompletedTaskCount(spec) {
@@ -245,11 +270,15 @@ const BaseAppState = {
       return spec.tasks.taskList.filter(task => !task.completed);
     }
     
-    return spec.tasks.taskList;
+    // Sort tasks: incomplete first (in original order), then completed (in original order)
+    const incompleteTasks = spec.tasks.taskList.filter(task => !task.completed);
+    const completedTasks = spec.tasks.taskList.filter(task => task.completed);
+    
+    return [...incompleteTasks, ...completedTasks];
   },
   
   copyTaskCommand(specName, taskId, event) {
-    const command = `/spec-exec ${specName} ${taskId}`;
+    const command = `/spec-execute ${specName} ${taskId}`;
     this.copyCommand.call(this, command, event);
   },
   
@@ -296,6 +325,34 @@ const BaseAppState = {
         this.closeMarkdownPreview();
       }
     });
+  },
+  
+  scrollToRequirement(reqId) {
+    const element = document.getElementById('requirement-' + reqId);
+    if (element) {
+      // Ensure the spec is expanded first
+      if (!this.selectedSpec || this.selectedSpec.name !== element.closest('[data-spec-name]')?.dataset.specName) {
+        // Find and select the spec
+        const specElement = element.closest('[data-spec-name]');
+        if (specElement) {
+          const specName = specElement.dataset.specName;
+          const spec = this.specs.find(s => s.name === specName);
+          if (spec) {
+            this.selectedSpec = spec;
+          }
+        }
+      }
+      
+      // Wait a tick for the expansion animation
+      setTimeout(() => {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Add highlight effect
+        element.classList.add('ring-2', 'ring-indigo-500');
+        setTimeout(() => {
+          element.classList.remove('ring-2', 'ring-indigo-500');
+        }, 2000);
+      }, 100);
+    }
   }
 };
 
@@ -379,5 +436,20 @@ window.DashboardShared = {
   getStatusLabel,
   copyCommand,
   renderMarkdown,
-  formatAcceptanceCriteria
+  formatAcceptanceCriteria,
+  formatUserStory(story) {
+    if (!story) return '';
+    let formatted = story;
+    
+    // First, handle user story keywords with special formatting
+    // The regex needs to be more flexible to handle various formats
+    formatted = formatted.replace(/\*\*(As a|I want|So that)\*\*/gi, 
+      '<span class="ears-keyword font-semibold">$1</span>'
+    );
+    
+    // Then handle any remaining bold text
+    formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    
+    return formatted;
+  }
 };

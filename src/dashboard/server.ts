@@ -56,18 +56,20 @@ export class DashboardServer {
         self.clients.add(socket);
 
         // Send initial state
-        self.parser
-          .getAllSpecs()
-          .then((specs) => {
+        Promise.all([
+          self.parser.getAllSpecs(),
+          self.parser.getAllBugs()
+        ])
+          .then(([specs, bugs]) => {
             socket.send(
               JSON.stringify({
                 type: 'initial',
-                data: specs,
+                data: { specs, bugs },
               })
             );
           })
           .catch((error) => {
-            console.error('Error getting initial specs:', error);
+            console.error('Error getting initial data:', error);
           });
 
         // Handle client disconnect
@@ -97,6 +99,11 @@ export class DashboardServer {
       return specs;
     });
 
+    this.app.get('/api/bugs', async () => {
+      const bugs = await this.parser.getAllBugs();
+      return bugs;
+    });
+
     this.app.get('/api/info', async () => {
       const projectName = this.options.projectPath.split('/').pop() || 'Project';
       const gitInfo = await GitUtils.getGitInfo(this.options.projectPath);
@@ -117,6 +124,15 @@ export class DashboardServer {
       return spec;
     });
 
+    this.app.get('/api/bugs/:name', async (request, reply) => {
+      const { name } = request.params as { name: string };
+      const bug = await this.parser.getBug(name);
+      if (!bug) {
+        reply.code(404).send({ error: 'Bug not found' });
+      }
+      return bug;
+    });
+
     // Get raw markdown content
     this.app.get('/api/specs/:name/:document', async (request, reply) => {
       const { name, document } = request.params as { name: string; document: string };
@@ -132,7 +148,27 @@ export class DashboardServer {
       try {
         const content = await readFile(docPath, 'utf-8');
         return { content };
-      } catch (error) {
+      } catch {
+        reply.code(404).send({ error: 'Document not found' });
+      }
+    });
+
+    // Get raw bug markdown content
+    this.app.get('/api/bugs/:name/:document', async (request, reply) => {
+      const { name, document } = request.params as { name: string; document: string };
+      const allowedDocs = ['report', 'analysis', 'verification'];
+      
+      if (!allowedDocs.includes(document)) {
+        reply.code(400).send({ error: 'Invalid document type' });
+        return;
+      }
+      
+      const docPath = join(this.options.projectPath, '.claude', 'bugs', name, `${document}.md`);
+      
+      try {
+        const content = await readFile(docPath, 'utf-8');
+        return { content };
+      } catch {
         reply.code(404).send({ error: 'Document not found' });
       }
     });
@@ -143,6 +179,38 @@ export class DashboardServer {
       const message = JSON.stringify({
         type: 'update',
         data: event,
+      });
+
+      this.clients.forEach((client) => {
+        if (client.readyState === 1) {
+          // WebSocket.OPEN
+          client.send(message);
+        }
+      });
+    });
+
+    // Set up bug change watcher
+    this.watcher.on('bug-change', (event) => {
+      // Broadcast to all connected clients
+      const message = JSON.stringify({
+        type: 'bug-update',
+        data: event,
+      });
+
+      this.clients.forEach((client) => {
+        if (client.readyState === 1) {
+          // WebSocket.OPEN
+          client.send(message);
+        }
+      });
+    });
+
+    // Set up steering change watcher
+    this.watcher.on('steering-change', (event) => {
+      // Broadcast steering updates to all connected clients
+      const message = JSON.stringify({
+        type: 'steering-update',
+        data: event.steeringStatus,
       });
 
       this.clients.forEach((client) => {

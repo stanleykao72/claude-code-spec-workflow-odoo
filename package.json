@@ -1,7 +1,7 @@
 {
   "name": "@pimzino/claude-code-spec-workflow",
-  "version": "1.2.5",
-  "description": "Automated spec-driven workflow for Claude Code. Transforms feature ideas into complete implementations through Requirements → Design → Tasks → Implementation.",
+  "version": "1.4.2",
+  "description": "Automated workflows for Claude Code. Includes spec-driven development (Requirements → Design → Tasks → Implementation) with optional steering documents and streamlined bug fix workflow (Report → Analyze → Fix → Verify). We have a bonus and option real time dashboard to monitor your specs and tasks.",
   "main": "dist/index.js",
   "bin": {
     "claude-code-spec-workflow": "dist/cli.js",
@@ -10,7 +10,7 @@
   },
   "scripts": {
     "build": "tsc && npm run copy-static",
-    "copy-static": "cp -r src/dashboard/public dist/dashboard/",
+    "copy-static": "cpy 'src/dashboard/public/**' 'dist/dashboard/public/'",
     "prepare": "npm run build",
     "dev": "ts-node src/cli.ts",
     "dev:dashboard": "ts-node src/dashboard/cli.ts",
@@ -21,13 +21,16 @@
   "keywords": [
     "claude-code",
     "spec-workflow",
+    "bug-fix-workflow",
     "requirements",
     "design",
     "tasks",
     "implementation",
     "ai-development",
     "automation",
-    "development-workflow"
+    "development-workflow",
+    "bug-tracking",
+    "issue-resolution"
   ],
   "author": "Pimzino",
   "license": "MIT",
@@ -49,30 +52,31 @@
     "node": ">=16.0.0"
   },
   "dependencies": {
-    "chalk": "^4.1.2",
-    "commander": "^11.1.0",
-    "inquirer": "^8.2.6",
-    "ora": "^5.4.1",
-    "fastify": "^4.24.3",
-    "@fastify/static": "^6.12.0",
+    "@fastify/static": "^7.0.4",
     "@fastify/websocket": "^8.2.1",
+    "chalk": "^4.1.2",
     "chokidar": "^3.5.3",
+    "commander": "^12.1.0",
+    "fastify": "^4.24.3",
+    "inquirer": "^8.2.6",
     "open": "^8.4.2",
+    "ora": "^5.4.1",
     "simple-git": "^3.28.0"
   },
   "devDependencies": {
-    "@types/inquirer": "^8.2.10",
-    "@types/jest": "^29.5.8",
-    "@types/node": "^20.9.0",
-    "@types/ws": "^8.5.10",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
-    "eslint": "^8.57.1",
+    "@types/inquirer": "^9.0.7",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.10.1",
+    "@types/ws": "^8.5.13",
+    "@typescript-eslint/eslint-plugin": "^8.18.0",
+    "@typescript-eslint/parser": "^8.18.0",
+    "cpy-cli": "^5.0.0",
+    "eslint": "^9.17.0",
     "jest": "^29.7.0",
-    "prettier": "^3.1.0",
-    "ts-jest": "^29.1.1",
-    "ts-node": "^10.9.1",
-    "typescript": "^5.2.2"
+    "prettier": "^3.4.2",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
   },
   "publishConfig": {
     "access": "public"

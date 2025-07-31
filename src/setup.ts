@@ -2,20 +2,32 @@ import { promises as fs } from 'fs';
 import { join } from 'path';
 import {
   getSpecCreateCommand,
-  getSpecRequirementsCommand,
-  getSpecDesignCommand,
-  getSpecTasksCommand,
   getSpecExecuteCommand,
   getSpecStatusCommand,
   getSpecListCommand,
-  getSpecSteeringSetupCommand
+  getSpecSteeringSetupCommand,
+  getBugCreateCommand,
+  getBugAnalyzeCommand,
+  getBugFixCommand,
+  getBugVerifyCommand,
+  getBugStatusCommand
 } from './commands';
 import {
   getRequirementsTemplate,
   getDesignTemplate,
-  getTasksTemplate
+  getTasksTemplate,
+  getBugReportTemplate,
+  getBugAnalysisTemplate,
+  getBugVerificationTemplate
 } from './templates';
-import { getClaudeMdContent } from './claude-md';
+import {
+  taskExecutorAgent,
+  requirementsValidatorAgent,
+  designValidatorAgent,
+  atomicTaskValidatorAgent,
+  getAgentDefinitionFileContent
+} from './agents';
+// CLAUDE.md generation removed - all workflow instructions now in individual commands
 // Script imports removed in v1.2.5 - task command generation now uses NPX command
 
 export class SpecWorkflowSetup {
@@ -26,8 +38,11 @@ export class SpecWorkflowSetup {
   private templatesDir: string;
   // scriptsDir removed in v1.2.5 - no longer creating scripts
   private steeringDir: string;
+  private bugsDir: string;
+  private agentsDir: string;
+  private createAgents: boolean;
 
-  constructor(projectRoot: string = process.cwd()) {
+  constructor(projectRoot: string = process.cwd(), enableAgents: boolean = false) {
     this.projectRoot = projectRoot;
     this.claudeDir = join(projectRoot, '.claude');
     this.commandsDir = join(this.claudeDir, 'commands');
@@ -35,6 +50,9 @@ export class SpecWorkflowSetup {
     this.templatesDir = join(this.claudeDir, 'templates');
     // scriptsDir initialization removed in v1.2.5
     this.steeringDir = join(this.claudeDir, 'steering');
+    this.bugsDir = join(this.claudeDir, 'bugs');
+    this.agentsDir = join(this.claudeDir, 'agents');
+    this.createAgents = enableAgents;
   }
 
   async claudeDirectoryExists(): Promise<boolean> {
@@ -53,8 +71,14 @@ export class SpecWorkflowSetup {
       this.specsDir,
       this.templatesDir,
       // scriptsDir removed from directory creation
-      this.steeringDir
+      this.steeringDir,
+      this.bugsDir
     ];
+
+    // Only create agents directory if agents are enabled
+    if (this.createAgents) {
+      directories.push(this.agentsDir);
+    }
 
     for (const dir of directories) {
       await fs.mkdir(dir, { recursive: true });
@@ -64,13 +88,15 @@ export class SpecWorkflowSetup {
   async createSlashCommands(): Promise<void> {
     const commands = {
       'spec-create': getSpecCreateCommand(),
-      'spec-requirements': getSpecRequirementsCommand(),
-      'spec-design': getSpecDesignCommand(),
-      'spec-tasks': getSpecTasksCommand(),
       'spec-execute': getSpecExecuteCommand(),
       'spec-status': getSpecStatusCommand(),
       'spec-list': getSpecListCommand(),
-      'spec-steering-setup': getSpecSteeringSetupCommand()
+      'spec-steering-setup': getSpecSteeringSetupCommand(),
+      'bug-create': getBugCreateCommand(),
+      'bug-analyze': getBugAnalyzeCommand(),
+      'bug-fix': getBugFixCommand(),
+      'bug-verify': getBugVerifyCommand(),
+      'bug-status': getBugStatusCommand()
     };
 
     for (const [commandName, commandContent] of Object.entries(commands)) {
@@ -83,7 +109,10 @@ export class SpecWorkflowSetup {
     const templates = {
       'requirements-template.md': getRequirementsTemplate(),
       'design-template.md': getDesignTemplate(),
-      'tasks-template.md': getTasksTemplate()
+      'tasks-template.md': getTasksTemplate(),
+      'bug-report-template.md': getBugReportTemplate(),
+      'bug-analysis-template.md': getBugAnalysisTemplate(),
+      'bug-verification-template.md': getBugVerificationTemplate()
     };
 
     for (const [templateName, templateContent] of Object.entries(templates)) {
@@ -94,6 +123,27 @@ export class SpecWorkflowSetup {
 
   // NOTE: Script creation removed in v1.2.5 - task command generation now uses NPX command
 
+  async setupAgents(): Promise<void> {
+    // Only create agents if enabled
+    if (!this.createAgents) {
+      return;
+    }
+
+    // Create all spec workflow agents
+    const agents = [
+      taskExecutorAgent,
+      requirementsValidatorAgent,
+      designValidatorAgent,
+      atomicTaskValidatorAgent
+    ];
+
+    for (const agent of agents) {
+      const agentFile = join(this.agentsDir, `${agent.name}.md`);
+      const agentContent = getAgentDefinitionFileContent(agent);
+      await fs.writeFile(agentFile, agentContent, 'utf-8');
+    }
+  }
+
   async createConfigFile(): Promise<void> {
     const config = {
       spec_workflow: {
@@ -102,7 +152,8 @@ export class SpecWorkflowSetup {
         auto_reference_requirements: true,
         enforce_approval_workflow: true,
         default_feature_prefix: 'feature-',
-        supported_formats: ['markdown', 'mermaid']
+        supported_formats: ['markdown', 'mermaid'],
+        agents_enabled: this.createAgents
       }
     };
 
@@ -110,63 +161,15 @@ export class SpecWorkflowSetup {
     await fs.writeFile(configFile, JSON.stringify(config, null, 2), 'utf-8');
   }
 
-  async createClaudeMd(): Promise<void> {
-    const claudeMdContent = getClaudeMdContent();
-    const claudeMdFile = join(this.projectRoot, 'CLAUDE.md');
-
-    // Check if CLAUDE.md exists
-    try {
-      const existingContent = await fs.readFile(claudeMdFile, 'utf-8');
-
-      if (!existingContent.includes('# Spec Workflow')) {
-        // Append to existing file - preserve all existing content
-        const separator = existingContent.trim().length > 0 ? '\n\n---\n\n' : '';
-        const updatedContent = existingContent.trim() + separator + claudeMdContent;
-        await fs.writeFile(claudeMdFile, updatedContent, 'utf-8');
-      } else {
-        // Replace existing spec workflow section while preserving everything else
-        const lines = existingContent.split('\n');
-        const startIndex = lines.findIndex(line => line.trim() === '# Spec Workflow');
-
-        if (startIndex !== -1) {
-          // Find the end of the spec workflow section (next # header or end of file)
-          let endIndex = lines.length;
-          for (let i = startIndex + 1; i < lines.length; i++) {
-            if (lines[i].startsWith('# ') && !lines[i].includes('Spec Workflow')) {
-              endIndex = i;
-              break;
-            }
-          }
-
-          // Preserve content before and after the spec workflow section
-          const beforeSection = lines.slice(0, startIndex).join('\n').trim();
-          const afterSection = lines.slice(endIndex).join('\n').trim();
-
-          // Reconstruct the file with preserved content
-          let updatedContent = '';
-          if (beforeSection) {
-            updatedContent += beforeSection + '\n\n';
-          }
-          updatedContent += claudeMdContent;
-          if (afterSection) {
-            updatedContent += '\n\n' + afterSection;
-          }
-
-          await fs.writeFile(claudeMdFile, updatedContent, 'utf-8');
-        }
-      }
-    } catch {
-      // File doesn't exist, create it
-      await fs.writeFile(claudeMdFile, claudeMdContent, 'utf-8');
-    }
-  }
+  // CLAUDE.md creation removed - all workflow instructions now in individual commands
 
   async runSetup(): Promise<void> {
     await this.setupDirectories();
     await this.createSlashCommands();
     await this.createTemplates();
+    await this.setupAgents();
     // Script creation removed in v1.2.5 - using NPX command instead
     await this.createConfigFile();
-    await this.createClaudeMd();
+    // CLAUDE.md creation removed - all workflow instructions now in individual commands
   }
 }

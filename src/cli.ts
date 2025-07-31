@@ -7,13 +7,26 @@ import ora from 'ora';
 import { SpecWorkflowSetup } from './setup';
 import { detectProjectType, validateClaudeCode } from './utils';
 import { parseTasksFromMarkdown, generateTaskCommand } from './task-generator';
+import { readFileSync } from 'fs';
+import * as path from 'path';
+
+// Read version from package.json
+// Use require.resolve to find package.json in both dev and production
+let packageJson: { version: string };
+try {
+  const packageJsonPath = path.join(__dirname, '..', 'package.json');
+  packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+} catch {
+  // Fallback for edge cases
+  packageJson = { version: '1.3.0' };
+}
 
 const program = new Command();
 
 program
   .name('claude-spec-setup')
   .description('Set up Claude Code Spec Workflow in your project')
-  .version('1.1.2');
+  .version(packageJson.version);
 
 program
   .option('-p, --project <path>', 'Project directory', process.cwd())
@@ -46,7 +59,7 @@ program
       }
 
       // Check for existing .claude directory
-      const setup = new SpecWorkflowSetup(projectPath);
+      let setup = new SpecWorkflowSetup(projectPath);
       const claudeExists = await setup.claudeDirectoryExists();
 
       if (claudeExists && !options.force) {
@@ -55,8 +68,8 @@ program
             {
               type: 'confirm',
               name: 'proceed',
-              message: '.claude directory already exists. Overwrite?',
-              default: false
+              message: '.claude directory already exists. Update with latest commands?',
+              default: true
             }
           ]);
 
@@ -72,27 +85,25 @@ program
         console.log();
         console.log(chalk.cyan('This will create:'));
         console.log(chalk.gray('  📁 .claude/ directory structure'));
-        console.log(chalk.gray('  📝 7 slash commands for spec workflow'));
+        console.log(chalk.gray('  📝 10 slash commands (5 spec workflow + 5 bug fix workflow)'));
         console.log(chalk.gray('  🤖 Auto-generated task commands'));
         console.log(chalk.gray('  📋 Document templates'));
         console.log(chalk.gray('  🔧 NPX-based task command generation'));
         console.log(chalk.gray('  ⚙️  Configuration files'));
-        console.log(chalk.gray('  📖 CLAUDE.md with workflow instructions'));
+        console.log(chalk.gray('  📖 Complete workflow instructions embedded in each command'));
         console.log();
 
-        const { confirm } = await inquirer.prompt([
+        const { useAgents } = await inquirer.prompt([
           {
             type: 'confirm',
-            name: 'confirm',
-            message: 'Proceed with setup?',
+            name: 'useAgents',
+            message: 'Enable Claude Code sub-agents for enhanced task execution?',
             default: true
           }
         ]);
 
-        if (!confirm) {
-          console.log(chalk.yellow('Setup cancelled.'));
-          process.exit(0);
-        }
+        // Create setup instance with agent preference
+        setup = new SpecWorkflowSetup(process.cwd(), useAgents);
       }
 
       // Run setup
@@ -105,18 +116,35 @@ program
       console.log(chalk.green.bold('✅ Spec Workflow installed successfully!'));
       console.log();
       console.log(chalk.cyan('Available commands:'));
+      console.log(chalk.white.bold('📊 Spec Workflow (for new features):'));
       console.log(chalk.gray('  /spec-create <feature-name>  - Create a new spec'));
-      console.log(chalk.gray('  /spec-requirements           - Generate requirements'));
-      console.log(chalk.gray('  /spec-design                 - Generate design'));
-      console.log(chalk.gray('  /spec-tasks                  - Generate tasks'));
       console.log(chalk.gray('  /spec-execute <task-id>      - Execute tasks'));
       console.log(chalk.gray('  /{spec-name}-task-{id}       - Auto-generated task commands'));
       console.log(chalk.gray('  /spec-status                 - Show status'));
       console.log(chalk.gray('  /spec-list                   - List all specs'));
       console.log();
+      
+      // Show agents section if enabled
+      if (setup && setup['createAgents']) {
+        console.log(chalk.white.bold('🤖 Sub-Agents (automatic):'));
+        console.log(chalk.gray('  spec-task-executor           - Specialized task implementation agent'));
+        console.log(chalk.gray('  spec-requirements-validator  - Requirements quality validation agent'));
+        console.log(chalk.gray('  spec-design-validator        - Design quality validation agent'));
+        console.log(chalk.gray('  spec-task-validator          - Task atomicity validation agent'));
+        console.log();
+      }
+      
+      console.log(chalk.white.bold('🐛 Bug Fix Workflow (for bug fixes):'));
+      console.log(chalk.gray('  /bug-create <bug-name>       - Start bug fix'));
+      console.log(chalk.gray('  /bug-analyze                 - Analyze root cause'));
+      console.log(chalk.gray('  /bug-fix                     - Implement fix'));
+      console.log(chalk.gray('  /bug-verify                  - Verify fix'));
+      console.log(chalk.gray('  /bug-status                  - Show bug status'));
+      console.log();
       console.log(chalk.yellow('Next steps:'));
       console.log(chalk.gray('1. Run: claude'));
-      console.log(chalk.gray('2. Try: /spec-create my-feature'));
+      console.log(chalk.gray('2. For new features: /spec-create my-feature'));
+      console.log(chalk.gray('3. For bug fixes: /bug-create my-bug'));
       console.log();
       console.log(chalk.blue('📖 For help, see the README or run /spec-list'));
 

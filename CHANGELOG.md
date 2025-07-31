@@ -5,23 +5,167 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.4.2] - 2025-07-30
+
+### Updated
+- Updated documentation in cli.js and README to reflect current claude code slash command list
+
+## [1.4.1] - 2025-07-30
+
+### 🔧 Changed
+- **Streamlined Commands**: Removed redundant `/spec-requirements`, `/spec-design`, and `/spec-tasks` commands - `/spec-create` now handles the complete workflow
+
+## [1.4.0] - 2025-07-30 🚀
+
+### Added - Claude Code Sub-Agents Revolution!
+- **Intelligent Quality Gates**: Introduced 4 powerful sub-agents for automated validation
+  - `spec-task-executor` - Specialized implementation agent for maximum context and flawless task execution
+  - `spec-requirements-validator` - Rigorous requirements quality validation with template compliance
+  - `spec-design-validator` - Comprehensive design validation with cross-phase requirement coverage
+  - `spec-task-validator` - Atomic task validation ensuring 90%+ agent success rates
+
+### Enhanced - Atomic Task Engineering
+- **Atomic Task Criteria**: Revolutionary task granularity with 1-3 file scope, 15-30 minute timeboxing
+- **Agent-Friendly Design**: Tasks engineered for autonomous execution without human intervention
+- **Cross-Phase Validation**: Validators now ensure complete traceability across Requirements → Design → Tasks
+- **Template Structure Validation**: Every document validated against official templates for consistency
+
+### Changed - Priority-Based Execution
+- **Smart Agent Detection**: Automatic fallback from agent-based to manual execution
+- **Optional Agent Setup**: User choice during installation - no forced agent adoption
+- **Validation-First Workflow**: Documents automatically validated before user review
+- **Tool Restriction Removal**: Agents now have access to all tools with explicit behavioral constraints
+
+This is a **game-changing update** that transforms spec-driven development with intelligent automation!
+
+## [1.3.6] - 2025-07-29
+
+### Fixed
+- Fix dashboard issues: active sessions updates and spec display names
+
+## [1.3.5] - 2025-07-29
+
+### Enhanced
+- **Command Workflow Clarity**: Consolidated all workflow instructions into single `spec-create` command for better agent guidance
+  - **Root Cause**: Individual spec commands (`/spec-requirements`, `/spec-design`, `/spec-tasks`) cannot be executed by Claude Code, causing agent confusion
+  - **Primary Fix**: Removed all confusing command references from workflow instructions
+  - **Secondary Fix**: Enhanced `spec-create` command with complete Requirements → Design → Tasks → Commands workflow
+  - **Template Integration**: All commands now reference actual template files instead of inline examples
+  - **Result**: Agents receive clear, actionable guidance without attempting to execute unavailable commands
+
+- **Template Content Completeness**: Enhanced all templates with comprehensive guidance and examples
+  - Added `_Leverage:` examples throughout task template showing code reuse opportunities
+  - Enhanced design template with code reuse analysis and integration points sections
+  - Added task format guidelines and detailed examples to task template
+  - **Result**: Templates are now self-contained with all necessary guidance for each workflow phase
+
+- **Bug Workflow Consistency**: Applied same clarity improvements to all bug fix commands
+  - Removed inline template examples from `bug-create`, `bug-analyze`, and `bug-verify` commands
+  - Added explicit template file references for `bug-report-template.md`, `bug-analysis-template.md`, and `bug-verification-template.md`
+  - **Result**: Consistent approach across both spec and bug workflows with clean, focused commands
+
+## [1.3.4] - 2025-07-28
+
+### Fixed
+- **Real-time Steering Document Detection**: Fixed GitHub issue #19 where dashboard wouldn't detect steering document changes in real-time
+  - **Root Cause**: Dashboard file watcher only monitored `.claude/specs` but not `.claude/steering` directory
+  - **Primary Fix**: Extended `SpecWatcher` class to monitor steering directory and emit `steering-change` events
+  - **Secondary Fix**: Added robust path normalization to handle URL encoding/decoding and cross-platform path differences
+  - **Dashboard Updates**: Enhanced both single-project and multi-project dashboard servers to handle steering events
+  - **Frontend Integration**: Updated JavaScript to handle real-time steering status updates via WebSocket
+  - **Result**: Users now see immediate feedback when running `/spec-steering-setup` without manual page refresh
+
+### Enhanced
+- **Cross-platform Path Handling**: Improved path normalization for Windows, macOS, and Linux compatibility
+  - Added `resolve()` and `normalize()` to `SpecParser` constructor for consistent path handling
+  - Enhanced multi-project dashboard to handle URL-encoded paths with spaces and special characters
+  - Fixed path separator inconsistencies between different operating systems
+  - **Result**: Dashboard works reliably across all platforms with various project path formats
 
 ### Added
-- **Real-Time Dashboard**: Integrated web-based dashboard for monitoring specs and tasks
+- **Comprehensive Path Testing**: Added extensive test coverage for path normalization scenarios
+  - New `parser.test.ts` with 7 path normalization test cases
+  - Enhanced `steering.test.ts` with cross-platform path compatibility tests
+  - Coverage for URL encoding, path separators, trailing slashes, and spaces in paths
+  - **Result**: 55 total tests passing, ensuring robust path handling
+
+## [1.3.3] - 2025-07-27
+
+### Fixed
+- **Dashboard Compatibility**: Fixed Fastify version compatibility issue in dashboard
+  - Downgraded `@fastify/static` from v8.2.0 to v7.0.4 to maintain compatibility with Fastify v4.24.3
+  - **Result**: Dashboard now starts correctly without version mismatch errors
+
+## [1.3.2] - 2025-07-27
+
+### Fixed
+- **Deprecated Dependency Warnings**: Eliminated all deprecation warnings during package installation
+  - Updated `@fastify/static` from v6.12.0 to v8.2.0 (eliminates old glob dependency)
+  - Updated `commander` from v11.1.0 to v12.1.0
+  - Replaced `cpx2` with `cpy-cli` to eliminate deprecated inflight and glob dependencies
+  - Updated all dev dependencies to latest versions
+  - **Result**: Clean installation with no more "npm warn deprecated" messages
+
+- **Task Command Generation Reliability**: Fixed issue where task parsing would fail with format variations
+  - Enhanced task parser to handle flexible spacing, punctuation, and formatting
+  - Added support for inline metadata extraction (_Requirements:_, _Leverage:_)
+  - Improved multi-line task description handling
+  - Added graceful handling of format variations agents naturally produce
+  - **Result**: Task command generation now works reliably regardless of minor formatting differences
+
+### Enhanced
+- **Comprehensive Test Coverage**: Added extensive unit tests for task parsing edge cases
+  - Tests for format variations (with/without periods, extra spaces, inline metadata)
+  - Tests for deeply nested task hierarchies (1.1.1.1 etc.)
+  - Tests for mixed formats within same document
+  - All 45 tests passing with robust coverage
+
+- **Template Consistency**: Updated task templates and command instructions
+  - Reinforced correct format through positive examples only (avoiding "pink elephant" effect)
+  - Enhanced format rules with clear, consistent examples
+  - Improved task format documentation in command instructions
+
+### Technical Details
+- **ESLint Migration**: Updated from ESLint v8 to v9 with new flat config format
+- **Dependency Updates**: All dependencies updated to latest stable versions
+- **Code Quality**: Fixed linting issues and improved error handling
+- **Build Process**: Updated copy command to use `cpy-cli` instead of deprecated `cpx2`
+
+## [1.3.1] - 2025-07-27
+
+### Fixed
+- **spec-execute Command Path Issue**: Fixed issue where `/spec-execute` command couldn't find spec files after `/clear` by adding explicit paths to `.claude/specs/{feature-name}/` in command instructions
+- **Dashboard npx Command**: Updated README to use correct npx command format (`npx -p @pimzino/claude-code-spec-workflow claude-spec-dashboard`) to resolve package not found errors
+
+### Changed
+- Updated `/spec-requirements`, `/spec-design`, and `/spec-tasks` commands to include explicit file paths for better clarity
+
+## [1.3.0] - 2025-07-26
+
+### Added
+- **Bug Fix Workflow**: Complete 5-command workflow for systematic bug handling
+  - New `/bug-report`, `/bug-analyze`, `/bug-fix`, `/bug-test`, `/bug-verify` commands
+  - Comprehensive templates for bug reporting, analysis, and verification
+  - Streamlined process for identifying, fixing, and validating bug fixes
+- **Real-Time Dashboard**: Web-based monitoring dashboard for specs and tasks
   - `claude-spec-dashboard` command launches a lightweight Fastify server
   - Built with petite-vue (6kb) and Tailwind CSS for optimal performance
   - Real-time updates via WebSocket when specs/tasks change
   - Visual progress tracking with expandable task lists
   - Shows task leverage references and requirements
   - Git branch and commit information display
+  - Steering documents status integration with visual indicators
+- **Dynamic Version Management**: CLI now dynamically reads version from package.json with fallback handling
+
+### Changed
+- **Architecture Simplification**: Removed CLAUDE.md generation and integrated workflow instructions directly into individual command files
+  - Streamlined documentation structure and setup process
+  - Enhanced command organization and maintainability
+- **Documentation Updates**: Updated README and CLI output for NPX-based task command generation approach
 
 ### Enhanced
-- **Dashboard Steering Documents Integration**: Added steering documents status to dashboard
-  - New steering status card shows product.md, tech.md, and structure.md availability
-  - Visual indicators for each steering document type
-  - Prompts users to run `/spec-steering-setup` when documents are missing
-  - Steering status displayed prominently before requirements/design/tasks
+- **Dashboard Display**: Improved spec display name extraction to check all document types for better presentation
+- **Steering Documents Integration**: Added steering documents status to dashboard with prompts to run `/spec-steering-setup` when missing
 
 ## [1.2.5] - 2025-07-24
 
