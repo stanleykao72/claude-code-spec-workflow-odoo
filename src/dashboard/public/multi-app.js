@@ -362,8 +362,22 @@ PetiteVue.createApp({
   },
 
   // Override viewMarkdown to include projectPath
-  async viewMarkdown(specName, docType) {
-    if (!this.selectedProject) return;
+  async viewMarkdown(specName, docType, projectPath = null) {
+    // If projectPath is provided directly, use it
+    if (projectPath) {
+      return window.DashboardShared.BaseAppState.viewMarkdown.call(
+        this, 
+        specName, 
+        docType, 
+        projectPath
+      );
+    }
+    
+    // Otherwise use selectedProject
+    if (!this.selectedProject) {
+      console.error('No project selected or provided for viewing markdown');
+      return;
+    }
     return window.DashboardShared.BaseAppState.viewMarkdown.call(
       this, 
       specName, 
