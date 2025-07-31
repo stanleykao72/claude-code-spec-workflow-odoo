@@ -135,8 +135,22 @@ function renderMarkdown(content) {
   
   // Override the code block rendering
   renderer.code = function(code, language, isEscaped) {
+    // Handle different input formats
+    let codeStr = '';
+    if (typeof code === 'string') {
+      codeStr = code;
+    } else if (code && typeof code === 'object' && code.text) {
+      // Marked v3+ passes an object with text property
+      codeStr = code.text;
+    } else if (code && typeof code === 'object' && code.raw) {
+      // Alternative format
+      codeStr = code.raw;
+    } else {
+      codeStr = String(code || '');
+    }
+    
     // Escape the code for HTML display
-    const escapedCode = code.replace(/[&<>"']/g, (match) => {
+    const escapedCode = codeStr.replace(/[&<>"']/g, (match) => {
       const escapeMap = {
         '&': '&amp;',
         '<': '&lt;',
@@ -148,7 +162,7 @@ function renderMarkdown(content) {
     });
     
     // Base64 encode the original code for data attribute
-    const encodedCode = btoa(unescape(encodeURIComponent(code)));
+    const encodedCode = btoa(unescape(encodeURIComponent(codeStr)));
     
     // Generate HTML with copy button
     const langClass = language ? ` language-${language}` : '';
@@ -328,8 +342,6 @@ const BaseAppState = {
         url = `/api/projects/${encodeURIComponent(projectPath)}/specs/${specName}/${docType}`;
       }
       
-      console.log('Fetching markdown from:', url);
-      
       const response = await fetch(url);
       if (!response.ok) {
         const errorText = await response.text();
@@ -343,6 +355,7 @@ const BaseAppState = {
     } catch (error) {
       console.error(`Error fetching ${docType} content:`, error);
       this.markdownPreview.content = `# Error loading ${docType} content\n\n${error.message}`;
+      this.markdownPreview.rawContent = '';
     } finally {
       this.markdownPreview.loading = false;
     }

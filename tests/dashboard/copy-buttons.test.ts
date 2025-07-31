@@ -94,7 +94,7 @@ describe('Markdown Copy Functionality', () => {
     expect(content).toContain('renderer.code = function');
     
     // Check that it encodes content
-    expect(content).toContain('btoa(unescape(encodeURIComponent(code)))');
+    expect(content).toContain('btoa(unescape(encodeURIComponent(codeStr)))');
     
     // Check that it escapes HTML entities
     expect(content).toContain('.replace(/[&<>"\']/');

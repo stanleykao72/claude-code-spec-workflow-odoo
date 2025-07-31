@@ -363,6 +363,13 @@
         outline: 2px solid rgb(99, 102, 241); /* indigo-500 */
         outline-offset: 2px;
       }
+      
+      /* Fix code block line-height to prevent striped effect */
+      .code-block-wrapper pre code {
+        line-height: 1.5 !important;
+        display: block !important;
+      }
+      
     </style>
     <script>
       tailwind.config = {

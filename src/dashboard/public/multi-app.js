@@ -376,6 +376,12 @@ PetiteVue.createApp({
     // Otherwise use selectedProject
     if (!this.selectedProject) {
       console.error('No project selected or provided for viewing markdown');
+      // Set error content directly
+      this.markdownPreview.show = true;
+      this.markdownPreview.loading = false;
+      this.markdownPreview.title = `${specName} - ${docType}.md`;
+      this.markdownPreview.content = `# Error: No project selected\n\nPlease select a project first.`;
+      this.markdownPreview.rawContent = '';
       return;
     }
     return window.DashboardShared.BaseAppState.viewMarkdown.call(
