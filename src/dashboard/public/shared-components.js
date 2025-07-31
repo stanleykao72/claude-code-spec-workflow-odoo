@@ -58,27 +58,66 @@ function getStatusLabel(status) {
 }
 
 /**
- * Copy a command to clipboard
+ * Copy a command to clipboard with visual feedback
  */
-function copyCommand(command) {
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(command).then(() => {
+function copyCommand(command, event) {
+  // Find the button that was clicked
+  const button = event?.currentTarget || event?.target?.closest('button') || document.activeElement;
+  
+  const copyToClipboard = () => {
+    if (navigator.clipboard) {
+      return navigator.clipboard.writeText(command);
+    } else {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = command;
+      textArea.style.position = 'fixed';
+      textArea.style.opacity = '0';
+      document.body.appendChild(textArea);
+      textArea.select();
+      
+      return new Promise((resolve, reject) => {
+        try {
+          document.execCommand('copy');
+          document.body.removeChild(textArea);
+          resolve();
+        } catch (err) {
+          document.body.removeChild(textArea);
+          reject(err);
+        }
+      });
+    }
+  };
+
+  copyToClipboard()
+    .then(() => {
+      // Success feedback
+      if (button) {
+        const originalContent = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        button.classList.add('text-green-600', 'dark:text-green-400');
+        
+        setTimeout(() => {
+          button.innerHTML = originalContent;
+          button.classList.remove('text-green-600', 'dark:text-green-400');
+        }, 2000);
+      }
       console.log('Command copied to clipboard:', command);
-    }).catch(err => {
+    })
+    .catch(err => {
+      // Error feedback
+      if (button) {
+        const originalContent = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-times"></i> Failed';
+        button.classList.add('text-red-600', 'dark:text-red-400');
+        
+        setTimeout(() => {
+          button.innerHTML = originalContent;
+          button.classList.remove('text-red-600', 'dark:text-red-400');
+        }, 2000);
+      }
       console.error('Failed to copy command:', err);
     });
-  } else {
-    // Fallback for older browsers
-    const textArea = document.createElement('textarea');
-    textArea.value = command;
-    textArea.style.position = 'fixed';
-    textArea.style.opacity = '0';
-    document.body.appendChild(textArea);
-    textArea.select();
-    document.execCommand('copy');
-    document.body.removeChild(textArea);
-    console.log('Command copied to clipboard (fallback):', command);
-  }
 }
 
 /**
@@ -91,6 +130,37 @@ function renderMarkdown(content) {
     return content;
   }
   return marked.parse(content);
+}
+
+/**
+ * Format acceptance criteria with EARS keywords using syntax highlighting
+ */
+function formatAcceptanceCriteria(criteria) {
+  // Define EARS keywords for old format
+  const earsKeywords = ['WHEN', 'THEN', 'IF', 'SHALL NOT', 'SHALL'];
+  
+  let formattedCriteria = criteria;
+  
+  // First, handle new format with **GIVEN**, **WHEN**, **THEN**
+  // Replace **KEYWORD** with styled spans
+  formattedCriteria = formattedCriteria.replace(/\*\*(GIVEN|WHEN|THEN)\*\*/g, 
+    '<span class="ears-keyword font-semibold">$1</span>'
+  );
+  
+  // Then handle old format EARS keywords (without markdown bold)
+  // Process SHALL NOT before SHALL to avoid partial matches
+  earsKeywords.forEach(keyword => {
+    // Only match if not already inside a span tag
+    const regex = new RegExp(`(?<!<span[^>]*>)\\b(${keyword})\\b(?![^<]*<\/span>)`, 'g');
+    formattedCriteria = formattedCriteria.replace(regex, 
+      `<span class="ears-keyword">$1</span>`
+    );
+  });
+  
+  // Also handle other markdown bold formatting for better display
+  formattedCriteria = formattedCriteria.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  
+  return formattedCriteria;
 }
 
 /**
@@ -154,8 +224,26 @@ const BaseAppState = {
   formatDate,
   getStatusClass,
   getStatusLabel,
-  copyCommand,
+  copyCommand(command, event) {
+    return copyCommand(command, event || window.event);
+  },
   renderMarkdown,
+  formatAcceptanceCriteria,
+  formatUserStory(story) {
+    if (!story) return '';
+    let formatted = story;
+    
+    // First, handle user story keywords with special formatting
+    // The regex needs to be more flexible to handle various formats
+    formatted = formatted.replace(/\*\*(As a|I want|So that)\*\*/gi, 
+      '<span class="ears-keyword font-semibold">$1</span>'
+    );
+    
+    // Then handle any remaining bold text
+    formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    
+    return formatted;
+  },
   
   // Task management methods
   getCompletedTaskCount(spec) {
@@ -182,12 +270,16 @@ const BaseAppState = {
       return spec.tasks.taskList.filter(task => !task.completed);
     }
     
-    return spec.tasks.taskList;
+    // Sort tasks: incomplete first (in original order), then completed (in original order)
+    const incompleteTasks = spec.tasks.taskList.filter(task => !task.completed);
+    const completedTasks = spec.tasks.taskList.filter(task => task.completed);
+    
+    return [...incompleteTasks, ...completedTasks];
   },
   
-  copyTaskCommand(specName, taskId) {
-    const command = `/spec-exec ${specName} ${taskId}`;
-    this.copyCommand(command);
+  copyTaskCommand(specName, taskId, event) {
+    const command = `/spec-execute ${specName} ${taskId}`;
+    this.copyCommand.call(this, command, event);
   },
   
   // Markdown preview methods
@@ -233,6 +325,34 @@ const BaseAppState = {
         this.closeMarkdownPreview();
       }
     });
+  },
+  
+  scrollToRequirement(reqId) {
+    const element = document.getElementById('requirement-' + reqId);
+    if (element) {
+      // Ensure the spec is expanded first
+      if (!this.selectedSpec || this.selectedSpec.name !== element.closest('[data-spec-name]')?.dataset.specName) {
+        // Find and select the spec
+        const specElement = element.closest('[data-spec-name]');
+        if (specElement) {
+          const specName = specElement.dataset.specName;
+          const spec = this.specs.find(s => s.name === specName);
+          if (spec) {
+            this.selectedSpec = spec;
+          }
+        }
+      }
+      
+      // Wait a tick for the expansion animation
+      setTimeout(() => {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Add highlight effect
+        element.classList.add('ring-2', 'ring-indigo-500');
+        setTimeout(() => {
+          element.classList.remove('ring-2', 'ring-indigo-500');
+        }, 2000);
+      }, 100);
+    }
   }
 };
 
@@ -289,7 +409,7 @@ function SteeringWarningTemplate(steeringStatus) {
           </h3>
           <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
             <p>
-              Run <button @click.stop="copyCommand('/spec-steering-setup')" 
+              Run <button @click.stop="copyCommand('/spec-steering-setup', $event)" 
                          class="inline-flex items-center gap-1 bg-yellow-100 dark:bg-yellow-800 px-1.5 py-0.5 rounded text-xs font-mono hover:bg-yellow-200 dark:hover:bg-yellow-700 transition-colors">
                 <i class="fas fa-copy"></i>/spec-steering-setup
               </button> to create missing steering documents:
@@ -315,5 +435,21 @@ window.DashboardShared = {
   getStatusClass,
   getStatusLabel,
   copyCommand,
-  renderMarkdown
+  renderMarkdown,
+  formatAcceptanceCriteria,
+  formatUserStory(story) {
+    if (!story) return '';
+    let formatted = story;
+    
+    // First, handle user story keywords with special formatting
+    // The regex needs to be more flexible to handle various formats
+    formatted = formatted.replace(/\*\*(As a|I want|So that)\*\*/gi, 
+      '<span class="ears-keyword font-semibold">$1</span>'
+    );
+    
+    // Then handle any remaining bold text
+    formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    
+    return formatted;
+  }
 };

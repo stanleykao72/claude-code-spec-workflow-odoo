@@ -31,6 +31,17 @@
         padding-left: 4.5rem;
       }
       
+      /* EARS keyword syntax highlighting */
+      .ears-keyword {
+        font-family: ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+        font-size: 0.875em;
+        font-weight: 500;
+        color: rgb(245 158 11);
+      }
+      .dark .ears-keyword {
+        color: rgb(251 191 36);
+      }
+      
       /* Remove focus ring from markdown preview buttons */
       .markdown-preview-btn:focus {
         outline: none;
@@ -353,6 +364,29 @@
                       >{{ totalTasks }}</span
                     >
                   </div>
+                  <div v-if="bugs.length > 0" class="flex items-center gap-1.5">
+                    <i class="fas fa-bug text-gray-400 dark:text-gray-500"></i>
+                    <span class="hidden md:inline text-gray-600 dark:text-gray-400">Bugs:</span>
+                    <span class="font-semibold text-gray-900 dark:text-white"
+                      >{{ bugs.length }}</span
+                    >
+                  </div>
+                  <div v-if="bugsInProgress > 0" class="flex items-center gap-1.5">
+                    <span class="hidden md:inline text-gray-600 dark:text-gray-400"
+                      >Active:</span
+                    >
+                    <span class="font-semibold text-orange-600 dark:text-orange-400"
+                      >{{ bugsInProgress }}</span
+                    >
+                  </div>
+                  <div v-if="bugsResolved > 0" class="flex items-center gap-1.5">
+                    <span class="hidden md:inline text-gray-600 dark:text-gray-400"
+                      >Resolved:</span
+                    >
+                    <span class="font-semibold text-green-600 dark:text-green-400"
+                      >{{ bugsResolved }}</span
+                    >
+                  </div>
                 </div>
               </div>
               <div class="flex items-center gap-3">
@@ -438,7 +472,7 @@
                 </h3>
                 <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
                   <p>
-                    Run <button @click.stop="copyCommand('/spec-steering-setup')" class="inline-flex items-center gap-1 bg-yellow-100 dark:bg-yellow-800 px-1.5 py-0.5 rounded text-xs font-mono hover:bg-yellow-200 dark:hover:bg-yellow-700 transition-colors"><i class="fas fa-copy"></i>/spec-steering-setup</button> to create missing steering documents:
+                    Run <button @click.stop="copyCommand('/spec-steering-setup', $event)" class="inline-flex items-center gap-1 bg-yellow-100 dark:bg-yellow-800 px-1.5 py-0.5 rounded text-xs font-mono hover:bg-yellow-200 dark:hover:bg-yellow-700 transition-colors"><i class="fas fa-copy"></i>/spec-steering-setup</button> to create missing steering documents:
                   </p>
                   <ul class="list-disc list-inside mt-1">
                     <li v-if="!steeringStatus.hasProduct">Product vision and goals (product.md)</li>
@@ -456,6 +490,7 @@
               <div
                 v-for="spec in specs"
                 :key="spec.name"
+                :data-spec-name="spec.name"
                 class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all"
                 :class="spec.status === 'completed' ? 'opacity-75' : ''"
               >
@@ -545,6 +580,9 @@
                         class="text-sm text-gray-600 dark:text-gray-400"
                       >
                         <p>{{ spec.requirements.userStories }} user stories</p>
+                        <p v-if="spec.requirements.content && spec.requirements.content.length > 0" class="mt-1">
+                          {{ spec.requirements.content.length }} requirements
+                        </p>
                         <p class="flex items-center mt-1">
                           <i
                             class="fas mr-1"
@@ -552,6 +590,19 @@
                           ></i>
                           {{ spec.requirements.approved ? 'Approved' : 'Pending approval' }}
                         </p>
+                        <!-- Jump to requirement list -->
+                        <div v-if="spec.requirements.content && spec.requirements.content.length > 0" class="mt-2 space-y-1">
+                          <a v-for="req in spec.requirements.content.slice(0, 5)" 
+                             :key="req.id"
+                             href="#"
+                             @click.prevent="scrollToRequirement(req.id)"
+                             class="block text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 truncate">
+                            {{ req.id }}: {{ req.title }}
+                          </a>
+                          <span v-if="spec.requirements.content.length > 5" class="text-xs text-gray-500 dark:text-gray-400">
+                            and {{ spec.requirements.content.length - 5 }} more...
+                          </span>
+                        </div>
                       </div>
                       <p v-else class="text-sm text-gray-400 dark:text-gray-500">Not created</p>
                     </div>
@@ -609,6 +660,33 @@
                     </div>
                   </div>
 
+                  <!-- Requirements Details -->
+                  <div v-if="spec.requirements && spec.requirements.content && spec.requirements.content.length > 0" class="mt-4">
+                    <h4 class="font-medium text-gray-700 dark:text-gray-300 mb-3">
+                      <i class="fas fa-list-check mr-1"></i> Requirements Details
+                    </h4>
+                    <div class="space-y-4">
+                      <div v-for="req in spec.requirements.content" :key="req.id" 
+                           :id="'requirement-' + req.id"
+                           class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                        <div class="mb-2">
+                          <span class="text-sm font-semibold text-gray-600 dark:text-gray-400">{{ req.id }}:</span>
+                          <span class="text-sm font-medium text-gray-900 dark:text-white ml-1">{{ req.title }}</span>
+                        </div>
+                        <div v-if="req.userStory" class="text-sm text-gray-600 dark:text-gray-400 mb-3 italic" v-html="formatUserStory(req.userStory)">
+                        </div>
+                        <div v-if="req.acceptanceCriteria.length > 0" class="space-y-2">
+                          <div v-for="(criteria, index) in req.acceptanceCriteria" :key="index" 
+                               class="flex items-start">
+                            <div class="flex-1">
+                              <span v-html="formatAcceptanceCriteria(criteria)"></span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
                   <!-- Task list -->
                   <div v-if="spec.tasks && spec.tasks.taskList.length > 0" class="mt-4">
                     <div class="flex items-center justify-between mb-2">
@@ -648,20 +726,14 @@
                               :class="task.completed ? 'text-gray-500 dark:text-gray-500 line-through' : 'text-gray-700 dark:text-gray-300'"
                               >{{ task.description }}</span
                             >
-                            <span
-                              v-if="spec.tasks.inProgress === task.id"
-                              class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-500 dark:text-yellow-900"
-                            >
-                              In Progress
-                            </span>
                             <button
                               v-if="!task.completed"
-                              @click.stop="copyTaskCommand(spec.name, task.id)"
+                              @click.stop="copyTaskCommand(spec.name, task.id, $event)"
                               class="ml-2 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
-                              :title="`Copy command: /spec-exec ${spec.name} ${task.id}`"
+                              :title="`Copy command: /spec-execute ${spec.name} ${task.id}`"
                             >
                               <i class="fas fa-copy"></i>
-                              <span>/spec-exec</span>
+                              <span>/spec-execute</span>
                             </button>
                           </div>
                           <div
@@ -677,6 +749,87 @@
                             <i class="fas fa-screwdriver mr-1"></i> Leverage: {{ task.leverage }}
                           </div>
                         </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bugs Section -->
+          <div v-if="bugs.length > 0" class="mt-6">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              <i class="fas fa-bug mr-2"></i>Bug Tracking
+            </h2>
+            <div class="bg-white dark:bg-gray-800 shadow rounded-lg transition-colors">
+              <div class="divide-y divide-gray-200 dark:divide-gray-700">
+                <div
+                  v-for="bug in bugs"
+                  :key="bug.name"
+                  :data-bug-name="bug.name"
+                  class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all p-4"
+                >
+                  <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                      <h3 class="text-base font-medium text-gray-900 dark:text-white">
+                        {{ bug.displayName }}
+                      </h3>
+                      
+                      <!-- Bug Status -->
+                      <div class="mt-2 flex items-center gap-4 text-sm">
+                        <span 
+                          class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                          :class="{
+                            'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200': bug.status === 'reported',
+                            'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200': bug.status === 'analyzing',
+                            'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200': bug.status === 'fixing',
+                            'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200': bug.status === 'verifying',
+                            'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': bug.status === 'resolved'
+                          }"
+                        >
+                          {{ bug.status }}
+                        </span>
+                        
+                        <span v-if="bug.report?.severity" 
+                          class="inline-flex items-center text-xs"
+                          :class="{
+                            'text-red-600 dark:text-red-400': bug.report.severity === 'critical',
+                            'text-orange-600 dark:text-orange-400': bug.report.severity === 'high',
+                            'text-yellow-600 dark:text-yellow-400': bug.report.severity === 'medium',
+                            'text-gray-600 dark:text-gray-400': bug.report.severity === 'low'
+                          }"
+                        >
+                          <i class="fas fa-exclamation-circle mr-1"></i>
+                          {{ bug.report.severity }}
+                        </span>
+                      </div>
+                      
+                      <!-- Bug Documents -->
+                      <div class="mt-3 flex items-center gap-3">
+                        <button
+                          v-if="bug.report?.exists"
+                          @click="viewBugMarkdown(bug.name, 'report')"
+                          class="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                        >
+                          <i class="fas fa-file-alt mr-1"></i>Report
+                        </button>
+                        
+                        <button
+                          v-if="bug.analysis?.exists"
+                          @click="viewBugMarkdown(bug.name, 'analysis')"
+                          class="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                        >
+                          <i class="fas fa-search mr-1"></i>Analysis
+                        </button>
+                        
+                        <button
+                          v-if="bug.verification?.exists"
+                          @click="viewBugMarkdown(bug.name, 'verification')"
+                          class="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                        >
+                          <i class="fas fa-check-circle mr-1"></i>Verification
+                        </button>
                       </div>
                     </div>
                   </div>

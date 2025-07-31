@@ -32,6 +32,33 @@ export interface SteeringStatus {
   hasStructure: boolean;
 }
 
+export interface Bug {
+  name: string;
+  displayName: string;
+  status: 'reported' | 'analyzing' | 'fixing' | 'verifying' | 'resolved';
+  report?: {
+    exists: boolean;
+    severity?: 'critical' | 'high' | 'medium' | 'low';
+    reproductionSteps?: string[];
+    expectedBehavior?: string;
+    actualBehavior?: string;
+    impact?: string;
+  };
+  analysis?: {
+    exists: boolean;
+    rootCause?: string;
+    proposedFix?: string;
+    filesAffected?: string[];
+  };
+  verification?: {
+    exists: boolean;
+    verified: boolean;
+    testsPassed?: boolean;
+    regressionChecks?: string[];
+  };
+  lastModified?: Date;
+}
+
 export interface Spec {
   name: string;
   displayName: string;
@@ -62,6 +89,7 @@ export interface Spec {
 export class SpecParser {
   private projectPath: string;
   private specsPath: string;
+  private bugsPath: string;
   private steeringLoader: SteeringLoader;
 
   constructor(projectPath: string) {
@@ -69,11 +97,43 @@ export class SpecParser {
     const normalizedInput = projectPath.replace(/\\/g, '/');
     this.projectPath = normalize(resolve(normalizedInput));
     this.specsPath = join(this.projectPath, '.claude', 'specs');
+    this.bugsPath = join(this.projectPath, '.claude', 'bugs');
     this.steeringLoader = new SteeringLoader(this.projectPath);
   }
 
   async getProjectSteeringStatus(): Promise<SteeringStatus> {
     return this.getSteeringStatus();
+  }
+
+  async getAllBugs(): Promise<Bug[]> {
+    try {
+      // Check if bugs directory exists first
+      try {
+        await access(this.bugsPath, constants.F_OK);
+      } catch {
+        // Bugs directory doesn't exist, return empty array
+        return [];
+      }
+
+      debug('Reading bugs from:', this.bugsPath);
+      const dirs = await readdir(this.bugsPath);
+      debug('Found bug directories:', dirs);
+      const bugs = await Promise.all(
+        dirs.filter((dir) => !dir.startsWith('.')).map((dir) => this.getBug(dir))
+      );
+      const validBugs = bugs.filter((bug) => bug !== null) as Bug[];
+      debug('Parsed bugs:', validBugs.length);
+      // Sort by last modified date, newest first
+      validBugs.sort((a, b) => {
+        const dateA = a.lastModified ? new Date(a.lastModified).getTime() : 0;
+        const dateB = b.lastModified ? new Date(b.lastModified).getTime() : 0;
+        return dateB - dateA;
+      });
+      return validBugs;
+    } catch (error) {
+      console.error('Error reading bugs from', this.bugsPath, ':', error);
+      return [];
+    }
   }
 
   async getAllSpecs(): Promise<Spec[]> {
@@ -128,16 +188,20 @@ export class SpecParser {
       const content = await readFile(requirementsPath, 'utf-8');
 
       // Try to extract title from the first heading
-      const titleMatch = content.match(/^# (.+?)(?:\s+Requirements)?$/m);
+      // Handle formats like "# Requirements: Feature Name", "# Requirements - Feature Name", or "# Feature Name Requirements"
+      const titleMatch = content.match(/^#\s+(?:Requirements\s*[-:]\s+)?(.+?)(?:\s+Requirements)?$/m);
       if (titleMatch && titleMatch[1].trim() && titleMatch[1].trim().toLowerCase() !== 'requirements') {
         spec.displayName = titleMatch[1].trim();
       }
 
+      const extractedRequirements = this.extractRequirements(content);
+      const extractedStories = this.extractUserStories(content);
+      
       spec.requirements = {
         exists: true,
-        userStories: (content.match(/(\*\*User Story:\*\*|## User Story \d+)/g) || []).length,
+        userStories: extractedStories.length,
         approved: content.includes('✅ APPROVED') || content.includes('**Approved:** ✓'),
-        content: this.extractRequirements(content),
+        content: extractedRequirements,
       };
       // Set initial status
       spec.status = 'requirements';
@@ -155,17 +219,24 @@ export class SpecParser {
       
       // If we haven't found a display name yet, try to extract from design
       if (spec.displayName === this.formatDisplayName(name)) {
-        const titleMatch = content.match(/^# (.+?)(?:\s+Design(?:\s+Document)?)?$/m);
+        // Handle formats like "# Design: Feature Name", "# Design - Feature Name", or "# Feature Name Design"
+        const titleMatch = content.match(/^#\s+(?:Design\s*[-:]\s+)?(.+?)(?:\s+Design(?:\s+Document)?)?$/m);
         if (titleMatch && titleMatch[1].trim() && titleMatch[1].trim().toLowerCase() !== 'design') {
           spec.displayName = titleMatch[1].trim();
         }
       }
       
+      const codeReuseContent = this.extractCodeReuseAnalysis(content);
+      
       spec.design = {
         exists: true,
         approved: content.includes('✅ APPROVED'),
-        hasCodeReuseAnalysis: content.includes('## Code Reuse Analysis'),
-        codeReuseContent: this.extractCodeReuseAnalysis(content),
+        hasCodeReuseAnalysis: content.includes('## Code Reuse Analysis') || 
+                             content.includes('### Existing Components to Reuse') ||
+                             content.includes('## Existing Components') ||
+                             content.includes('## Code Reuse') ||
+                             codeReuseContent.length > 0,
+        codeReuseContent: codeReuseContent,
       };
       // If design is approved, we move to tasks phase
       if (spec.design.approved) {
@@ -183,8 +254,11 @@ export class SpecParser {
       
       // If we still haven't found a display name, try to extract from tasks
       if (spec.displayName === this.formatDisplayName(name)) {
-        const titleMatch = content.match(/^# (.+?)(?:\s+Tasks(?:\s+Plan)?)?$/m);
-        if (titleMatch && titleMatch[1].trim() && titleMatch[1].trim().toLowerCase() !== 'tasks') {
+        // Handle formats like "# Tasks: Feature Name", "# Tasks - Feature Name", or "# Implementation Plan: Feature Name"
+        const titleMatch = content.match(/^#\s+(?:(?:Tasks|Implementation Plan)\s*[-:]\s+)?(.+?)(?:\s+(?:Tasks|Plan))?$/m);
+        if (titleMatch && titleMatch[1].trim() && 
+            titleMatch[1].trim().toLowerCase() !== 'tasks' && 
+            titleMatch[1].trim().toLowerCase() !== 'implementation plan') {
           spec.displayName = titleMatch[1].trim();
         }
       }
@@ -208,7 +282,7 @@ export class SpecParser {
           spec.status = 'tasks';
         } else if (completed < total) {
           spec.status = 'in-progress';
-          // Find current task
+          // Always use the first uncompleted task as in-progress
           spec.tasks.inProgress = this.findInProgressTask(taskList);
         } else {
           spec.status = 'completed';
@@ -233,6 +307,103 @@ export class SpecParser {
     return spec;
   }
 
+  async getBug(name: string): Promise<Bug | null> {
+    const bugPath = join(this.bugsPath, name);
+
+    try {
+      await access(bugPath, constants.F_OK);
+    } catch {
+      return null;
+    }
+
+    const bug: Bug = {
+      name,
+      displayName: this.formatDisplayName(name),
+      status: 'reported',
+    };
+
+    // Check report
+    const reportPath = join(bugPath, 'report.md');
+    if (await this.fileExists(reportPath)) {
+      const content = await readFile(reportPath, 'utf-8');
+
+      // Try to extract title from the first heading
+      const titleMatch = content.match(/^#\s+(?:Bug Report\s*[-:]\s+)?(.+?)(?:\s+Bug Report)?$/m);
+      if (titleMatch && titleMatch[1].trim() && titleMatch[1].trim().toLowerCase() !== 'bug report') {
+        bug.displayName = titleMatch[1].trim();
+      }
+
+      bug.report = {
+        exists: true,
+        severity: this.extractBugSeverity(content),
+        reproductionSteps: this.extractReproductionSteps(content),
+        expectedBehavior: this.extractSection(content, 'Expected Behavior'),
+        actualBehavior: this.extractSection(content, 'Actual Behavior'),
+        impact: this.extractSection(content, 'Impact'),
+      };
+    }
+
+    // Check analysis
+    const analysisPath = join(bugPath, 'analysis.md');
+    if (await this.fileExists(analysisPath)) {
+      const content = await readFile(analysisPath, 'utf-8');
+      
+      bug.analysis = {
+        exists: true,
+        rootCause: this.extractSection(content, 'Root Cause'),
+        proposedFix: this.extractSection(content, 'Proposed Fix'),
+        filesAffected: this.extractFilesAffected(content),
+      };
+      // If analysis exists, we're at least analyzing
+      bug.status = 'analyzing';
+      
+      // If root cause and proposed fix are identified, we're ready to fix
+      if (bug.analysis.rootCause && bug.analysis.proposedFix) {
+        bug.status = 'fixing';
+      }
+    }
+
+    // Check verification
+    const verificationPath = join(bugPath, 'verification.md');
+    if (await this.fileExists(verificationPath)) {
+      const content = await readFile(verificationPath, 'utf-8');
+      
+      bug.verification = {
+        exists: true,
+        verified: content.includes('✅ VERIFIED') || 
+                 content.includes('**Verified:** ✓') ||
+                 content.includes('**Production Verified**') ||
+                 (content.includes('✅') && content.toLowerCase().includes('verified')),
+        testsPassed: this.extractTestStatus(content),
+        regressionChecks: this.extractRegressionChecks(content),
+      };
+      
+      if (bug.verification.exists) {
+        bug.status = 'verifying';
+      }
+      
+      if (bug.verification.verified) {
+        bug.status = 'resolved';
+      }
+    }
+
+    // Get last modified time
+    const files = ['report.md', 'analysis.md', 'verification.md'];
+    let lastModified = new Date(0);
+    for (const file of files) {
+      const filePath = join(bugPath, file);
+      if (await this.fileExists(filePath)) {
+        const stats = await import('fs').then((fs) => fs.promises.stat(filePath));
+        if (stats.mtime > lastModified) {
+          lastModified = stats.mtime;
+        }
+      }
+    }
+    bug.lastModified = lastModified;
+
+    return bug;
+  }
+
   private parseTasks(content: string): Task[] {
     debug('Parsing tasks from content...');
     const tasks: Task[] = [];
@@ -250,6 +421,7 @@ export class SpecParser {
     const taskRegex = /^(\s*)- \[([ x])\] (?:\*\*)?(\d+(?:\.\d+)*)\. (.+?)(?:\*\*)?$/;
     const requirementsRegex = /_Requirements: ([\d., ]+)/;
     const leverageRegex = /_Leverage: (.+)$/;
+    // Removed _In Progress: parsing - now automatically using first uncompleted task
 
     let currentTask: Task | null = null;
     let parentStack: { level: number; task: Task }[] = [];
@@ -293,8 +465,12 @@ export class SpecParser {
         if (levMatch) {
           currentTask.leverage = levMatch[1].trim();
         }
+
+        // Removed in-progress marker check - now using first uncompleted task automatically
       }
     }
+
+    // No longer storing in-progress task ID - automatically determined by first uncompleted task
 
     return tasks;
   }
@@ -351,12 +527,21 @@ export class SpecParser {
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
 
+      // Skip non-requirement section headers
+      if (line.match(/^###\s+(Non-Functional Requirements|Technical Constraints|Edge Cases)\s*$/)) {
+        continue;
+      }
+
       // Check if line contains a numbered requirement - try multiple patterns
       const requirementPatterns = [
         /^### Requirement (\d+): (.+)$/,           // ### Requirement 1: Title
         /^## Requirement (\d+): (.+)$/,            // ## Requirement 1: Title
         /^### (\d+)\. (.+)$/,                      // ### 1. Title
         /^## (\d+)\. (.+)$/,                       // ## 1. Title
+        /^### (FR-\d+): (.+)$/,                    // ### FR-1: Title (Functional Requirement)
+        /^### (NFR-\d+): (.+)$/,                   // ### NFR-1: Title (Non-Functional Requirement)
+        /^### (AC-\d+): (.+)$/,                    // ### AC-1: Title (Acceptance Criteria)
+        /^### (US-\d+): (.+)$/,                    // ### US-1: Title (User Story)
       ];
 
       let matchFound = false;
@@ -380,22 +565,107 @@ export class SpecParser {
         }
       }
 
-      if (!matchFound) {
-        // Look for user story
-        if (currentRequirement && line.includes('**User Story:**')) {
+      if (!matchFound && currentRequirement) {
+        // Debug every line to see what we're getting
+        if (line.trim()) {
+          debug(`Processing line for ${currentRequirement.id}: "${line}"`);
+        }
+        
+        // Look for user story in requirement body
+        if (line.includes('**User Story:**')) {
           currentRequirement.userStory = line.replace('**User Story:**', '').trim();
+          debug(`Found user story for ${currentRequirement.id}: ${currentRequirement.userStory}`);
+        }
+        // Look for user story parts in new format - check more broadly
+        else if (line.includes('As a') || line.includes('I want') || line.includes('So that')) {
+          if (!currentRequirement.userStory) {
+            currentRequirement.userStory = '';
+          }
+          currentRequirement.userStory += ' ' + line.trim();
+          debug(`Building user story for ${currentRequirement.id}: ${line.trim()}`);
         }
         // Look for acceptance criteria section
-        else if (currentRequirement && line.includes('#### Acceptance Criteria')) {
+        else if (line.includes('#### Acceptance Criteria') || line.includes('**Acceptance Criteria**')) {
           inAcceptanceCriteria = true;
+          debug(`Found acceptance criteria section for ${currentRequirement.id}`);
         }
-        // Collect acceptance criteria items
+        // Look for GIVEN/WHEN/THEN format in new style (might be direct under requirement)
+        else if (line.includes('GIVEN') || line.includes('WHEN') || line.includes('THEN')) {
+          if (!currentRequirement.acceptanceCriteria) {
+            currentRequirement.acceptanceCriteria = [];
+          }
+          
+          // Collect GIVEN/WHEN/THEN as a group for better formatting
+          // Start collecting a new acceptance criteria scenario
+          let scenario = line.trim();
+          let j = i + 1;
+          
+          // Collect WHEN and THEN parts that follow
+          while (j < lines.length) {
+            const nextLine = lines[j].trim();
+            if (nextLine.startsWith('**WHEN**') || nextLine.startsWith('**THEN**')) {
+              scenario += ' ' + nextLine;
+              j++;
+            } else if (nextLine === '') {
+              // Empty line indicates end of this scenario
+              break;
+            } else if (nextLine.startsWith('**GIVEN**')) {
+              // New GIVEN means this is a separate scenario - save current and start new
+              currentRequirement.acceptanceCriteria.push(scenario);
+              scenario = nextLine;
+              j++;
+              continue;
+            } else if (nextLine.startsWith('###') || nextLine.startsWith('##')) {
+              // Section header indicates end
+              break;
+            } else {
+              // Continuation of current line
+              scenario += ' ' + nextLine;
+              j++;
+            }
+          }
+          
+          currentRequirement.acceptanceCriteria.push(scenario);
+          i = j - 1; // Skip lines we've already processed
+        }
+        // Collect acceptance criteria items (numbered format)
         else if (currentRequirement && inAcceptanceCriteria && line.match(/^\d+\. /)) {
-          currentRequirement.acceptanceCriteria.push(line.replace(/^\d+\. /, '').trim());
+          const criterion = line.replace(/^\d+\. /, '').trim();
+          if (criterion) {
+            currentRequirement.acceptanceCriteria.push(criterion);
+            debug(`Found acceptance criterion for ${currentRequirement.id}: ${criterion}`);
+          }
         }
-        // Stop at next major section
-        else if (line.startsWith('### Requirement') || line.startsWith('### ') || line.startsWith('## ')) {
-          inAcceptanceCriteria = false;
+        // Also collect bullet point acceptance criteria (- WHEN...)
+        else if (currentRequirement && inAcceptanceCriteria && line.match(/^[-•]\s+/)) {
+          const criterion = line.replace(/^[-•]\s+/, '').trim();
+          if (criterion) {
+            currentRequirement.acceptanceCriteria.push(criterion);
+          }
+        }
+        // For FR/NFR requirements, collect bullet points directly as acceptance criteria
+        else if (currentRequirement && !inAcceptanceCriteria && line.match(/^[-•]\s+/) && 
+                 currentRequirement.id && (currentRequirement.id.startsWith('FR-') || currentRequirement.id.startsWith('NFR-'))) {
+          if (!currentRequirement.acceptanceCriteria) {
+            currentRequirement.acceptanceCriteria = [];
+          }
+          const criterion = line.replace(/^[-•]\s+/, '').trim();
+          if (criterion) {
+            currentRequirement.acceptanceCriteria.push(criterion);
+            debug(`Found bullet criterion for ${currentRequirement.id}: ${criterion}`);
+          }
+        }
+        // For FR/NFR requirements, also collect regular text as part of description
+        else if (currentRequirement && line.trim() && !line.startsWith('#') &&
+                 currentRequirement.id && (currentRequirement.id.startsWith('FR-') || currentRequirement.id.startsWith('NFR-'))) {
+          // If it's descriptive text, add it to the user story
+          if (!currentRequirement.userStory) {
+            currentRequirement.userStory = line.trim();
+          } else if (!line.match(/^[-•]\s+/)) {
+            // Continue building the description if it's not a bullet point
+            currentRequirement.userStory += ' ' + line.trim();
+          }
+          debug(`Adding description for ${currentRequirement.id}: ${line.trim()}`);
         }
       }
     }
@@ -405,8 +675,33 @@ export class SpecParser {
       requirements.push(currentRequirement);
     }
 
-    debug(`Extracted ${requirements.length} requirements:`, requirements.map(r => `${r.id}: ${r.title}`));
-    return requirements;
+    // Clean up user stories that might have extra spaces
+    requirements.forEach(req => {
+      if (req.userStory) {
+        req.userStory = req.userStory.trim().replace(/\s+/g, ' ');
+      }
+    });
+
+    // In the new format, we need to separate different types of entries:
+    // - US-* are user stories, not requirements
+    // - FR-*, NFR-* are the actual requirements
+    // - AC-* are acceptance criteria, not requirements
+    const userStories = requirements.filter(r => r.id && r.id.startsWith('US-'));
+    const functionalRequirements = requirements.filter(r => r.id && (r.id.startsWith('FR-') || r.id.startsWith('NFR-')));
+    const acceptanceCriteria = requirements.filter(r => r.id && r.id.startsWith('AC-'));
+    const otherRequirements = requirements.filter(r => !r.id || (!r.id.startsWith('US-') && !r.id.startsWith('FR-') && !r.id.startsWith('NFR-') && !r.id.startsWith('AC-')));
+    
+    // Return ALL requirements (including user stories and acceptance criteria)
+    // The filtering was preventing US-* and AC-* from being displayed
+    const allRequirements = requirements;
+    
+    debug(`Extracted ${allRequirements.length} requirements total:`, 
+          allRequirements.map(r => `${r.id}: ${r.title}`));
+    debug(`  Breakdown: ${functionalRequirements.length} FR/NFR, ${userStories.length} US, ${acceptanceCriteria.length} AC, ${otherRequirements.length} other`);
+    allRequirements.forEach(req => {
+      debug(`  ${req.id}: userStory="${req.userStory || 'none'}", acceptanceCriteria=${req.acceptanceCriteria?.length || 0}`);
+    });
+    return allRequirements;
   }
 
   private extractUserStories(content: string): string[] {
@@ -414,9 +709,12 @@ export class SpecParser {
     const lines = content.split('\n');
     let currentStory = '';
     let inStorySection = false;
+    let currentStoryTitle = '';
 
-    for (const line of lines) {
-      // Check if line contains a user story
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      
+      // Check for old format: **User Story:**
       if (line.includes('**User Story:**')) {
         if (currentStory) {
           stories.push(currentStory.trim());
@@ -424,7 +722,36 @@ export class SpecParser {
         // Extract the story content after "**User Story:**"
         currentStory = line.replace('**User Story:**', '').trim();
         inStorySection = true;
-      } else if (inStorySection && line.trim()) {
+        currentStoryTitle = '';
+      } 
+      // Check for new format: ### US-N: Title
+      else if (line.match(/^### US-\d+: (.+)$/)) {
+        if (currentStory) {
+          stories.push(currentStory.trim());
+        }
+        const match = line.match(/^### US-\d+: (.+)$/);
+        currentStoryTitle = match![1].trim();
+        currentStory = currentStoryTitle;
+        inStorySection = true;
+        
+        // Look ahead for the user story content in the new format
+        // Format: **As a** X **I want** Y **So that** Z
+        let storyParts: string[] = [];
+        for (let j = i + 1; j < lines.length && j < i + 10; j++) {
+          const nextLine = lines[j].trim();
+          if (nextLine.startsWith('**As a**') || 
+              nextLine.startsWith('**I want**') || 
+              nextLine.startsWith('**So that**')) {
+            storyParts.push(nextLine);
+          } else if (nextLine.startsWith('###') || nextLine.startsWith('##')) {
+            break;
+          }
+        }
+        if (storyParts.length > 0) {
+          currentStory = currentStoryTitle + ': ' + storyParts.join(' ');
+        }
+      } 
+      else if (inStorySection && line.trim()) {
         // Stop at next major section (### or ##) or next user story
         if (line.startsWith('###') || line.startsWith('##') || line.includes('**User Story:**')) {
           if (currentStory) {
@@ -434,11 +761,12 @@ export class SpecParser {
           // If this line is another user story, process it
           if (line.includes('**User Story:**')) {
             currentStory = line.replace('**User Story:**', '').trim();
+            currentStoryTitle = '';
           } else {
             inStorySection = false;
           }
-        } else if (!line.startsWith('#') && line.trim()) {
-          // Continue building the story if it's not a heading
+        } else if (!line.startsWith('#') && line.trim() && !currentStoryTitle) {
+          // Continue building the story if it's not a heading (old format only)
           currentStory += ' ' + line.trim();
         }
       }
@@ -459,32 +787,50 @@ export class SpecParser {
     let currentCategory: CodeReuseCategory | null = null;
 
     for (const line of lines) {
-      if (line.includes('## Code Reuse Analysis')) {
+      // Look for various code reuse section headers
+      if (line.includes('## Code Reuse Analysis') || 
+          line.includes('### Existing Components to Reuse') ||
+          line.includes('## Existing Components') ||
+          line.includes('## Code Reuse')) {
         inCodeReuseSection = true;
         continue;
       }
 
       if (inCodeReuseSection) {
         // Stop at next major section
-        if (line.startsWith('## ') && !line.includes('Code Reuse')) {
+        if ((line.startsWith('## ') || line.startsWith('### ')) && 
+            !line.includes('Code Reuse') && 
+            !line.includes('Existing Components')) {
           break;
         }
 
-        // Look for numbered categories like "1. **Configuration Infrastructure**"
-        const categoryMatch = line.match(/^\d+\.\s*\*\*(.+?)\*\*/);
+        // Look for numbered categories like "1. **Configuration Infrastructure**" or just "1. Item Name:"
+        const categoryMatch = line.match(/^\d+\.\s*(?:\*\*(.+?)\*\*|(.+?)(?::|\s*$))/);
         if (categoryMatch) {
-          // Save previous category
+          const categoryName = categoryMatch[1] || categoryMatch[2];
+          
+          // In phenix format, the numbered items ARE the reuse items, not categories
+          // So we'll treat them as single-item categories for consistency
           if (currentCategory) {
             categories.push(currentCategory);
           }
-          // Start new category
+          
           currentCategory = {
-            title: categoryMatch[1].trim(),
+            title: categoryName.trim(),
             items: [],
           };
+          
+          // Check if there's content on the same line after colon
+          const colonIndex = line.indexOf(':');
+          if (colonIndex > -1 && colonIndex < line.length - 1) {
+            const afterColon = line.substring(colonIndex + 1).trim();
+            if (afterColon) {
+              currentCategory.items.push(afterColon);
+            }
+          }
         }
         // Look for bullet points under categories
-        else if (currentCategory && (line.startsWith('   - ') || line.startsWith('  - '))) {
+        else if (currentCategory && (line.startsWith('   - ') || line.startsWith('  - ') || line.startsWith('- '))) {
           const item = line.replace(/^\s*-\s*/, '').trim();
           if (item) {
             // Clean up markdown formatting
@@ -537,5 +883,133 @@ export class SpecParser {
         hasStructure: false
       };
     }
+  }
+
+  private extractBugSeverity(content: string): 'critical' | 'high' | 'medium' | 'low' | undefined {
+    const severityMatch = content.match(/\*\*Severity\*\*:\s*(critical|high|medium|low)/i);
+    if (severityMatch) {
+      return severityMatch[1].toLowerCase() as 'critical' | 'high' | 'medium' | 'low';
+    }
+    return undefined;
+  }
+
+  private extractReproductionSteps(content: string): string[] {
+    const steps: string[] = [];
+    const lines = content.split('\n');
+    let inReproductionSection = false;
+
+    for (const line of lines) {
+      if (line.includes('## Reproduction Steps') || line.includes('### Reproduction Steps')) {
+        inReproductionSection = true;
+        continue;
+      }
+
+      if (inReproductionSection) {
+        // Stop at next section
+        if (line.startsWith('## ') || line.startsWith('### ')) {
+          break;
+        }
+
+        // Look for numbered steps
+        const stepMatch = line.match(/^\d+\.\s+(.+)$/);
+        if (stepMatch) {
+          steps.push(stepMatch[1].trim());
+        }
+      }
+    }
+
+    return steps;
+  }
+
+  private extractSection(content: string, sectionName: string): string | undefined {
+    const lines = content.split('\n');
+    let inSection = false;
+    let sectionContent = '';
+
+    for (const line of lines) {
+      if (line.includes(`## ${sectionName}`) || line.includes(`### ${sectionName}`)) {
+        inSection = true;
+        continue;
+      }
+
+      if (inSection) {
+        // Stop at next section
+        if (line.startsWith('## ') || line.startsWith('### ')) {
+          break;
+        }
+
+        if (line.trim()) {
+          sectionContent += line.trim() + ' ';
+        }
+      }
+    }
+
+    return sectionContent.trim() || undefined;
+  }
+
+  private extractFilesAffected(content: string): string[] {
+    const files: string[] = [];
+    const lines = content.split('\n');
+    let inFilesSection = false;
+
+    for (const line of lines) {
+      if (line.includes('Files Affected') || line.includes('Affected Files')) {
+        inFilesSection = true;
+        continue;
+      }
+
+      if (inFilesSection) {
+        // Stop at next section
+        if (line.startsWith('## ') || line.startsWith('### ')) {
+          break;
+        }
+
+        // Look for file paths (basic heuristic: contains / or .)
+        const fileMatch = line.match(/[-•]\s*(.+\.[a-zA-Z]+)/) || line.match(/[-•]\s*(.+\/.+)/);
+        if (fileMatch) {
+          files.push(fileMatch[1].trim());
+        }
+      }
+    }
+
+    return files;
+  }
+
+  private extractTestStatus(content: string): boolean | undefined {
+    if (content.includes('✅ All tests passed') || content.includes('Tests: PASSED')) {
+      return true;
+    }
+    if (content.includes('❌ Tests failed') || content.includes('Tests: FAILED')) {
+      return false;
+    }
+    return undefined;
+  }
+
+  private extractRegressionChecks(content: string): string[] {
+    const checks: string[] = [];
+    const lines = content.split('\n');
+    let inRegressionSection = false;
+
+    for (const line of lines) {
+      if (line.includes('Regression Checks') || line.includes('Regression Testing')) {
+        inRegressionSection = true;
+        continue;
+      }
+
+      if (inRegressionSection) {
+        // Stop at next section
+        if (line.startsWith('## ') || line.startsWith('### ')) {
+          break;
+        }
+
+        // Look for check items
+        const checkMatch = line.match(/[-•✅❌]\s+(.+)$/);
+        if (checkMatch) {
+          checks.push(checkMatch[1].trim());
+        }
+      }
+    }
+
+    return checks;
   }
 }

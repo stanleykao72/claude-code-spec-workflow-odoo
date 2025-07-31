@@ -129,6 +129,20 @@ export class MultiProjectDashboardServer {
       return specs;
     });
 
+    this.app.get('/api/projects/:projectPath/bugs', async (request, reply) => {
+      const { projectPath } = request.params as { projectPath: string };
+      const decodedPath = normalize(resolve(decodeURIComponent(projectPath)));
+      const projectState = this.projects.get(decodedPath);
+
+      if (!projectState) {
+        reply.code(404).send({ error: 'Project not found' });
+        return;
+      }
+
+      const bugs = await projectState.parser.getAllBugs();
+      return bugs;
+    });
+
     // Get raw markdown content for a specific document
     this.app.get('/api/projects/:projectPath/specs/:name/:document', async (request, reply) => {
       const { projectPath, name, document } = request.params as { projectPath: string; name: string; document: string };
@@ -147,6 +161,33 @@ export class MultiProjectDashboardServer {
       }
 
       const docPath = join(decodedPath, '.claude', 'specs', name, `${document}.md`);
+      
+      try {
+        const content = await readFile(docPath, 'utf-8');
+        return { content };
+      } catch {
+        reply.code(404).send({ error: 'Document not found' });
+      }
+    });
+
+    // Get raw markdown content for bug documents
+    this.app.get('/api/projects/:projectPath/bugs/:name/:document', async (request, reply) => {
+      const { projectPath, name, document } = request.params as { projectPath: string; name: string; document: string };
+      const decodedPath = normalize(resolve(decodeURIComponent(projectPath)));
+      const projectState = this.projects.get(decodedPath);
+
+      if (!projectState) {
+        reply.code(404).send({ error: 'Project not found' });
+        return;
+      }
+
+      const allowedDocs = ['report', 'analysis', 'verification'];
+      if (!allowedDocs.includes(document)) {
+        reply.code(400).send({ error: 'Invalid document type' });
+        return;
+      }
+
+      const docPath = join(decodedPath, '.claude', 'bugs', name, `${document}.md`);
       
       try {
         const content = await readFile(docPath, 'utf-8');
@@ -190,13 +231,22 @@ export class MultiProjectDashboardServer {
 
     // Set up watcher events
     watcher.on('change', async (event) => {
+      // Transform the watcher event into the format expected by the client
+      const projectUpdateEvent = {
+        type: 'spec-update',
+        spec: event.spec,
+        file: event.file,
+        data: event.data,
+      };
+      
       // Broadcast update with project context
       const message = JSON.stringify({
         type: 'project-update',
         projectPath: project.path,
-        data: event,
+        data: projectUpdateEvent,
       });
 
+      debug(`[Multi-server] Sending spec update for ${project.name}/${event.spec} to ${this.clients.size} clients`);
       this.clients.forEach((client) => {
         if (client.readyState === 1) {
           client.send(message);
@@ -205,9 +255,10 @@ export class MultiProjectDashboardServer {
 
       // Also send updated active tasks
       const activeTasks = await this.collectActiveTasks();
+      debug(`[Multi-server] Collected ${activeTasks.length} active tasks after spec update`);
       const activeTasksMessage = JSON.stringify({
         type: 'active-tasks-update',
-        activeTasks,
+        data: activeTasks,
       });
 
       this.clients.forEach((client) => {
@@ -262,6 +313,24 @@ export class MultiProjectDashboardServer {
       });
     });
 
+    // Handle bug change events
+    watcher.on('bug-change', async (event) => {
+      debug(`[Multi-server] Bug change detected for ${project.name}:`, event);
+      
+      // Send bug update to all clients
+      const message = JSON.stringify({
+        type: 'bug-update',
+        projectPath: project.path,
+        data: event,
+      });
+
+      this.clients.forEach((client) => {
+        if (client.readyState === 1) {
+          client.send(message);
+        }
+      });
+    });
+
     await watcher.start();
 
     this.projects.set(project.path, {
@@ -275,10 +344,12 @@ export class MultiProjectDashboardServer {
     const projects = await Promise.all(
       Array.from(this.projects.entries()).map(async ([, state]) => {
         const specs = await state.parser.getAllSpecs();
+        const bugs = await state.parser.getAllBugs();
         const steeringStatus = await state.parser.getProjectSteeringStatus();
         const projectData = {
           ...state.project,
           specs,
+          bugs,
           steering: steeringStatus,
         };
         debug(`Sending project ${projectData.name}`);
@@ -304,17 +375,20 @@ export class MultiProjectDashboardServer {
 
     for (const [projectPath, state] of this.projects) {
       const specs = await state.parser.getAllSpecs();
+      debug(`[collectActiveTasks] Project ${state.project.name}: ${specs.length} specs`);
 
       let hasActiveTaskInProject = false;
       
       for (const spec of specs) {
-        if (spec.tasks && spec.tasks.taskList.length > 0 && spec.tasks.inProgress) {
-          // Only get the currently active task (marked as in progress)
-          const activeTask = this.findTaskById(spec.tasks.taskList, spec.tasks.inProgress);
+        if (spec.tasks && spec.tasks.taskList.length > 0) {
+          debug(`[collectActiveTasks] Spec ${spec.name}: ${spec.tasks.taskList.length} tasks, inProgress: ${spec.tasks.inProgress}`);
+          if (spec.tasks.inProgress) {
+            // Only get the currently active task (marked as in progress)
+            const activeTask = this.findTaskById(spec.tasks.taskList, spec.tasks.inProgress);
 
-          if (activeTask) {
-            hasActiveTaskInProject = true;
-            activeTasks.push({
+            if (activeTask) {
+              hasActiveTaskInProject = true;
+              activeTasks.push({
               projectPath,
               projectName: state.project.name,
               specName: spec.name,
@@ -328,6 +402,7 @@ export class MultiProjectDashboardServer {
           }
         }
       }
+    }
       
       // Update the project's active session status based on whether it has active tasks
       if (state.project.hasActiveSession !== hasActiveTaskInProject) {
@@ -362,6 +437,7 @@ export class MultiProjectDashboardServer {
       return a.projectName.localeCompare(b.projectName);
     });
 
+    debug(`[collectActiveTasks] Total active tasks found: ${activeTasks.length}`);
     return activeTasks;
   }
 
@@ -397,8 +473,10 @@ export class MultiProjectDashboardServer {
           await this.initializeProject(project);
 
           // Notify all clients about the new project
-          const specs = (await this.projects.get(project.path)?.parser.getAllSpecs()) || [];
-          const projectData = { ...project, specs };
+          const parser = this.projects.get(project.path)?.parser;
+          const specs = (await parser?.getAllSpecs()) || [];
+          const bugs = (await parser?.getAllBugs()) || [];
+          const projectData = { ...project, specs, bugs };
 
           const message = JSON.stringify({
             type: 'new-project',

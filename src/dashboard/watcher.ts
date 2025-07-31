@@ -1,7 +1,7 @@
 import { watch, FSWatcher } from 'chokidar';
 import { EventEmitter } from 'events';
 import { join } from 'path';
-import { SpecParser, Spec, SteeringStatus } from './parser';
+import { SpecParser, Spec, Bug, SteeringStatus } from './parser';
 import { simpleGit, SimpleGit } from 'simple-git';
 import { debug } from './logger';
 
@@ -10,6 +10,13 @@ export interface SpecChangeEvent {
   spec: string;
   file: string;
   data?: Spec | null;
+}
+
+export interface BugChangeEvent {
+  type: 'added' | 'changed' | 'removed';
+  bug: string;
+  file: string;
+  data?: Bug | null;
 }
 
 export interface GitChangeEvent {
@@ -26,6 +33,7 @@ export interface SteeringChangeEvent {
 
 export class SpecWatcher extends EventEmitter {
   private watcher?: FSWatcher;
+  private bugWatcher?: FSWatcher;
   private gitWatcher?: FSWatcher;
   private steeringWatcher?: FSWatcher;
   private projectPath: string;
@@ -104,6 +112,62 @@ export class SpecWatcher extends EventEmitter {
       })
       .on('ready', () => debug('[Watcher] Initial scan complete. Ready for changes.'))
       .on('error', (error) => console.error('[Watcher] Error:', error));
+
+    // Start watching bugs directory
+    const bugsPath = join(this.projectPath, '.claude', 'bugs');
+    debug(`[BugWatcher] Starting to watch: ${bugsPath}`);
+
+    this.bugWatcher = watch('.', {
+      cwd: bugsPath,
+      ignored: /(^|[\\/])\.DS_Store/,
+      persistent: true,
+      ignoreInitial: true,
+      usePolling: !isMacOS,
+      useFsEvents: isMacOS,
+      interval: isMacOS ? 100 : 1000,
+      binaryInterval: 300,
+      awaitWriteFinish: false,
+      followSymlinks: true,
+      ignorePermissionErrors: false,
+      atomic: true,
+    });
+
+    this.bugWatcher
+      .on('add', (path) => {
+        debug(`[BugWatcher] File added: ${path}`);
+        this.handleBugFileChange('added', path);
+      })
+      .on('change', (path) => {
+        debug(`[BugWatcher] File changed: ${path}`);
+        this.handleBugFileChange('changed', path);
+      })
+      .on('unlink', (path) => {
+        debug(`[BugWatcher] File removed: ${path}`);
+        this.handleBugFileChange('removed', path);
+      })
+      .on('addDir', (path) => {
+        debug(`[BugWatcher] Directory added: ${path}`);
+        if (path && !path.includes('/')) {
+          this.checkNewBugDirectory(path);
+        }
+      })
+      .on('unlinkDir', (path) => {
+        debug(`[BugWatcher] Directory removed: ${path}`);
+        if (path && !path.includes('/')) {
+          this.emit('bug-change', {
+            type: 'removed',
+            bug: path,
+            file: 'directory',
+          } as BugChangeEvent);
+        }
+      })
+      .on('ready', () => debug('[BugWatcher] Initial scan complete. Ready for changes.'))
+      .on('error', (error) => {
+        // Don't log error if bugs directory doesn't exist yet
+        if (!error.message.includes('ENOENT')) {
+          console.error('[BugWatcher] Error:', error);
+        }
+      });
 
     // Start watching git files
     await this.startGitWatcher();
@@ -278,8 +342,14 @@ export class SpecWatcher extends EventEmitter {
       debug(`Emitting change for spec: ${specName}, file: ${parts[1]}`);
 
       // Log approval status for debugging
-      if (parts[1] === 'tasks.md' && spec && spec.tasks) {
-        debug(`Tasks approved: ${spec.tasks.approved}`);
+      if (spec) {
+        if (parts[1] === 'requirements.md' && spec.requirements) {
+          debug(`Requirements approved: ${spec.requirements.approved}`);
+        } else if (parts[1] === 'design.md' && spec.design) {
+          debug(`Design approved: ${spec.design.approved}`);
+        } else if (parts[1] === 'tasks.md' && spec.tasks) {
+          debug(`Tasks approved: ${spec.tasks.approved}`);
+        }
       }
 
       this.emit('change', {
@@ -307,9 +377,51 @@ export class SpecWatcher extends EventEmitter {
     }
   }
 
+  private async handleBugFileChange(type: 'added' | 'changed' | 'removed', filePath: string) {
+    debug(`Bug file change detected: ${type} - ${filePath}`);
+    const parts = filePath.split(/[\\/]/);
+    const bugName = parts[0];
+
+    if (parts.length === 2 && parts[1].match(/^(report|analysis|verification)\.md$/)) {
+      // Add a small delay to ensure file write is complete
+      if (type === 'changed') {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+
+      const bug = await this.parser.getBug(bugName);
+      debug(`Emitting change for bug: ${bugName}, file: ${parts[1]}`);
+
+      this.emit('bug-change', {
+        type,
+        bug: bugName,
+        file: parts[1],
+        data: type !== 'removed' ? bug : null,
+      } as BugChangeEvent);
+    }
+  }
+
+  private async checkNewBugDirectory(dirPath: string) {
+    // When a new directory is created, check for any .md files already in it
+    const bugName = dirPath;
+    const bug = await this.parser.getBug(bugName);
+    
+    if (bug) {
+      debug(`Found bug in new directory: ${bugName}`);
+      this.emit('bug-change', {
+        type: 'added',
+        bug: bugName,
+        file: 'directory',
+        data: bug,
+      } as BugChangeEvent);
+    }
+  }
+
   async stop() {
     if (this.watcher) {
       await this.watcher.close();
+    }
+    if (this.bugWatcher) {
+      await this.bugWatcher.close();
     }
     if (this.gitWatcher) {
       await this.gitWatcher.close();
