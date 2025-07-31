@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.3] - 2025-07-31
+
+### Added
+- **Post-Task Implementation Reviewer Agent** (`spec-task-implementation-reviewer`) - Reviews completed task implementations for correctness and compliance with requirements
+- **Spec Integration Tester Agent** (`spec-integration-tester`) - Automatically runs tests and validates integration points after task implementation
+- **Spec Completion Reviewer Agent** (`spec-completion-reviewer`) - Performs comprehensive end-to-end validation when all spec tasks are complete
+- **Bug Root Cause Analyzer Agent** (`bug-root-cause-analyzer`) - Enhanced root cause analysis using git history and pattern recognition for bug fixes
+- **Steering Document Updater Agent** (`steering-document-updater`) - Analyzes codebase evolution and suggests updates to steering documents
+- **Spec Dependency Analyzer Agent** (`spec-dependency-analyzer`) - Analyzes task dependencies and optimizes execution order with parallelization insights
+- **Test Generator Agent** (`spec-test-generator`) - Automatically generates comprehensive test cases from specifications and acceptance criteria
+- **Documentation Generator Agent** (`spec-documentation-generator`) - Maintains project documentation automatically including API docs and changelogs
+- **Performance Analyzer Agent** (`spec-performance-analyzer`) - Analyzes algorithmic complexity and identifies performance bottlenecks
+- **Code Duplication Detector Agent** (`spec-duplication-detector`) - Identifies code reuse opportunities and promotes DRY principles
+- **Breaking Change Detector Agent** (`spec-breaking-change-detector`) - Detects API compatibility issues and suggests migration strategies
+
+### Enhanced
+- **Integrated agent workflows**: Added agent integration points throughout the spec workflow for automated quality checks
+- **Post-completion analysis**: Added comprehensive post-completion agents for documentation, performance, and compatibility analysis
+- **Task implementation flow**: Enhanced with test generation and code duplication detection during implementation
+
 ## [1.4.2] - 2025-07-30
 
 ### Updated

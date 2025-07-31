@@ -5,6 +5,7 @@ import {
   getSpecExecuteCommand,
   getSpecStatusCommand,
   getSpecListCommand,
+  getSpecCompletionReviewCommand,
   getSpecSteeringSetupCommand,
   getBugCreateCommand,
   getBugAnalyzeCommand,
@@ -26,6 +27,16 @@ import {
   designValidatorAgent,
   atomicTaskValidatorAgent,
   taskImplementationReviewerAgent,
+  specIntegrationTesterAgent,
+  specCompletionReviewerAgent,
+  bugRootCauseAnalyzerAgent,
+  steeringDocumentUpdaterAgent,
+  specDependencyAnalyzerAgent,
+  testGeneratorAgent,
+  documentationGeneratorAgent,
+  performanceAnalyzerAgent,
+  codeDuplicationDetectorAgent,
+  breakingChangeDetectorAgent,
   getAgentDefinitionFileContent
 } from './agents';
 // CLAUDE.md generation removed - all workflow instructions now in individual commands
@@ -92,6 +103,7 @@ export class SpecWorkflowSetup {
       'spec-execute': getSpecExecuteCommand(),
       'spec-status': getSpecStatusCommand(),
       'spec-list': getSpecListCommand(),
+      'spec-completion-review': getSpecCompletionReviewCommand(),
       'spec-steering-setup': getSpecSteeringSetupCommand(),
       'bug-create': getBugCreateCommand(),
       'bug-analyze': getBugAnalyzeCommand(),
@@ -136,7 +148,17 @@ export class SpecWorkflowSetup {
       requirementsValidatorAgent,
       designValidatorAgent,
       atomicTaskValidatorAgent,
-      taskImplementationReviewerAgent
+      taskImplementationReviewerAgent,
+      specIntegrationTesterAgent,
+      specCompletionReviewerAgent,
+      bugRootCauseAnalyzerAgent,
+      steeringDocumentUpdaterAgent,
+      specDependencyAnalyzerAgent,
+      testGeneratorAgent,
+      documentationGeneratorAgent,
+      performanceAnalyzerAgent,
+      codeDuplicationDetectorAgent,
+      breakingChangeDetectorAgent
     ];
 
     for (const agent of agents) {

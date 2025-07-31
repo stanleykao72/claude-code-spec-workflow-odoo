@@ -226,7 +226,25 @@ If validation fails, use the feedback to break down tasks further and improve at
   - Are any tasks still too broad (>100 characters description)?
 - **If validation fails**: Break down broad tasks further before presenting
 - **Only present to user after validation passes or improvements are made**
-- **Present the validated task list**
+
+### Task Dependency Analysis
+- **Automatic Analysis (if agent available)**: AFTER validation passes, use the \`spec-dependency-analyzer\` agent:
+
+\`\`\`
+Use the spec-dependency-analyzer agent to analyze task dependencies for the {feature-name} specification.
+
+The agent should:
+1. Read the tasks document from .claude/specs/{feature-name}/tasks.md
+2. Analyze explicit and implicit dependencies between tasks
+3. Identify parallelization opportunities
+4. Calculate the critical path
+5. Suggest optimal execution order
+6. Warn about any circular dependencies or issues
+
+The analysis will help optimize task execution strategy.
+\`\`\`
+
+- **Present the validated task list with dependency analysis** (if available)
 - Ask: "Do the tasks look good? Each task should be atomic and agent-friendly."
 - **CRITICAL**: Wait for explicit approval before proceeding
 - **AFTER APPROVAL**: Ask "Would you like me to generate individual task commands for easier execution? (yes/no)"
@@ -387,7 +405,23 @@ When completing any task during \`/spec-execute\`:
    3. **Stop execution**: Do not proceed to next task automatically
    4. **Wait for instruction**: Let user decide next steps
 
-7. **Post-Implementation Review (if agent available)**
+7. **Test Generation (if agent available)**
+During or after task implementation, use the \`spec-test-generator\` agent:
+
+\`\`\`
+Use the spec-test-generator agent to generate tests for task {task-id} of the {feature-name} specification.
+
+The agent should:
+1. Load requirements.md for acceptance criteria
+2. Load design.md for technical details
+3. Analyze existing test patterns in the codebase
+4. Generate comprehensive test cases
+5. Provide test implementations following project conventions
+
+The generated tests ensure comprehensive coverage of the implemented functionality.
+\`\`\`
+
+8. **Post-Implementation Review (if agent available)**
 After marking a task complete, use the \`spec-task-implementation-reviewer\` agent:
 
 \`\`\`
@@ -405,6 +439,26 @@ Context files to review:
 - .claude/specs/{feature-name}/design.md
 - .claude/specs/{feature-name}/tasks.md
 - Implementation changes for task {task-id}
+\`\`\`
+
+9. **Integration Testing (if agent available)**
+After implementation review passes, use the \`spec-integration-tester\` agent:
+
+\`\`\`
+Use the spec-integration-tester agent to test the implementation of task {task-id} for the {feature-name} specification.
+
+The agent should:
+1. Load all specification documents and understand the changes made
+2. Run relevant test suites for the implemented functionality
+3. Validate integration points and API contracts
+4. Check for regressions using git history analysis
+5. Provide comprehensive test feedback
+
+Test context:
+- Changes made in task {task-id}
+- Related test suites to execute
+- Integration points to validate
+- Git history for regression analysis
 \`\`\`
 
 ## Critical Workflow Rules
@@ -503,6 +557,167 @@ Display the current status of spec workflows.
 - **Tasks**: Breaking down into implementation tasks
 - **Implementation**: Executing individual tasks
 - **Complete**: All tasks finished and integrated
+`;
+}
+
+export function getSpecCompletionReviewCommand(): string {
+  return `# Spec Completion Review Command
+
+Perform comprehensive end-to-end review when all tasks in a spec are complete.
+
+## Usage
+\`\`\`
+/spec-completion-review {feature-name}
+\`\`\`
+
+## Phase Overview
+**Your Role**: Comprehensive feature validation and final approval
+
+This command is used when all tasks in a specification are marked complete. Your goal is to ensure the entire feature is production-ready and meets all requirements before final approval.
+
+## Instructions
+
+**Agent-Based Review (Recommended)**: If the \`spec-completion-reviewer\` agent is available, use it for comprehensive validation:
+
+\`\`\`
+Use the spec-completion-reviewer agent to perform final review of the {feature-name} specification.
+
+The agent should:
+1. Load all specification documents from .claude/specs/{feature-name}/
+2. Load steering documents from .claude/steering/ (if available)
+3. Perform comprehensive end-to-end validation
+4. Analyze git history for the entire feature implementation
+5. Validate requirements fulfillment and design compliance
+6. Assess production readiness and provide final approval
+
+Context files for review:
+- .claude/specs/{feature-name}/requirements.md
+- .claude/specs/{feature-name}/design.md
+- .claude/specs/{feature-name}/tasks.md
+- All git commits related to the feature
+- Steering documents for context
+\`\`\`
+
+**Manual Review (Fallback)**: If the agent is not available, follow this process:
+
+1. **Load Complete Context**
+   - Read all specification documents from \`.claude/specs/{feature-name}/\`
+   - Review all completed tasks in tasks.md
+   - Load steering documents for project context
+
+2. **Requirements Validation**
+   - Verify ALL user stories are fully implemented
+   - Check every acceptance criterion is satisfied
+   - Confirm edge cases and error scenarios are handled
+
+3. **Design Implementation Verification**
+   - Ensure implementation follows specified architecture
+   - Validate all designed components work together
+   - Check API contracts match specifications
+
+4. **Code Quality Assessment**
+   - Review overall code quality and consistency
+   - Verify proper error handling throughout
+   - Check performance and security considerations
+
+5. **Integration Validation**
+   - Test complete feature workflows end-to-end
+   - Verify integration with existing systems
+   - Ensure no breaking changes introduced
+
+6. **Git History Review**
+   - Analyze all commits for the feature
+   - Verify clean commit history
+   - Check for proper commit messages
+
+## Approval Criteria
+- All requirements fully satisfied
+- Design properly implemented
+- Code quality meets standards
+- Integration working correctly
+- Tests passing and adequate coverage
+- Documentation complete
+- Ready for production deployment
+
+## Final Outcomes
+- **APPROVED**: Feature ready for production
+- **NEEDS_FIXES**: Minor issues to address
+- **MAJOR_ISSUES**: Significant problems requiring rework
+
+## Next Steps
+After completion review:
+- Address any identified issues
+- Prepare for production deployment
+- Update documentation if needed
+- Consider creating PR/merge request
+
+## Post-Completion Analysis (if agents available)
+
+After approval, consider running these additional agents:
+
+### Documentation Generation
+Use the \`spec-documentation-generator\` agent:
+
+\`\`\`
+Use the spec-documentation-generator agent to generate documentation for the completed {feature-name} specification.
+
+The agent should:
+1. Analyze implemented code and APIs
+2. Generate API documentation with examples
+3. Create user guides and feature documentation
+4. Generate changelog entries from git history
+5. Suggest README updates for the new feature
+
+This ensures comprehensive documentation for the completed feature.
+\`\`\`
+
+### Performance Analysis
+Use the \`spec-performance-analyzer\` agent:
+
+\`\`\`
+Use the spec-performance-analyzer agent to analyze performance implications of the {feature-name} implementation.
+
+The agent should:
+1. Analyze algorithmic complexity
+2. Identify potential bottlenecks
+3. Suggest optimization opportunities
+4. Check for common performance anti-patterns
+5. Recommend performance testing strategies
+
+This helps ensure the feature performs well at scale.
+\`\`\`
+
+### Breaking Change Detection
+Use the \`spec-breaking-change-detector\` agent:
+
+\`\`\`
+Use the spec-breaking-change-detector agent to detect any breaking changes in the {feature-name} implementation.
+
+The agent should:
+1. Analyze API changes and modifications
+2. Detect behavioral changes
+3. Assess impact on consumers
+4. Suggest compatibility strategies
+5. Recommend migration paths if needed
+
+This ensures backward compatibility is maintained.
+\`\`\`
+
+### Steering Document Updates
+Use the \`steering-document-updater\` agent:
+
+\`\`\`
+Use the steering-document-updater agent to analyze if steering documents need updates based on the {feature-name} implementation.
+
+The agent should:
+1. Analyze new patterns introduced
+2. Check for technology stack changes
+3. Identify new conventions established
+4. Suggest updates to product.md, tech.md, or structure.md
+5. Highlight deprecated patterns to document
+
+This keeps project documentation aligned with implementation reality.
+\`\`\`
 `;
 }
 
@@ -777,7 +992,28 @@ This is Phase 2 of the bug fix workflow. Your goal is to understand why the bug 
 
 ## Instructions
 
-You are working on the analysis phase of the bug fix workflow.
+**Agent-Based Analysis (Recommended)**: If the \`bug-root-cause-analyzer\` agent is available, use it for comprehensive root cause analysis:
+
+\`\`\`
+Use the bug-root-cause-analyzer agent to perform enhanced root cause analysis for the {bug-name} bug.
+
+The agent should:
+1. Load the bug report from .claude/bugs/{bug-name}/report.md
+2. Perform git archaeology to find when the bug was introduced
+3. Analyze git history for similar issues and patterns
+4. Investigate code context and evolution
+5. Assess impact and relationships
+6. Develop prevention strategies
+7. Provide comprehensive analysis with fix recommendations
+
+Context for analysis:
+- Bug report with symptoms and reproduction steps
+- Git history for pattern recognition
+- Related code and its evolution
+- Similar historical issues and fixes
+\`\`\`
+
+**Manual Analysis (Fallback)**: If the agent is not available, follow this process:
 
 1. **Prerequisites**
    - Ensure report.md exists and is complete

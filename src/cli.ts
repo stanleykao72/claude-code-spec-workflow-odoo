@@ -121,6 +121,7 @@ program
       console.log(chalk.gray('  /spec-execute <task-id>      - Execute tasks'));
       console.log(chalk.gray('  /{spec-name}-task-{id}       - Auto-generated task commands'));
       console.log(chalk.gray('  /spec-status                 - Show status'));
+      console.log(chalk.gray('  /spec-completion-review      - Final review when all tasks complete'));
       console.log(chalk.gray('  /spec-list                   - List all specs'));
       console.log();
       
@@ -132,6 +133,16 @@ program
         console.log(chalk.gray('  spec-design-validator             - Design quality validation agent'));
         console.log(chalk.gray('  spec-task-validator               - Task atomicity validation agent'));
         console.log(chalk.gray('  spec-task-implementation-reviewer - Post-implementation review agent'));
+        console.log(chalk.gray('  spec-integration-tester           - Integration testing and validation agent'));
+        console.log(chalk.gray('  spec-completion-reviewer          - End-to-end feature completion agent'));
+        console.log(chalk.gray('  bug-root-cause-analyzer           - Enhanced bug analysis with git history'));
+        console.log(chalk.gray('  steering-document-updater         - Analyzes codebase and suggests doc updates'));
+        console.log(chalk.gray('  spec-dependency-analyzer          - Optimizes task execution order'));
+        console.log(chalk.gray('  spec-test-generator               - Generates tests from requirements'));
+        console.log(chalk.gray('  spec-documentation-generator      - Maintains project documentation'));
+        console.log(chalk.gray('  spec-performance-analyzer         - Analyzes performance implications'));
+        console.log(chalk.gray('  spec-duplication-detector         - Identifies code reuse opportunities'));
+        console.log(chalk.gray('  spec-breaking-change-detector     - Detects API compatibility issues'));
         console.log();
       }
       

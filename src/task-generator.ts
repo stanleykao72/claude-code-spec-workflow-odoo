@@ -233,13 +233,50 @@ Context files to review:
 - Implementation changes for task ${task.id}
 \`\`\`
 
+## Code Duplication Analysis (if agent available)
+Before finalizing implementation, use the \`spec-duplication-detector\` agent:
+
+\`\`\`
+Use the spec-duplication-detector agent to analyze code duplication for task ${task.id} of the ${specName} specification.
+
+The agent should:
+1. Scan the newly implemented code
+2. Identify any duplicated patterns
+3. Suggest refactoring opportunities
+4. Recommend existing utilities to reuse
+5. Help maintain DRY principles
+
+This ensures code quality and maintainability.
+\`\`\`
+
+## Integration Testing (if agent available)
+After implementation review passes, use the \`spec-integration-tester\` agent:
+
+\`\`\`
+Use the spec-integration-tester agent to test the implementation of task ${task.id} for the ${specName} specification.
+
+The agent should:
+1. Load all specification documents and understand the changes made
+2. Run relevant test suites for the implemented functionality
+3. Validate integration points and API contracts
+4. Check for regressions using git history analysis
+5. Provide comprehensive test feedback
+
+Test context:
+- Changes made in task ${task.id}
+- Related test suites to execute
+- Integration points to validate
+- Git history for regression analysis
+\`\`\`
+
 ## Next Steps
 After task completion, you can:
 - Review the implementation (automated if spec-task-implementation-reviewer agent is available)
-- Address any issues identified in the review
-- Run tests if applicable
+- Run integration tests (automated if spec-integration-tester agent is available)
+- Address any issues identified in reviews or tests
 - Execute the next task using /${specName}-task-[next-id]
 - Check overall progress with /spec-status ${specName}
+- If all tasks complete, run /spec-completion-review ${specName}
 `;
 
   await fs.writeFile(commandFile, content, 'utf8');
