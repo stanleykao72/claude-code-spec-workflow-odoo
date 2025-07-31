@@ -19,11 +19,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Performance Analyzer Agent** (`spec-performance-analyzer`) - Analyzes algorithmic complexity and identifies performance bottlenecks
 - **Code Duplication Detector Agent** (`spec-duplication-detector`) - Identifies code reuse opportunities and promotes DRY principles
 - **Breaking Change Detector Agent** (`spec-breaking-change-detector`) - Detects API compatibility issues and suggests migration strategies
+- Bug tracking to real time dashboard.
 
 ### Enhanced
 - **Integrated agent workflows**: Added agent integration points throughout the spec workflow for automated quality checks
 - **Post-completion analysis**: Added comprehensive post-completion agents for documentation, performance, and compatibility analysis
 - **Task implementation flow**: Enhanced with test generation and code duplication detection during implementation
+
+### Fixed
+- Misc dashboard fixes
 
 ## [1.4.2] - 2025-07-30
 
