@@ -55,10 +55,20 @@ You are helping create a new feature specification through the complete workflow
    - Initialize empty requirements.md, design.md, and tasks.md files
 
 2. **Load Context Documents**
-   - Look for .claude/steering/product.md (product vision and goals)
-   - Look for .claude/steering/tech.md (technical standards and patterns)
-   - Look for .claude/steering/structure.md (project structure conventions)
-   - Load available steering documents to guide the entire workflow
+   Load steering documents using the get-content script:
+   
+   **Cross-platform examples:**
+   ```bash
+   # Windows:
+   npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\steering\product.md"
+   npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\steering\tech.md"
+   npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\steering\structure.md"
+   
+   # macOS/Linux:
+   npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/steering/product.md"
+   npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/steering/tech.md"
+   npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/steering/structure.md"
+   ```
 
 3. **Analyze Existing Codebase** (BEFORE starting any phase)
    - **Search for similar features**: Look for existing patterns relevant to the new feature
@@ -70,7 +80,15 @@ You are helping create a new feature specification through the complete workflow
 
 ## PHASE 1: Requirements Creation
 
-**Template to Follow**: Use the exact structure from `.claude/templates/requirements-template.md`
+**Template to Follow**: Load and use the exact structure from the requirements template:
+
+```bash
+# Windows:
+npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\templates\requirements-template.md"
+
+# macOS/Linux:
+npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/templates/requirements-template.md"
+```
 
 ### Requirements Process
 1. **Generate Requirements Document**
@@ -82,12 +100,22 @@ You are helping create a new feature specification through the complete workflow
    - **Reference steering documents**: Note how requirements align with product vision
 
 ### Requirements Template Usage
-- **Read and follow**: `.claude/templates/requirements-template.md`
+- **Read and follow**: Load the requirements template using:
+  ```bash
+  # Windows: npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\templates\requirements-template.md"
+  # macOS/Linux: npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/templates/requirements-template.md"
+  ```
 - **Use exact structure**: Follow all sections and formatting from the template
 - **Include all sections**: Don't omit any required template sections
 
 ### Requirements Validation and Approval
-- **Automatic Validation (if agent available)**: FIRST use the `spec-requirements-validator` agent to validate the requirements:
+- **Automatic Validation (if agents enabled)**: First check if agents are enabled:
+
+```bash
+npx @pimzino/claude-code-spec-workflow using-agents
+```
+
+If this returns `true`, use the `spec-requirements-validator` agent to validate the requirements:
 
 ```
 Use the spec-requirements-validator agent to validate the requirements document for the {feature-name} specification.
@@ -102,7 +130,7 @@ The agent should:
 If validation fails, use the feedback to improve the requirements before presenting to the user.
 ```
 
-- **If validation agent not available**: Review the requirements manually against template criteria first
+- **If agents are not enabled**: Review the requirements manually against template criteria first
 - **Only present to user after validation passes or improvements are made**
 - **Present the validated requirements document with codebase analysis summary**
 - Ask: "Do the requirements look good? If so, we can move on to the design phase."
@@ -112,12 +140,25 @@ If validation fails, use the feedback to improve the requirements before present
 
 ## PHASE 2: Design Creation
 
-**Template to Follow**: Use the exact structure from `.claude/templates/design-template.md`
+**Template to Follow**: Load and use the exact structure from the design template:
+
+```bash
+# Windows:
+npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\templates\design-template.md"
+
+# macOS/Linux:
+npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/templates/design-template.md"
+```
 
 ### Design Process
 1. **Load Previous Phase**
    - Ensure requirements.md exists and is approved
-   - Load requirements document for context
+   - Load requirements document for context:
+   
+   ```bash
+   # Windows: npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\requirements.md"
+   # macOS/Linux: npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/requirements.md"
+   ```
 
 2. **Codebase Research** (MANDATORY)
    - **Map existing patterns**: Identify data models, API patterns, component structures
@@ -136,12 +177,22 @@ If validation fails, use the feedback to improve the requirements before present
    - **Define clear interfaces** that integrate with existing systems
 
 ### Design Template Usage
-- **Read and follow**: `.claude/templates/design-template.md`
+- **Read and follow**: Load the design template using:
+  ```bash
+  # Windows: npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\templates\design-template.md"
+  # macOS/Linux: npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/templates/design-template.md"
+  ```
 - **Use exact structure**: Follow all sections and formatting from the template
 - **Include Mermaid diagrams**: Add visual representations as shown in template
 
 ### Design Validation and Approval
-- **Automatic Validation (if agent available)**: FIRST use the `spec-design-validator` agent to validate the design:
+- **Automatic Validation (if agents enabled)**: First check if agents are enabled:
+
+```bash
+npx @pimzino/claude-code-spec-workflow using-agents
+```
+
+If this returns `true`, use the `spec-design-validator` agent to validate the design:
 
 ```
 Use the spec-design-validator agent to validate the design document for the {feature-name} specification.
@@ -157,7 +208,7 @@ The agent should:
 If validation fails, use the feedback to improve the design before presenting to the user.
 ```
 
-- **If validation agent not available**: Review the design manually against architectural best practices first
+- **If agents are not enabled**: Review the design manually against architectural best practices first
 - **Only present to user after validation passes or improvements are made**
 - **Present the validated design document** with code reuse highlights and steering document alignment
 - Ask: "Does the design look good? If so, we can move on to the implementation planning."
@@ -165,12 +216,30 @@ If validation fails, use the feedback to improve the design before presenting to
 
 ## PHASE 3: Tasks Creation
 
-**Template to Follow**: Use the exact structure from `.claude/templates/tasks-template.md`
+**Template to Follow**: Load and use the exact structure from the tasks template:
+
+```bash
+# Windows:
+npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\templates\tasks-template.md"
+
+# macOS/Linux:
+npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/templates/tasks-template.md"
+```
 
 ### Task Planning Process
 1. **Load Previous Phases**
    - Ensure design.md exists and is approved
-   - Load both requirements.md and design.md for complete context
+   - Load both requirements.md and design.md for complete context:
+   
+   ```bash
+   # Windows:
+   npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\requirements.md"
+   npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\design.md"
+   
+   # macOS/Linux:
+   npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/requirements.md"
+   npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/design.md"
+   ```
 
 2. **Generate Atomic Task List**
    - Break design into atomic, executable coding tasks following these criteria:
@@ -197,12 +266,22 @@ If validation fails, use the feedback to improve the design before presenting to
    - Break large concepts into file-level operations
 
 ### Task Template Usage
-- **Read and follow**: `.claude/templates/tasks-template.md`
+- **Read and follow**: Load the tasks template using:
+  ```bash
+  # Windows: npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\templates\tasks-template.md"
+  # macOS/Linux: npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/templates/tasks-template.md"
+  ```
 - **Use exact structure**: Follow all sections and formatting from the template
 - **Use checkbox format**: Follow the exact task format with requirement references
 
 ### Task Validation and Approval
-- **Automatic Validation (if agent available)**: FIRST use the `spec-task-validator` agent to validate the tasks:
+- **Automatic Validation (if agents enabled)**: First check if agents are enabled:
+
+```bash
+npx @pimzino/claude-code-spec-workflow using-agents
+```
+
+If this returns `true`, use the `spec-task-validator` agent to validate the tasks:
 
 ```
 Use the spec-task-validator agent to validate the task breakdown for the {feature-name} specification.
@@ -218,7 +297,7 @@ The agent should:
 If validation fails, use the feedback to break down tasks further and improve atomicity before presenting to the user.
 ```
 
-- **If validation agent not available**: Self-validate each task against atomic criteria first:
+- **If agents are not enabled**: Self-validate each task against atomic criteria first:
   - Does each task specify exact files to modify/create?
   - Can each task be completed in 15-30 minutes?
   - Does each task have a single, testable outcome?
@@ -227,7 +306,13 @@ If validation fails, use the feedback to break down tasks further and improve at
 - **Only present to user after validation passes or improvements are made**
 
 ### Task Dependency Analysis
-- **Automatic Analysis (if agent available)**: AFTER validation passes, use the `spec-dependency-analyzer` agent:
+- **Automatic Analysis (if agents enabled)**: First check if agents are enabled:
+
+```bash
+npx @pimzino/claude-code-spec-workflow using-agents
+```
+
+If this returns `true` and validation passes, use the `spec-dependency-analyzer` agent:
 
 ```
 Use the spec-dependency-analyzer agent to analyze task dependencies for the {feature-name} specification.

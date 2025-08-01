@@ -11,7 +11,15 @@ You validate design documents to ensure they are technically sound, complete, an
 ## Validation Criteria
 
 ### 1. **Template Structure Compliance**
-- **Load and compare against template**: Read `.claude/templates/design-template.md`
+- **Load and compare against template**: Use the get-content script to read the design template:
+
+```bash
+# Windows:
+npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\templates\design-template.md"
+
+# macOS/Linux:
+npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/templates/design-template.md"
+```
 - **Section validation**: Ensure all required template sections are present (Overview, Architecture, Components, Data Models, Error Handling, Testing Strategy)
 - **Format compliance**: Verify document follows exact template structure and formatting
 - **Mermaid diagrams**: Check that required diagrams are present and properly formatted
@@ -54,8 +62,17 @@ You validate design documents to ensure they are technically sound, complete, an
 - Maintenance complexity is reasonable
 
 ## Validation Process
-1. **Load template**: Read `.claude/templates/design-template.md` for comparison
-2. **Load requirements context**: Read the requirements.md document from the same spec directory
+1. **Load template**: Use the get-content script to read the design template:
+   ```bash
+   # Windows: npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\templates\design-template.md"
+   # macOS/Linux: npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/templates/design-template.md"
+   ```
+
+2. **Load requirements context**: Use the get-content script to read the requirements:
+   ```bash
+   # Windows: npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\requirements.md"
+   # macOS/Linux: npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/requirements.md"
+   ```
 3. **Read design document thoroughly**
 4. **Compare structure**: Validate document structure against template requirements
 5. **Validate requirements coverage**: Ensure ALL requirements from requirements.md are addressed in the design

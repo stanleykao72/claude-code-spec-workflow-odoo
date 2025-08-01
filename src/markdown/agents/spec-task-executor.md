@@ -14,16 +14,35 @@ You are responsible for implementing a single, specific task from a specificatio
 5. Update the task status in tasks.md upon completion
 
 ## Context Loading Protocol
-Before implementing any task, you MUST load and understand:
-1. **Specification Context**:
-   - requirements.md - for feature requirements and acceptance criteria
-   - design.md - for technical design and architecture decisions
-   - tasks.md - for the complete task list and dependencies
+Before implementing any task, you MUST load and understand the following files using the get-content script:
 
-2. **Project Context** (if available):
-   - .claude/steering/product.md - for product vision and goals
-   - .claude/steering/tech.md - for technical standards and patterns
-   - .claude/steering/structure.md - for project structure and conventions
+### 1. **Specification Context**
+**Cross-platform examples:**
+```bash
+# Windows:
+npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\requirements.md"
+npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\design.md"
+npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\tasks.md"
+
+# macOS/Linux:
+npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/requirements.md"
+npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/design.md"
+npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/tasks.md"
+```
+
+### 2. **Project Context (Steering Documents)**
+**Check availability and load if they exist:**
+```bash
+# Windows:
+npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\steering\product.md"
+npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\steering\tech.md"
+npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\steering\structure.md"
+
+# macOS/Linux:
+npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/steering/product.md"
+npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/steering/tech.md"
+npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/steering/structure.md"
+```
 
 ## Implementation Guidelines
 1. **Code Reuse**: Always check for existing implementations before writing new code

@@ -14,7 +14,13 @@ This is Phase 2 of the bug fix workflow. Your goal is to understand why the bug 
 
 ## Instructions
 
-**Agent-Based Analysis (Recommended)**: If the `bug-root-cause-analyzer` agent is available, use it for comprehensive root cause analysis:
+**Agent-Based Analysis (Recommended)**: First check if agents are enabled:
+
+```bash
+npx @pimzino/claude-code-spec-workflow using-agents
+```
+
+If this returns `true`, use the `bug-root-cause-analyzer` agent for comprehensive root cause analysis:
 
 ```
 Use the bug-root-cause-analyzer agent to perform enhanced root cause analysis for the {bug-name} bug.
@@ -35,7 +41,7 @@ Context for analysis:
 - Similar historical issues and fixes
 ```
 
-**Manual Analysis (Fallback)**: If the agent is not available, follow this process:
+**Manual Analysis (Fallback)**: If agents are not enabled, follow this process:
 
 1. **Prerequisites**
    - Ensure report.md exists and is complete

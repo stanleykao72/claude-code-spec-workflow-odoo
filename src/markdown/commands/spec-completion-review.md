@@ -14,7 +14,13 @@ This command is used when all tasks in a specification are marked complete. Your
 
 ## Instructions
 
-**Agent-Based Review (Recommended)**: If the `spec-completion-reviewer` agent is available, use it for comprehensive validation:
+**Agent-Based Review (Recommended)**: First check if agents are enabled:
+
+```bash
+npx @pimzino/claude-code-spec-workflow using-agents
+```
+
+If this returns `true`, use the `spec-completion-reviewer` agent for comprehensive validation:
 
 ```
 Use the spec-completion-reviewer agent to perform final review of the {feature-name} specification.
@@ -35,7 +41,7 @@ Context files for review:
 - Steering documents for context
 ```
 
-**Manual Review (Fallback)**: If the agent is not available, follow this process:
+**Manual Review (Fallback)**: If agents are not enabled, follow this process:
 
 1. **Load Complete Context**
    - Read all specification documents from `.claude/specs/{feature-name}/`
@@ -88,7 +94,7 @@ After completion review:
 - Update documentation if needed
 - Consider creating PR/merge request
 
-## Post-Completion Analysis (if agents available)
+## Post-Completion Analysis (if agents enabled)
 
 After approval, consider running these additional agents:
 

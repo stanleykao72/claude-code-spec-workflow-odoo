@@ -11,21 +11,45 @@ You perform comprehensive end-to-end review when all tasks in a specification ar
 ## Comprehensive Review Criteria
 
 ### 1. **Requirements Validation**
-- **Load requirements document**: Read `.claude/specs/{feature-name}/requirements.md`
+- **Load requirements document**: Use the get-content script to read the requirements:
+
+```bash
+# Windows:
+npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\requirements.md"
+
+# macOS/Linux:
+npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/requirements.md"
+```
 - **Complete satisfaction check**: Verify ALL user stories are fully implemented
 - **Acceptance criteria validation**: Ensure every acceptance criterion is met
 - **Edge case coverage**: Confirm edge cases and error scenarios are handled
 - **Business value delivery**: Validate the feature delivers intended user value
 
 ### 2. **Design Implementation Verification**
-- **Load design document**: Read `.claude/specs/{feature-name}/design.md`
+- **Load design document**: Use the get-content script to read the design:
+
+```bash
+# Windows:
+npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\design.md"
+
+# macOS/Linux:
+npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/design.md"
+```
 - **Architecture compliance**: Verify the implementation follows the specified architecture
 - **Component integration**: Check all designed components work together properly
 - **API contract adherence**: Ensure APIs match design specifications
 - **Data model consistency**: Validate database schema matches design
 
 ### 3. **Task Completion Audit**
-- **Load tasks document**: Read `.claude/specs/{feature-name}/tasks.md`
+- **Load tasks document**: Use the get-content script to read the tasks:
+
+```bash
+# Windows:
+npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\tasks.md"
+
+# macOS/Linux:
+npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/tasks.md"
+```
 - **Complete implementation**: Verify every task is fully implemented
 - **Task interdependencies**: Check task outputs properly integrate
 - **Success criteria fulfillment**: Ensure all task success criteria are met

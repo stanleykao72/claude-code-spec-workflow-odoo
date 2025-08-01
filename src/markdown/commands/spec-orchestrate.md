@@ -13,10 +13,24 @@ You are a **stateless orchestration coordinator**. You delegate all work to spec
 ## Instructions
 
 ### 1. Load Context & Analyze State
-**Silently load** (no verbose output):
-- .claude/specs/{spec-name}/tasks.md → Parse [x] completed vs [ ] pending tasks
-- .claude/specs/{spec-name}/requirements.md, design.md → Context for agents
-- .claude/steering/ documents → Project conventions
+**Silently load** (no verbose output) using get-content script:
+
+```bash
+# Load tasks to parse completion status
+# Windows: npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{spec-name}\tasks.md"
+# macOS/Linux: npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{spec-name}/tasks.md"
+
+# Load context documents
+# Windows: npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{spec-name}\requirements.md"
+# Windows: npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{spec-name}\design.md"
+# macOS/Linux: npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{spec-name}/requirements.md"
+# macOS/Linux: npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{spec-name}/design.md"
+
+# Load steering documents
+# npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/steering/product.md"
+# npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/steering/tech.md"
+# npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/steering/structure.md"
+```
 
 ### 2. Show Current Status
 Display brief status and plan:
@@ -35,8 +49,13 @@ Execute each pending task and **automatically continue** to the next:
 **Step 1 - Announce:**
 `🔄 Task {id}: {description}`
 
-**Step 2 - Delegate to Agent:**
-Use spec-task-executor agent (primary method):
+**Step 2 - Check Agent Availability & Delegate:**
+First check if agents are enabled:
+```bash
+npx @pimzino/claude-code-spec-workflow using-agents
+```
+
+If this returns `true`, use spec-task-executor agent (primary method):
 ```
 Use the spec-task-executor agent to implement task {task-id} for {spec-name}.
 
