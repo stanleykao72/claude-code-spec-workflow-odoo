@@ -1,0 +1,139 @@
+name: 🐛 Bug Report
+description: Report a bug or issue with the Claude Code Spec Workflow
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill out the information below to help us diagnose and fix the issue.
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which component is affected by this bug?
+      options:
+        - CLI Setup (`claude-spec-setup`)
+        - Dashboard (`claude-spec-dashboard`)
+        - Spec Workflow Commands
+        - Bug Workflow Commands
+        - Task Generation
+        - Templates
+        - File Watching/Updates
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: Describe what happened...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior
+      placeholder: |
+        1. Run command '...'
+        2. Navigate to '...'
+        3. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: A clear and concise description of what you expected to happen.
+      placeholder: What should have happened instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: What actually happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: error-output
+    attributes:
+      label: Error Output
+      description: If applicable, paste any error messages or stack traces
+      render: shell
+      placeholder: Paste error output here...
+
+  - type: input
+    id: package-version
+    attributes:
+      label: Package Version
+      description: What version of the package are you using?
+      placeholder: "1.4.4"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: node-version
+    attributes:
+      label: Node.js Version
+      description: What version of Node.js are you using?
+      options:
+        - "18.x"
+        - "20.x"
+        - "21.x"
+        - "22.x"
+        - "Other (specify in additional context)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      description: What operating system are you using?
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - Other (specify in additional context)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: installation-method
+    attributes:
+      label: Installation Method
+      description: How did you install the package?
+      options:
+        - "npx @pimzino/claude-code-spec-workflow"
+        - "npm install -g @pimzino/claude-code-spec-workflow"
+        - "Local development"
+        - "Other"
+    validations:
+      required: true
+
+  - type: textarea
+    id: project-structure
+    attributes:
+      label: Project Structure
+      description: If relevant, describe your project structure and setup
+      placeholder: |
+        - Project type: Node.js/Python/Java/etc.
+        - Has .claude/ directory: Yes/No
+        - Using Claude Code: Yes/No
+        - Custom configuration: Yes/No
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here, including screenshots if helpful.

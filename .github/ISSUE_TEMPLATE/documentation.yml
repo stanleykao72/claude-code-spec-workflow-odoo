@@ -1,0 +1,142 @@
+name: 📚 Documentation
+description: Report issues with documentation or suggest documentation improvements
+title: "[Docs]: "
+labels: ["documentation", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Help us improve the documentation! Report issues or suggest improvements to make the project more accessible.
+
+  - type: dropdown
+    id: doc-type
+    attributes:
+      label: Documentation Type
+      description: What type of documentation issue is this?
+      options:
+        - "README improvements"
+        - "CLAUDE.md clarifications"
+        - "Template documentation"
+        - "Command documentation"
+        - "API/Usage examples"
+        - "Installation instructions"
+        - "Troubleshooting guide"
+        - "Missing documentation"
+        - "Outdated information"
+        - "Other"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: issue-category
+    attributes:
+      label: Issue Category
+      description: What kind of documentation issue is this?
+      options:
+        - "Error/Typo in existing docs"
+        - "Unclear or confusing explanation"
+        - "Missing information"
+        - "Outdated information"
+        - "New documentation needed"
+        - "Better examples needed"
+        - "Reorganization/Structure improvement"
+    validations:
+      required: true
+
+  - type: textarea
+    id: location
+    attributes:
+      label: Documentation Location
+      description: Where is the documentation issue located?
+      placeholder: |
+        - File: README.md, CLAUDE.md, etc.
+        - Section: Installation, Usage, etc.
+        - Line/Paragraph: If applicable
+        - URL: If it's online documentation
+
+  - type: textarea
+    id: current-content
+    attributes:
+      label: Current Content (if applicable)
+      description: Quote the current documentation that has issues
+      placeholder: |
+        Current text that needs improvement:
+        ```
+        [paste current content here]
+        ```
+
+  - type: textarea
+    id: issue-description
+    attributes:
+      label: Issue Description
+      description: Describe the documentation problem
+      placeholder: |
+        What's wrong with the current documentation?
+        - Is it unclear?
+        - Is information missing?
+        - Is it outdated?
+        - Are there errors?
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggested-improvement
+    attributes:
+      label: Suggested Improvement
+      description: How should the documentation be improved?
+      placeholder: |
+        Suggested changes or new content:
+        ```
+        [your suggested improvement here]
+        ```
+    validations:
+      required: true
+
+  - type: dropdown
+    id: user-level
+    attributes:
+      label: Target User Level
+      description: What user level would benefit most from this documentation improvement?
+      options:
+        - "Beginner (new to the tool)"
+        - "Intermediate (familiar with basic concepts)"
+        - "Advanced (power users)"
+        - "Developer (contributing to the project)"
+        - "All users"
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: What were you trying to accomplish when you encountered this documentation issue?
+      placeholder: |
+        Describe what you were trying to do:
+        - Setting up the workflow
+        - Using a specific feature
+        - Troubleshooting an issue
+        - Understanding concepts
+
+  - type: checkboxes
+    id: impact
+    attributes:
+      label: Impact
+      description: How does this documentation issue affect users?
+      options:
+        - label: "Prevents new users from getting started"
+        - label: "Makes existing features hard to discover"
+        - label: "Causes confusion about expected behavior"
+        - label: "Leads to incorrect usage"
+        - label: "Affects troubleshooting ability"
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Any other information that would help improve the documentation
+      placeholder: |
+        - Related documentation that might need updating
+        - Examples that would be helpful
+        - Common questions from users
+        - Screenshots or diagrams that might help
