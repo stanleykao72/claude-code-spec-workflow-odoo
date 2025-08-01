@@ -135,17 +135,23 @@ export class SpecWorkflowSetup {
       return;
     }
 
-    // List of available agent files (extracted to markdown)
+    // List of available agent files (all 15 agents now extracted to markdown)
     const agentFiles = [
       'spec-requirements-validator.md',
       'spec-design-validator.md', 
       'spec-task-validator.md',
-      'spec-task-executor.md'
-      // Note: Additional agents can be added here as they are extracted from agents.ts
-      // Remaining agents: spec-task-implementation-reviewer, spec-integration-tester,
-      // spec-completion-reviewer, bug-root-cause-analyzer, steering-document-updater,
-      // spec-dependency-analyzer, spec-test-generator, spec-documentation-generator,
-      // spec-performance-analyzer, spec-duplication-detector, spec-breaking-change-detector
+      'spec-task-executor.md',
+      'spec-task-implementation-reviewer.md',
+      'spec-integration-tester.md',
+      'spec-completion-reviewer.md',
+      'bug-root-cause-analyzer.md',
+      'steering-document-updater.md',
+      'spec-dependency-analyzer.md',
+      'spec-test-generator.md',
+      'spec-documentation-generator.md',
+      'spec-performance-analyzer.md',
+      'spec-duplication-detector.md',
+      'spec-breaking-change-detector.md'
     ];
 
     for (const agentFile of agentFiles) {

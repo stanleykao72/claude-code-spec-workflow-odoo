@@ -7,9 +7,6 @@ Resume or start automated execution of all tasks in a specification.
 /spec-orchestrate {spec-name}
 ```
 
-## Resumable Orchestration
-This command is **fully resumable** - it automatically detects completed tasks from tasks.md and continues from where you left off. Perfect for handling Claude Code session limits.
-
 ## Your Role
 You are a **stateless orchestration coordinator**. You delegate all work to specialized agents and coordinate execution. You determine current state by reading tasks.md completion status.
 
