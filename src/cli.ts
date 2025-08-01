@@ -7,6 +7,7 @@ import ora from 'ora';
 import { SpecWorkflowSetup } from './setup';
 import { detectProjectType, validateClaudeCode } from './utils';
 import { parseTasksFromMarkdown, generateTaskCommand } from './task-generator';
+import { getFileContent } from './get-content';
 import { readFileSync } from 'fs';
 import * as path from 'path';
 
@@ -269,6 +270,15 @@ program
       console.error(chalk.red('Error:'), error instanceof Error ? error.message : error);
       process.exit(1);
     }
+  });
+
+// Add get-content command
+program
+  .command('get-content')
+  .description('Read and print the contents of a file')
+  .argument('<file-path>', 'Full path to the file to read')
+  .action(async (filePath) => {
+    await getFileContent(filePath);
   });
 
 program.parse();
