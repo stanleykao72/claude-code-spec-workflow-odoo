@@ -1,0 +1,181 @@
+name: 🤖 Agent Issue
+description: Report issues or request improvements specifically for the agent system
+title: "[Agent]: "
+labels: ["agent", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This template is for issues specifically related to the agent system and individual agents.
+
+  - type: dropdown
+    id: agent-type
+    attributes:
+      label: Agent Type
+      description: Which agent is this issue related to?
+      options:
+        - "spec-requirements-validator"
+        - "spec-design-validator"
+        - "spec-task-validator"
+        - "spec-task-executor"
+        - "spec-task-implementation-reviewer"
+        - "spec-integration-tester"
+        - "spec-completion-reviewer"
+        - "bug-root-cause-analyzer"
+        - "steering-document-updater"
+        - "spec-dependency-analyzer"
+        - "spec-test-generator"
+        - "spec-documentation-generator"
+        - "spec-performance-analyzer"
+        - "spec-duplication-detector"
+        - "spec-breaking-change-detector"
+        - "Multiple agents"
+        - "Agent system/framework"
+        - "New agent needed"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: issue-category
+    attributes:
+      label: Issue Category
+      description: What type of agent issue is this?
+      options:
+        - "Bug - Agent not triggering when expected"
+        - "Bug - Agent producing incorrect results"
+        - "Bug - Agent failing with errors"
+        - "Bug - Agent performance issues"
+        - "Bug - Agent integration problems"
+        - "Enhancement - Improve agent accuracy"
+        - "Enhancement - Add agent capability"
+        - "Enhancement - Improve agent performance"
+        - "Enhancement - Better agent integration"
+        - "New Agent - Request for new agent type"
+        - "Documentation - Agent usage unclear"
+        - "Other"
+    validations:
+      required: true
+
+  - type: textarea
+    id: issue-description
+    attributes:
+      label: Issue Description
+      description: Detailed description of the agent issue
+      placeholder: Describe what's happening with the agent...
+    validations:
+      required: true
+
+  - type: textarea
+    id: agent-behavior
+    attributes:
+      label: Current Agent Behavior
+      description: What is the agent currently doing?
+      placeholder: |
+        - When does the agent trigger?
+        - What output does it produce?
+        - What actions does it take?
+        - Any error messages or failures?
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Agent Behavior
+      description: What should the agent be doing instead?
+      placeholder: |
+        - When should it trigger?
+        - What output should it produce?
+        - What actions should it take?
+        - What quality of results expected?
+    validations:
+      required: true
+
+  - type: textarea
+    id: context-information
+    attributes:
+      label: Context Information
+      description: Provide context about when this issue occurs
+      placeholder: |
+        - Spec/feature being worked on:
+        - Task being executed:
+        - File types involved:
+        - Project characteristics:
+        - Workflow stage:
+
+  - type: textarea
+    id: agent-output
+    attributes:
+      label: Agent Output/Logs
+      description: Any specific output, logs, or messages from the agent
+      render: shell
+      placeholder: Paste agent output, error messages, or logs here...
+
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce this agent issue?
+      placeholder: |
+        1. Set up spec with...
+        2. Run command...
+        3. Agent triggers when...
+        4. Observe behavior...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: agent-activation
+    attributes:
+      label: Agent Activation
+      description: How is the agent supposed to be activated?
+      options:
+        - "Proactively (automatically)"
+        - "Manual trigger"
+        - "Command-based"
+        - "Event-driven"
+        - "Unsure"
+
+  - type: textarea
+    id: quality-expectations
+    attributes:
+      label: Quality Expectations
+      description: What quality or performance standards should the agent meet?
+      placeholder: |
+        - Accuracy expectations:
+        - Performance requirements:
+        - Integration requirements:
+        - Output quality standards:
+
+  - type: textarea
+    id: impact-assessment
+    attributes:
+      label: Impact Assessment
+      description: How does this issue affect your workflow?
+      placeholder: |
+        - Workflow disruption:
+        - Quality impact:
+        - Time impact:
+        - Workarounds used:
+
+  - type: textarea
+    id: suggested-improvements
+    attributes:
+      label: Suggested Improvements
+      description: If you have ideas for how to improve the agent, share them here
+      placeholder: |
+        - Specific improvements:
+        - New capabilities needed:
+        - Integration enhancements:
+        - Performance optimizations:
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Any other relevant information about this agent issue
+      placeholder: |
+        - Related agents affected:
+        - Similar issues observed:
+        - Configuration details:
+        - Environment specifics:

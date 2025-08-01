@@ -21,6 +21,9 @@ body:
         - Task Generation
         - Templates
         - File Watching/Updates
+        - Agent System
+        - Agent Validation
+        - Agent Task Execution
         - Other
     validations:
       required: true
@@ -131,6 +134,30 @@ body:
         - Has .claude/ directory: Yes/No
         - Using Claude Code: Yes/No
         - Custom configuration: Yes/No
+
+  - type: dropdown
+    id: agent-related
+    attributes:
+      label: Agent Involvement
+      description: Was an agent involved in this issue?
+      options:
+        - "No - Manual operation"
+        - "Yes - Agent validation issue"
+        - "Yes - Agent task execution issue"
+        - "Yes - Agent performance issue"
+        - "Yes - Multiple agents involved"
+        - "Unsure"
+
+  - type: textarea
+    id: agent-details
+    attributes:
+      label: Agent Details (if applicable)
+      description: If agents were involved, provide details about which agents and what they were doing
+      placeholder: |
+        - Agent name(s): spec-requirements-validator, spec-task-executor, etc.
+        - Agent behavior observed: What did the agent do or fail to do?
+        - Expected agent behavior: What should have happened?
+        - Agent error messages: Any specific agent-related errors
 
   - type: textarea
     id: additional-context

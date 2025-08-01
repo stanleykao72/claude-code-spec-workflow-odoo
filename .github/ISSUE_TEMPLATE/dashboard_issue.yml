@@ -19,8 +19,11 @@ body:
         - "Bug - File updates not reflecting"
         - "Bug - UI/Display issues"
         - "Bug - Multi-project mode issues"
+        - "Bug - Agent status display"
         - "Feature - New dashboard functionality"
         - "Feature - UI/UX improvements"
+        - "Feature - Agent integration"
+        - "Feature - Agent monitoring"
         - "Performance issue"
         - "Other"
     validations:
@@ -114,6 +117,30 @@ body:
         2. Navigate to...
         3. Perform action...
         4. Observe...
+
+  - type: dropdown
+    id: agent-functionality
+    attributes:
+      label: Agent Dashboard Functionality
+      description: Is this related to agent functionality in the dashboard?
+      options:
+        - "No - Not agent-related"
+        - "Yes - Agent status not displaying"
+        - "Yes - Agent activity monitoring"
+        - "Yes - Agent performance metrics"
+        - "Yes - Agent logs/output display"
+        - "Yes - Agent integration with dashboard"
+
+  - type: textarea
+    id: agent-dashboard-details
+    attributes:
+      label: Agent Dashboard Details (if applicable)
+      description: If this involves agent functionality in the dashboard, provide details
+      placeholder: |
+        - Which agents: spec-requirements-validator, spec-task-executor, etc.
+        - Expected dashboard behavior: What should be displayed?
+        - Current dashboard behavior: What's currently happening?
+        - Agent monitoring needs: What information should be tracked?
 
   - type: textarea
     id: additional-context

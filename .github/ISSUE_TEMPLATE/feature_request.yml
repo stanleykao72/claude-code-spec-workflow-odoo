@@ -22,6 +22,10 @@ body:
         - Task Generation
         - Project Integration
         - File Watching/Updates
+        - Agent System
+        - Agent Validation & Review
+        - Agent Task Execution
+        - Agent Performance & Analysis
         - Other
     validations:
       required: true
@@ -76,6 +80,9 @@ body:
         - "Integration Improvement"
         - "Developer Experience"
         - "Performance Improvement"
+        - "New Agent"
+        - "Agent Enhancement"
+        - "Agent Validation Improvement"
         - "Other"
     validations:
       required: true
@@ -121,6 +128,30 @@ body:
         - label: This should work across all operating systems (Windows, macOS, Linux)
         - label: This should maintain backward compatibility with existing workflows
         - label: This should integrate well with Claude Code
+
+  - type: dropdown
+    id: agent-involvement
+    attributes:
+      label: Agent Involvement
+      description: Does this feature request involve agents?
+      options:
+        - "No - Not agent-related"
+        - "New agent needed"
+        - "Enhancement to existing agent"
+        - "Agent integration improvement"
+        - "Agent performance optimization"
+        - "Agent validation enhancement"
+
+  - type: textarea
+    id: agent-details
+    attributes:
+      label: Agent Details (if applicable)
+      description: If this involves agents, provide specific details
+      placeholder: |
+        - Specific agent(s): spec-requirements-validator, spec-task-executor, etc.
+        - Agent capability needed: What should the agent be able to do?
+        - Integration points: How should it work with existing agents?
+        - Triggers: When should the agent be activated?
 
   - type: textarea
     id: additional-context
