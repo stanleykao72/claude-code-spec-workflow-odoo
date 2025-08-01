@@ -1382,9 +1382,9 @@ export function getSpecOrchestrateCommand(): string {
 Resume or start automated execution of all tasks in a specification.
 
 ## Usage
-\`\`\`
+\\\`\\\`\\\`
 /spec-orchestrate {spec-name}
-\`\`\`
+\\\`\\\`\\\`
 
 ## Resumable Orchestration
 This command is **fully resumable** - it automatically detects completed tasks from tasks.md and continues from where you left off. Perfect for handling Claude Code session limits.
@@ -1402,12 +1402,12 @@ You are a **stateless orchestration coordinator**. You delegate all work to spec
 
 ### 2. Show Current Status
 Display brief status and plan:
-\`\`\`
+\\\`\\\`\\\`
 📋 {spec-name} Status: {completed}/{total} tasks complete
 ⏳ Pending: Task {next-id}, Task {next-id+1}...
 ▶️ Next: Task {next-id} - {description}
 Continue orchestration? [y/N]
-\`\`\`
+\\\`\\\`\\\`
 
 ### 3. Execute Tasks Continuously
 Execute each pending task and **automatically continue** to the next:
@@ -1415,11 +1415,11 @@ Execute each pending task and **automatically continue** to the next:
 **For each uncompleted task ([ ] checkbox):**
 
 **Step 1 - Announce:**
-\`🔄 Task {id}: {description}\`
+\\\`🔄 Task {id}: {description}\\\`
 
 **Step 2 - Delegate to Agent:**
 Use spec-task-executor agent (primary method):
-\`\`\`
+\\\`\\\`\\\`
 Use the spec-task-executor agent to implement task {task-id} for {spec-name}.
 
 Context: Load .claude/specs/{spec-name}/ and .claude/steering/
@@ -1428,32 +1428,32 @@ Requirements: {requirements-ref}
 Leverage: {leverage-info}
 
 Mark complete in tasks.md when done.
-\`\`\`
+\\\`\\\`\\\`
 
 **Step 3 - Fallback (if agent unavailable):**
-\`/{spec-name}-task-{task-id}\`
+\\\`/{spec-name}-task-{task-id}\\\`
 
 **Step 4 - Report completion:**
-\`✅ Task {id} complete\`
+\\\`✅ Task {id} complete\\\`
 
 **Step 5 - Continue automatically:**
 **CRITICAL**: Immediately proceed to next pending task without waiting for user input. Only pause for errors or when all tasks complete.
 
 ### 4. Error Handling
 If task fails:
-\`\`\`
+\\\`\\\`\\\`
 ⚠️ Task {id} failed: {brief-error}
 Options: 1) Retry 2) Skip 3) Stop
-\`\`\`
+\\\`\\\`\\\`
 
 Use spec-error-resolver agent for complex issues.
 
 ### 5. Completion
 When no pending tasks remain:
-\`\`\`
+\\\`\\\`\\\`
 🎉 {spec-name} complete: {total}/{total} tasks ✅
 Run /spec-completion-review {spec-name} for final validation
-\`\`\`
+\\\`\\\`\\\`
 
 ## Session Recovery
 The orchestrator is **completely stateless**:
@@ -1464,11 +1464,11 @@ The orchestrator is **completely stateless**:
 
 Example recovery scenario:
 1. Session 1: Complete tasks 1-3, session limit hit
-2. Session 2: Run \`/spec-orchestrate spec-name\` → automatically starts from task 4
+2. Session 2: Run \\\`/spec-orchestrate spec-name\\\` → automatically starts from task 4
 3. Session 3: Run same command → continues from wherever tasks.md shows [ ]
 
 ## Execution Modes
-The orchestrator runs in **fully automated mode** by default. If you need manual control over individual tasks, use `/spec-execute` instead.
+The orchestrator runs in **fully automated mode** by default. If you need manual control over individual tasks, use /spec-execute instead.
 
 ## Key Rules
 - **Read tasks.md first** - always determine current state from completion checkboxes
