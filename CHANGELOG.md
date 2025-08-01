@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.4] - 2025-08-01
+
+### Added
+- **Spec Orchestrator** (`/spec-orchestrate`) - NEW! Intelligent automation system that executes all tasks in a specification automatically
+  - Fully resumable across Claude Code session limits  
+  - Intelligent error handling and recovery
+  - Delegates to specialized agents for implementation
+  - Progress tracking and status updates
+  - Interactive mode for manual approval
+  - Stateless design using tasks.md as single source of truth
+
+### Fixed
+- README documentation has been simplified.
+
 ## [1.4.3] - 2025-07-31
 
 ### Added

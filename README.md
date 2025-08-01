@@ -3,435 +3,295 @@
 [![npm version](https://badge.fury.io/js/@pimzino%2Fclaude-code-spec-workflow.svg?cacheSeconds=300)](https://badge.fury.io/js/@pimzino%2Fclaude-code-spec-workflow)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-> Automated workflows for Claude Code. Features **spec-driven development** for new features (**Requirements → Design → Tasks → Implementation**) and **streamlined bug fix workflow** for quick issue resolution (**Report → Analyze → Fix → Verify**).
+**Automated workflows for Claude Code with intelligent orchestration.**
+
+Transform your development with structured workflows: **Requirements → Design → Tasks → Implementation** for new features, plus streamlined **Report → Analyze → Fix → Verify** for bug fixes.
 
 ## ☕ Support This Project
 
-If you support my work and enjoy this project, please help contribute to keeping me awake and releasing updates by buying me a coffee! ❤️
-
 <a href="https://buymeacoffee.com/Pimzino" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
+
+---
 
 ## 🚀 Quick Start
 
-Install and run in any project directory:
-
 ```bash
-npx @pimzino/claude-code-spec-workflow
-```
-
-That's it! The workflow will be automatically set up in your project.
-
-## 📦 Installation Options
-
-### NPX (Recommended)
-```bash
-# Run once in your project directory
+# Install and setup in any project
 npx @pimzino/claude-code-spec-workflow
 
-# Test the setup
-npx @pimzino/claude-code-spec-workflow test
+# Start using workflows in Claude Code
+/spec-create user-dashboard "User profile management"
+/spec-orchestrate user-dashboard  # 🎯 NEW! Automated execution
 ```
 
-### Global Installation
-```bash
-# Install globally
-npm install -g @pimzino/claude-code-spec-workflow
+---
 
-# Use anywhere
-claude-spec-setup
+## 📦 Installation
+
+| Method | Command | Use Case |
+|--------|---------|----------|
+| **NPX (Recommended)** | `npx @pimzino/claude-code-spec-workflow` | One-time setup |
+| **Global** | `npm i -g @pimzino/claude-code-spec-workflow` | Multiple projects |
+| **Local** | `npm i -D @pimzino/claude-code-spec-workflow` | Single project |
+
+---
+
+## ✨ What You Get
+
+- **📁 Complete .claude/ structure** - All files and directories
+- **📝 14 slash commands** - 9 spec workflow + 5 bug fix workflow  
+- **🎯 Intelligent orchestrator** - Automated task execution
+- **🤖 15 specialized agents** - Enhanced automation (optional)
+- **📊 Real-time dashboard** - Monitor progress visually
+- **🔧 Auto-generated commands** - One command per task
+- **📋 Document templates** - Professional spec documents
+- **⚙️ Project steering** - Persistent context and standards
+
+---
+
+## 🔄 Workflows Overview
+
+### 📊 **Spec Workflow** (New Features)
+
+**Complete automation in one command:**
+
+```bash
+/spec-create feature-name "Description"
 ```
 
-### Local Installation
-```bash
-# Install as dev dependency
-npm install --save-dev @pimzino/claude-code-spec-workflow
+**What happens:**
+1. **Requirements** → User stories + acceptance criteria
+2. **Design** → Technical architecture + diagrams  
+3. **Tasks** → Atomic, agent-friendly breakdown
+4. **Commands** → Auto-generated task commands (optional)
 
-# Run via package.json script
-npx claude-spec-setup
+**Execute tasks:**
+```bash
+# Automated (recommended)
+/spec-orchestrate feature-name
+
+# Manual control  
+/spec-execute 1 feature-name
+/feature-name-task-1        # Auto-generated
 ```
 
-## 🎯 What It Does
-
-- The setup automatically creates:
-- **📁 .claude/ directory structure** with all necessary files
-- **📝 10 slash commands** (5 spec workflow + 5 bug fix workflow)
-- **🎯 Steering documents** for persistent project context
-- **🤖 Auto-generated task commands** for each spec
-- **📋 Document templates** for both workflows
-- **⚙️ Configuration files** for workflow automation
-- **🔧 NPX-based task command generation** for dynamic task commands
-- **📖 Complete workflow instructions** embedded in each command
-
-## 🔄 Workflow Overview
-
-### 📊 Spec Driven Development Workflow
-
-#### Steering Setup (`/spec-steering-setup`)
-##### Only relevant to run first if running in a current project, otherwise start from `/spec-create`
-- Creates persistent project context documents
-- Analyzes your codebase and gathers project information
-- Generates product.md, tech.md, and structure.md
-- Ensures all specs align with your project's vision and standards
-
-#### Complete Workflow (`/spec-create`)
-The `/spec-create` command handles the entire spec workflow in one seamless process:
-
-1. **Requirements Phase**
-   - Generates user stories and acceptance criteria
-   - Uses EARS format (WHEN/IF/THEN statements)
-   - Aligns with product vision from steering documents
-   - Automatically validated before user review
-
-2. **Design Phase**
-   - Creates technical architecture and design
-   - Follows technical standards from steering documents
-   - Includes Mermaid diagrams for visualization
-   - Validates against requirements coverage
-
-3. **Tasks Phase**
-   - Breaks design into atomic coding tasks
-   - Ensures all requirements and design components are covered
-   - References specific requirements for traceability
-   - Validates task atomicity for agent execution
-
-4. **Task Generation** (Optional)
-   - Generates individual task commands for granular execution
-   - Each task becomes its own executable command
-
-#### Implementation Phase (`/spec-execute`)
-- Executes tasks systematically
-- Follows all steering document guidelines
-- Validates against requirements
-- Ensures quality and consistency
-
-### 🐛 Bug Fix Workflow (for bug fixes)
-
-#### 1. **Report Phase** (`/bug-create`)
-- Documents the bug with structured format
-- Captures expected vs actual behavior
-- Records reproduction steps and environment
-- Assesses impact and severity
-
-#### 2. **Analysis Phase** (`/bug-analyze`)
-- Investigates root cause systematically
-- Maps affected code locations
-- Plans fix strategy and approach
-- Considers alternative solutions
-
-#### 3. **Fix Phase** (`/bug-fix`)
-- Implements targeted, minimal fix
-- Follows project coding standards
-- Adds appropriate tests
-- Preserves existing functionality
-
-#### 4. **Verification Phase** (`/bug-verify`)
-- Verifies bug is resolved
-- Tests for regressions
-- Confirms code quality
-- Documents resolution
-
-## 🛠️ Usage
-
-After setup, use these commands in Claude Code:
-
-### 📊 Spec Workflow Commands (for new features)
+### 🐛 **Bug Fix Workflow** (Quick Fixes)
 
 ```bash
-# Set up steering documents (recommended first step!)
-/spec-steering-setup
-
-# Create a new feature spec (handles complete workflow)
-/spec-create user-authentication "Secure login system"
-
-# Execute specific tasks (two ways):
-/spec-execute 1                    # Traditional way
-/user-authentication-task-1       # Auto-generated command (after task generation)
-
-# Execute subtasks
-/user-authentication-task-2.1     # Auto-generated for subtasks
-
-# Check status
-/spec-status
-
-# List all specs
-/spec-list
+/bug-create issue-name "Description"  # Document the bug
+/bug-analyze                          # Find root cause
+/bug-fix                             # Implement solution  
+/bug-verify                          # Confirm resolution
 ```
 
-### 🐛 Bug Fix Workflow Commands (for bug fixes)
+### 🎯 **Steering Setup** (Project Context)
 
 ```bash
-# Start a new bug fix
-/bug-create login-timeout "Users getting logged out too quickly"
-
-# Analyze the bug
-/bug-analyze
-
-# Implement the fix
-/bug-fix
-
-# Verify the fix works
-/bug-verify
-
-# Check bug status
-/bug-status
+/spec-steering-setup  # Creates product.md, tech.md, structure.md
 ```
 
-### ⚖️ When to Use Which Workflow?
+---
 
-**Use Spec Workflow for:**
-- New features or major functionality
-- Complex changes requiring design planning
-- Features that need detailed requirements gathering
-- Long-term development projects
+## 🛠️ Commands Reference
 
-**Use Bug Fix Workflow for:**
-- Fixing existing functionality
-- Small, targeted changes
-- Quick issue resolution
-- Troubleshooting and debugging
+<details>
+<summary><strong>📊 Spec Workflow Commands</strong></summary>
 
-### 🆕 Auto-Generated Task Commands
+| Command | Purpose |
+|---------|---------|
+| `/spec-steering-setup` | Create project context documents |
+| `/spec-create <name>` | Complete spec workflow |
+| `/spec-orchestrate <name>` | Automated execution |
+| `/spec-execute <task-id>` | Manual task execution |
+| `/<name>-task-<id>` | Auto-generated task commands |
+| `/spec-status` | Show progress |
+| `/spec-list` | List all specs |
+| `/spec-completion-review` | Final validation |
 
-During `/spec-create` you will be asked if you want task commands generated. If
-you answer **yes**, Claude Code automatically runs
-`npx @pimzino/claude-code-spec-workflow@latest generate-task-commands <spec-name>`
-to create commands for each approved task. You can also run this command
-yourself later.
+</details>
 
-Benefits of task commands:
-- **Easier execution**: `/user-auth-task-1` instead of `/spec-execute 1 user-authentication`
-- **Better organization**: Commands grouped by spec in `.claude/commands/{spec-name}/`
-- **Auto-completion**: Claude Code can suggest spec-specific commands
-- **Clear purpose**: Each command shows exactly what task it executes
+<details>
+<summary><strong>🐛 Bug Fix Commands</strong></summary>
 
-### 📊 Real-Time Dashboard
+| Command | Purpose |
+|---------|---------|
+| `/bug-create <name>` | Document bug with structured format |
+| `/bug-analyze` | Investigate root cause |
+| `/bug-fix` | Implement targeted solution |
+| `/bug-verify` | Verify resolution |
+| `/bug-status` | Show bug fix progress |
 
-Monitor your specs and tasks with a beautiful web dashboard:
+</details>
 
+---
+
+## 🎯 Key Features
+
+### 🤖 **Intelligent Orchestrator** (NEW!)
+- **Fully automated** task execution
+- **Session resumable** - handles Claude Code limits  
+- **Error recovery** - smart debugging and retry
+- **Continuous execution** - no manual intervention needed
+
+### 🧠 **Specialized Agents** (Optional)
+15 AI agents for enhanced automation:
+
+**Core Workflow:** `spec-task-executor`, `spec-requirements-validator`, `spec-design-validator`, `spec-task-validator`
+
+**Quality Assurance:** `spec-task-implementation-reviewer`, `spec-integration-tester`, `spec-completion-reviewer`, `spec-duplication-detector`
+
+**Analysis:** `spec-dependency-analyzer`, `spec-test-generator`, `spec-performance-analyzer`, `spec-breaking-change-detector`
+
+**Documentation:** `spec-documentation-generator`, `steering-document-updater`
+
+**Bug Fixes:** `bug-root-cause-analyzer`
+
+> **Note:** Agents are optional - everything works with built-in fallbacks.
+
+### 📊 **Real-Time Dashboard**
 ```bash
-# Start the dashboard
 npx -p @pimzino/claude-code-spec-workflow claude-spec-dashboard
-
-# Start on custom port
-npx -p @pimzino/claude-code-spec-workflow claude-spec-dashboard --port 8080
-
-# Auto-open in browser
-npx -p @pimzino/claude-code-spec-workflow claude-spec-dashboard --open
-
-# Alternative: If you have the package installed globally
-npm install -g @pimzino/claude-code-spec-workflow
-claude-spec-dashboard
 ```
+- Live progress tracking
+- WebSocket updates  
+- Git integration
+- Modern UI with Tailwind CSS
 
-**Dashboard Features:**
-- **Real-time updates** - See changes as they happen
-- **Steering documents status** - Visual indicators for product.md, tech.md, and structure.md
-- **Progress tracking** - Visual progress bars for each spec
-- **Task breakdown** - Expandable task lists with status
-- **Code reuse visibility** - See leverage references at a glance
-- **Git integration** - Shows current branch with GitHub links
-- **Modern UI** - Built with Tailwind CSS and petite-vue
-- **Lightweight** - No heavy frameworks, just fast tools
-- **WebSocket powered** - Instant updates when files change
+---
 
-## 📊 Command Line Options
-
-```bash
-# Setup in current directory
-npx @pimzino/claude-code-spec-workflow
-
-# Setup in specific directory
-npx @pimzino/claude-code-spec-workflow --project /path/to/project
-
-# Force overwrite existing files
-npx @pimzino/claude-code-spec-workflow --force
-
-# Skip confirmation prompts
-npx @pimzino/claude-code-spec-workflow --yes
-
-# Test the setup
-npx @pimzino/claude-code-spec-workflow test
-```
-
-## 🎯 Steering Documents (NEW!)
-
-Steering documents provide persistent project context that guides all spec development:
-
-### **Product Document** (`product.md`)
-- Product vision and purpose
-- Target users and their needs
-- Key features and objectives
-- Success metrics
-
-### **Technology Document** (`tech.md`)
-- Technology stack and frameworks
-- Development tools and practices
-- Technical constraints and requirements
-- Third-party integrations
-
-### **Structure Document** (`structure.md`)
-- File organization patterns
-- Naming conventions
-- Import patterns
-- Code organization principles
-
-Run `/spec-steering-setup` to create these documents. Claude will analyze your project and help you define these standards.
-
-## 🎨 Features
-
-### ✅ **Zero Configuration**
-- Works out of the box with any project
-- Auto-detects project type (Node.js, Python, Java, etc.)
-- Validates Claude Code installation
-
-### ✅ **Interactive Setup**
-- Beautiful CLI with progress indicators
-- Confirmation prompts for safety
-- Helpful error messages and guidance
-
-### ✅ **Smart File Management**
-- Complete workflow instructions in each command file
-- Creates comprehensive directory structure
-- Includes all necessary templates and configs
-
-### ✅ **Professional Quality**
-- TypeScript implementation
-- Comprehensive error handling
-- Follows npm best practices
-
-### ✅ **Steering Document Integration**
-- Persistent project context across all specs
-- Automatic alignment with project standards
-- Consistent code generation
-- Reduced need for repetitive explanations
-
-## 🏗️ Project Structure After Setup
+## 🗂️ Project Structure
 
 ```
 your-project/
 ├── .claude/
-│   ├── commands/
-│   │   ├── spec-create.md            # Complete workflow
-│   │   ├── spec-execute.md
-│   │   ├── spec-status.md
-│   │   ├── spec-list.md
-│   │   ├── spec-steering-setup.md
-│   │   └── {spec-name}/              # Auto-generated
-│   │       ├── task-1.md
-│   │       ├── task-2.md
-│   │       └── task-2.1.md
-│   ├── steering/                     # NEW!
-│   │   ├── product.md               # Product vision & goals
-│   │   ├── tech.md                  # Technical standards
-│   │   └── structure.md             # Project conventions
-│   ├── templates/
-│   │   ├── requirements-template.md
-│   │   ├── design-template.md
-│   │   └── tasks-template.md
-│   ├── specs/
-│   │   └── (your specs will be created here)
-│   └── spec-config.json
+│   ├── commands/           # 14 slash commands + auto-generated
+│   ├── steering/          # product.md, tech.md, structure.md  
+│   ├── templates/         # Document templates
+│   ├── specs/            # Generated specifications
+│   ├── bugs/             # Bug fix workflows
+│   ├── agents/           # AI agents (optional)
+│   └── spec-config.json  # Configuration
 ```
-
-## 🧪 Testing
-
-The package includes a built-in test command:
-
-```bash
-# Test setup in temporary directory
-npx @pimzino/claude-code-spec-workflow test
-```
-
-## 📋 Requirements
-
-- **Node.js** 16.0.0 or higher
-- **Claude Code** installed and configured
-- Any project directory
-
-## 🔧 Troubleshooting
-
-### Common Issues
-
-**❓ Command not found after NPX**
-```bash
-# Make sure you're using the correct package name
-npx @pimzino/claude-code-spec-workflow
-```
-
-**❓ Setup fails with permission errors**
-```bash
-# Try with different directory permissions
-npx @pimzino/claude-code-spec-workflow --project ~/my-project
-```
-
-**❓ Claude Code not detected**
-```bash
-# Install Claude Code first
-npm install -g @anthropic-ai/claude-code
-```
-
-### Debug Information
-
-```bash
-# Show verbose output
-DEBUG=* npx @pimzino/claude-code-spec-workflow
-
-# Check package version
-npx @pimzino/claude-code-spec-workflow --version
-```
-
-## 🌟 Examples
-
-### Basic Usage
-```bash
-cd my-awesome-project
-npx @pimzino/claude-code-spec-workflow
-claude
-# Type: /spec-create user-dashboard "User profile management"
-```
-
-### Advanced Usage
-```bash
-# Setup multiple projects
-for dir in project1 project2 project3; do
-  npx @pimzino/claude-code-spec-workflow --project $dir --yes
-done
-```
-
-## 📚 Documentation
-
-- **[Full Documentation](https://github.com/pimzino/claude-code-spec-workflow#readme)**
-- **[Claude Code Docs](https://docs.anthropic.com/claude-code)**
-
-## 🤝 Contributing
-
-Contributions are welcome! Please see our [Contributing Guide](https://github.com/pimzino/claude-code-spec-workflow/blob/main/CONTRIBUTING.md).
-
-## 📄 License
-
-MIT License - see [LICENSE](https://github.com/pimzino/claude-code-spec-workflow/blob/main/LICENSE) for details.
-
-## 🏷️ Changelog
-
-See [CHANGELOG.md](https://github.com/pimzino/claude-code-spec-workflow/blob/main/CHANGELOG.md) for version history.
 
 ---
 
-**Transform your development workflow with automated spec-driven development!** 🚀
+## 🚦 When To Use What
 
-Made with ❤️ by [Pimzino](https://github.com/pimzino)
+| Scenario | Recommended Approach |
+|----------|---------------------|
+| **New feature, well-defined** | `/spec-orchestrate` (automated) |
+| **Complex/experimental feature** | `/spec-execute` (manual control) |
+| **Bug in existing code** | Bug workflow (`/bug-create` → `/bug-verify`) |
+| **Learning the codebase** | Manual execution with individual commands |
+| **Production deployment** | Full spec workflow with completion review |
 
-## Special Thanks
-@pimzino - for the initial setup
-@boundless-oss - Adding steering documents
-@mquinnv - spec workflow dashboard feature
+---
 
-## Acknowledgments
+## ⚙️ Setup Options
 
-- [Claude Code](https://docs.anthropic.com/claude-code)
-- [Kiro](https://kiro.dev/)
-- [Easy Approach to Requirements Syntax](https://en.wikipedia.org/wiki/Easy_Approach_to_Requirements_Syntax)
-- [Mermaid](https://mermaid.js.org/)
-- [Prettier](https://prettier.io/)
-- [ESLint](https://eslint.org/)
-- [Jest](https://jestjs.io/)
+```bash
+# Basic setup
+npx @pimzino/claude-code-spec-workflow
+
+# Advanced options  
+npx @pimzino/claude-code-spec-workflow --project /path --force --yes
+```
+
+**During setup you choose:**
+- ✅ **Enable agents?** Enhanced automation vs simpler setup
+- ✅ **Project analysis** Auto-detection of frameworks and patterns
+
+---
+
+## 📚 Examples
+
+<details>
+<summary><strong>Basic Workflow Example</strong></summary>
+
+```bash
+# 1. Setup (one time)
+cd my-project
+npx @pimzino/claude-code-spec-workflow
+
+# 2. Create steering documents (recommended)
+claude
+/spec-steering-setup
+
+# 3. Create feature spec
+/spec-create user-authentication "Secure login system"
+
+# 4. Automated execution
+/spec-orchestrate user-authentication
+
+# 5. Monitor progress  
+/spec-status user-authentication
+```
+
+</details>
+
+<details>
+<summary><strong>Bug Fix Example</strong></summary>
+
+```bash
+/bug-create login-timeout "Users logged out too quickly"
+/bug-analyze
+/bug-fix  
+/bug-verify
+```
+
+</details>
+
+---
+
+## 🛟 Troubleshooting
+
+<details>
+<summary><strong>Common Issues</strong></summary>
+
+**❓ "Command not found"**
+```bash
+npx @pimzino/claude-code-spec-workflow  # Use full package name
+```
+
+**❓ "Claude Code not detected"**  
+```bash
+npm install -g @anthropic-ai/claude-code
+```
+
+**❓ "Permission errors"**
+```bash
+npx @pimzino/claude-code-spec-workflow --project ~/my-project
+```
+
+</details>
+
+---
+
+## 📋 Requirements
+
+- **Node.js** 16.0.0+
+- **Claude Code** installed
+- Any project directory
+
+---
+
+## 🔗 Links
+
+- **[Full Documentation](https://github.com/pimzino/claude-code-spec-workflow#readme)**
+- **[Claude Code Docs](https://docs.anthropic.com/claude-code)**
+- **[Report Issues](https://github.com/pimzino/claude-code-spec-workflow/issues)**
+
+---
+
+## 📄 License & Credits
+
+**MIT License** - [LICENSE](LICENSE)
+
+**Made with ❤️ by [Pimzino](https://github.com/pimzino)**
+
+**Special Thanks:**
+- @pimzino - Initial setup
+- @boundless-oss - Steering documents  
+- @mquinnv - Dashboard feature
+
+**Powered by:** [Claude Code](https://docs.anthropic.com/claude-code) • [Mermaid](https://mermaid.js.org/) • [TypeScript](https://www.typescriptlang.org/)

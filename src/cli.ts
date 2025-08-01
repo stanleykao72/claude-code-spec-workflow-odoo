@@ -25,7 +25,7 @@ const program = new Command();
 
 program
   .name('claude-spec-setup')
-  .description('Set up Claude Code Spec Workflow in your project')
+  .description('Set up Claude Code Spec Workflow with automated orchestration in your project')
   .version(packageJson.version);
 
 program
@@ -34,7 +34,7 @@ program
   .option('-y, --yes', 'Skip confirmation prompts')
   .action(async (options) => {
     console.log(chalk.cyan.bold('🚀 Claude Code Spec Workflow Setup'));
-    console.log(chalk.gray('Claude Code Automated spec-driven development workflow'));
+    console.log(chalk.gray('Automated spec-driven development with intelligent orchestration'));
     console.log();
 
     const projectPath = options.project;
@@ -85,8 +85,9 @@ program
         console.log();
         console.log(chalk.cyan('This will create:'));
         console.log(chalk.gray('  📁 .claude/ directory structure'));
-        console.log(chalk.gray('  📝 10 slash commands (5 spec workflow + 5 bug fix workflow)'));
+        console.log(chalk.gray('  📝 14 slash commands (9 spec workflow + 5 bug fix workflow)'));
         console.log(chalk.gray('  🤖 Auto-generated task commands'));
+        console.log(chalk.gray('  🎯 Intelligent orchestrator for automated execution'));
         console.log(chalk.gray('  📋 Document templates'));
         console.log(chalk.gray('  🔧 NPX-based task command generation'));
         console.log(chalk.gray('  ⚙️  Configuration files'));
@@ -118,7 +119,8 @@ program
       console.log(chalk.cyan('Available commands:'));
       console.log(chalk.white.bold('📊 Spec Workflow (for new features):'));
       console.log(chalk.gray('  /spec-create <feature-name>  - Create a new spec'));
-      console.log(chalk.gray('  /spec-execute <task-id>      - Execute tasks'));
+      console.log(chalk.gray('  /spec-orchestrate <spec>     - 🎯 NEW! Automated execution'));
+      console.log(chalk.gray('  /spec-execute <task-id>      - Execute tasks manually'));
       console.log(chalk.gray('  /{spec-name}-task-{id}       - Auto-generated task commands'));
       console.log(chalk.gray('  /spec-status                 - Show status'));
       console.log(chalk.gray('  /spec-completion-review      - Final review when all tasks complete'));

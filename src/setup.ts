@@ -7,6 +7,7 @@ import {
   getSpecListCommand,
   getSpecCompletionReviewCommand,
   getSpecSteeringSetupCommand,
+  getSpecOrchestrateCommand,
   getBugCreateCommand,
   getBugAnalyzeCommand,
   getBugFixCommand,
@@ -101,6 +102,7 @@ export class SpecWorkflowSetup {
     const commands = {
       'spec-create': getSpecCreateCommand(),
       'spec-execute': getSpecExecuteCommand(),
+      'spec-orchestrate': getSpecOrchestrateCommand(),
       'spec-status': getSpecStatusCommand(),
       'spec-list': getSpecListCommand(),
       'spec-completion-review': getSpecCompletionReviewCommand(),
