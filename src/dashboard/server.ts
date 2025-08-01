@@ -156,7 +156,7 @@ export class DashboardServer {
     // Get raw bug markdown content
     this.app.get('/api/bugs/:name/:document', async (request, reply) => {
       const { name, document } = request.params as { name: string; document: string };
-      const allowedDocs = ['report', 'analysis', 'verification'];
+      const allowedDocs = ['report', 'analysis', 'fix', 'verification'];
       
       if (!allowedDocs.includes(document)) {
         reply.code(400).send({ error: 'Invalid document type' });

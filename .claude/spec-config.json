@@ -8,6 +8,7 @@
     "supported_formats": [
       "markdown",
       "mermaid"
-    ]
+    ],
+    "agents_enabled": true
   }
 }

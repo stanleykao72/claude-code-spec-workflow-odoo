@@ -215,21 +215,27 @@ PetiteVue.createApp({
 
   // View bug markdown
   async viewBugMarkdown(bugName, docType) {
-    this.markdownPreview.loading = true;
     this.markdownPreview.show = true;
-    this.markdownPreview.title = `${bugName} - ${docType}`;
-    this.markdownPreview.content = 'Loading...';
+    this.markdownPreview.loading = true;
+    this.markdownPreview.title = `${bugName} - ${docType}.md`;
     
     try {
       const response = await fetch(`/api/bugs/${bugName}/${docType}`);
-      if (!response.ok) throw new Error('Failed to fetch document');
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Response not OK:', response.status, errorText);
+        throw new Error(`Failed to fetch ${docType} content: ${response.status}`);
+      }
       
       const data = await response.json();
-      const html = marked.parse(data.content);
-      this.markdownPreview.content = html;
+      console.log('Setting bug markdown preview content, data:', data);
+      this.markdownPreview.content = data.content;
+      this.markdownPreview.rawContent = data.content;  // Store raw markdown
+      console.log('markdownPreview.rawContent is now:', this.markdownPreview.rawContent?.substring(0, 100));
     } catch (error) {
-      console.error('Error loading bug markdown:', error);
-      this.markdownPreview.content = '<p class="text-red-500">Error loading document</p>';
+      console.error(`Error fetching ${docType} content:`, error);
+      this.markdownPreview.content = `# Error loading ${docType} content\n\n${error.message}`;
+      this.markdownPreview.rawContent = '';
     } finally {
       this.markdownPreview.loading = false;
     }

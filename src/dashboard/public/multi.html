@@ -1102,21 +1102,8 @@
                         {{ bug.displayName }}
                       </h3>
                       
-                      <!-- Bug Status -->
+                      <!-- Bug Severity -->
                       <div class="mt-2 flex items-center gap-4 text-sm">
-                        <span 
-                          class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                          :class="{
-                            'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200': bug.status === 'reported',
-                            'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200': bug.status === 'analyzing',
-                            'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200': bug.status === 'fixing',
-                            'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200': bug.status === 'verifying',
-                            'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': bug.status === 'resolved'
-                          }"
-                        >
-                          {{ bug.status }}
-                        </span>
-                        
                         <span v-if="bug.report?.severity" 
                           class="inline-flex items-center text-xs"
                           :class="{
@@ -1150,6 +1137,14 @@
                         </button>
                         
                         <button
+                          v-if="bug.fix?.exists"
+                          @click="viewBugMarkdown(selectedProject.path, bug.name, 'fix')"
+                          class="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                        >
+                          <i class="fas fa-wrench mr-1"></i>Fix
+                        </button>
+                        
+                        <button
                           v-if="bug.verification?.exists"
                           @click="viewBugMarkdown(selectedProject.path, bug.name, 'verification')"
                           class="text-sm text-blue-600 dark:text-blue-400 hover:underline"
@@ -1158,6 +1153,21 @@
                         </button>
                       </div>
                     </div>
+                    
+                    <!-- Bug Status Pill -->
+                    <span 
+                      class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
+                      :class="{
+                        'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200': bug.status === 'reported',
+                        'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200': bug.status === 'analyzing',
+                        'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200': bug.status === 'fixing',
+                        'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200': bug.status === 'fixed',
+                        'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200': bug.status === 'verifying',
+                        'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': bug.status === 'resolved'
+                      }"
+                    >
+                      {{ bug.status.charAt(0).toUpperCase() + bug.status.slice(1) }}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1182,7 +1192,7 @@
           </h3>
           <div class="flex items-center gap-2">
             <button 
-              @click="copyCommand(markdownPreview.rawContent, $event)" 
+              @click="console.log('markdownPreview:', markdownPreview); copyCommand(markdownPreview.rawContent, $event)" 
               class="modal-copy-btn"
               title="Copy markdown"
             >

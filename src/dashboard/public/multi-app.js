@@ -363,14 +363,17 @@ PetiteVue.createApp({
 
   // Override viewMarkdown to include projectPath
   async viewMarkdown(specName, docType, projectPath = null) {
+    console.log('Multi-app viewMarkdown - before call, this.markdownPreview:', this.markdownPreview);
     // If projectPath is provided directly, use it
     if (projectPath) {
-      return window.DashboardShared.BaseAppState.viewMarkdown.call(
+      const result = await window.DashboardShared.BaseAppState.viewMarkdown.call(
         this, 
         specName, 
         docType, 
         projectPath
       );
+      console.log('Multi-app viewMarkdown - after call, this.markdownPreview:', this.markdownPreview);
+      return result;
     }
     
     // Otherwise use selectedProject
@@ -384,32 +387,40 @@ PetiteVue.createApp({
       this.markdownPreview.rawContent = '';
       return;
     }
-    return window.DashboardShared.BaseAppState.viewMarkdown.call(
+    const result = await window.DashboardShared.BaseAppState.viewMarkdown.call(
       this, 
       specName, 
       docType, 
       this.selectedProject.path
     );
+    console.log('Multi-app viewMarkdown - after selectedProject call, this.markdownPreview:', this.markdownPreview);
+    return result;
   },
 
   // View bug markdown
   async viewBugMarkdown(projectPath, bugName, docType) {
-    this.markdownPreview.loading = true;
     this.markdownPreview.show = true;
-    this.markdownPreview.title = `${bugName} - ${docType}`;
-    this.markdownPreview.content = 'Loading...';
+    this.markdownPreview.loading = true;
+    this.markdownPreview.title = `${bugName} - ${docType}.md`;
     
     try {
       const encodedPath = encodeURIComponent(projectPath);
       const response = await fetch(`/api/projects/${encodedPath}/bugs/${bugName}/${docType}`);
-      if (!response.ok) throw new Error('Failed to fetch document');
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Response not OK:', response.status, errorText);
+        throw new Error(`Failed to fetch ${docType} content: ${response.status}`);
+      }
       
       const data = await response.json();
-      const html = marked.parse(data.content);
-      this.markdownPreview.content = html;
+      console.log('Setting bug markdown preview content, data:', data);
+      this.markdownPreview.content = data.content;
+      this.markdownPreview.rawContent = data.content;  // Store raw markdown
+      console.log('markdownPreview.rawContent is now:', this.markdownPreview.rawContent?.substring(0, 100));
     } catch (error) {
-      console.error('Error loading bug markdown:', error);
-      this.markdownPreview.content = '<p class="text-red-500">Error loading document</p>';
+      console.error(`Error fetching ${docType} content:`, error);
+      this.markdownPreview.content = `# Error loading ${docType} content\n\n${error.message}`;
+      this.markdownPreview.rawContent = '';
     } finally {
       this.markdownPreview.loading = false;
     }

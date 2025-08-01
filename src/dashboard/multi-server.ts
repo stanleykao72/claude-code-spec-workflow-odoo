@@ -181,7 +181,7 @@ export class MultiProjectDashboardServer {
         return;
       }
 
-      const allowedDocs = ['report', 'analysis', 'verification'];
+      const allowedDocs = ['report', 'analysis', 'fix', 'verification'];
       if (!allowedDocs.includes(document)) {
         reply.code(400).send({ error: 'Invalid document type' });
         return;

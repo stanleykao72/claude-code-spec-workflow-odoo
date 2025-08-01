@@ -61,6 +61,7 @@ function getStatusLabel(status) {
  * Copy a command to clipboard with visual feedback
  */
 function copyCommand(command, event) {
+  console.log('copyCommand called with:', command, 'length:', command?.length);
   // Find the button that was clicked
   const button = event?.currentTarget || event?.target?.closest('button') || document.activeElement;
   
@@ -350,8 +351,10 @@ const BaseAppState = {
       }
       
       const data = await response.json();
+      console.log('Setting markdown preview content, data:', data);
       this.markdownPreview.content = data.content;
       this.markdownPreview.rawContent = data.content;  // Store raw markdown
+      console.log('markdownPreview.rawContent is now:', this.markdownPreview.rawContent?.substring(0, 100));
     } catch (error) {
       console.error(`Error fetching ${docType} content:`, error);
       this.markdownPreview.content = `# Error loading ${docType} content\n\n${error.message}`;
@@ -378,7 +381,11 @@ const BaseAppState = {
   
   // Code block copy functionality
   copyCodeBlock(event) {
-    const button = event.currentTarget;
+    const button = event.target.closest('.code-copy-btn');
+    if (!button) {
+      console.error('Could not find copy button');
+      return;
+    }
     const pre = button.parentElement.querySelector('pre[data-code-content]');
     
     if (!pre) {
@@ -387,13 +394,15 @@ const BaseAppState = {
     }
     
     const encodedCode = pre.getAttribute('data-code-content');
+    console.log('Encoded code from attribute:', encodedCode);
     
     try {
       // Decode the base64 content
       const decodedCode = decodeURIComponent(escape(atob(encodedCode)));
+      console.log('Decoded code:', decodedCode);
       
       // Use the existing copyCommand function for consistent behavior
-      copyCommand(decodedCode, event);
+      this.copyCommand(decodedCode, event);
     } catch (err) {
       console.error('Failed to decode code content:', err);
       
@@ -414,6 +423,7 @@ const BaseAppState = {
     document.addEventListener('click', (event) => {
       const button = event.target.closest('.code-copy-btn');
       if (button) {
+        console.log('Copy button clicked, calling copyCodeBlock');
         event.preventDefault();
         event.stopPropagation();
         this.copyCodeBlock(event);
