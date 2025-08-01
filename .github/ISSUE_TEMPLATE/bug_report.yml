@@ -21,9 +21,9 @@ body:
         - Task Generation
         - Templates
         - File Watching/Updates
-        - Agent System
-        - Agent Validation
-        - Agent Task Execution
+        - Agent Templates/Definitions
+        - Command Generation
+        - Project Structure
         - Other
     validations:
       required: true
@@ -136,28 +136,30 @@ body:
         - Custom configuration: Yes/No
 
   - type: dropdown
-    id: agent-related
+    id: workflow-context
     attributes:
-      label: Agent Involvement
-      description: Was an agent involved in this issue?
+      label: Workflow Context
+      description: In what context did this issue occur?
       options:
-        - "No - Manual operation"
-        - "Yes - Agent validation issue"
-        - "Yes - Agent task execution issue"
-        - "Yes - Agent performance issue"
-        - "Yes - Multiple agents involved"
-        - "Unsure"
+        - "Manual command execution"
+        - "Using generated slash commands"
+        - "Dashboard monitoring"
+        - "Template/file generation"
+        - "Project setup/initialization"
+        - "Claude Code integration"
+        - "Other"
 
   - type: textarea
-    id: agent-details
+    id: workflow-details
     attributes:
-      label: Agent Details (if applicable)
-      description: If agents were involved, provide details about which agents and what they were doing
+      label: Workflow Details (if applicable)
+      description: Provide details about the workflow context where the issue occurred
       placeholder: |
-        - Agent name(s): spec-requirements-validator, spec-task-executor, etc.
-        - Agent behavior observed: What did the agent do or fail to do?
-        - Expected agent behavior: What should have happened?
-        - Agent error messages: Any specific agent-related errors
+        - Command used: /spec-create, /spec-execute, etc.
+        - Workflow stage: Requirements, Design, Tasks, Implementation
+        - Generated files involved: Which templates or commands
+        - Expected workflow behavior: What should have happened
+        - Actual workflow behavior: What actually happened
 
   - type: textarea
     id: additional-context

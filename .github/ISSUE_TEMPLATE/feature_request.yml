@@ -17,15 +17,15 @@ body:
         - CLI Interface
         - Spec Workflow (Requirements/Design/Tasks)
         - Bug Workflow
-        - Dashboard
+        - Dashboard (Monitoring)
         - Templates & Documentation
         - Task Generation
         - Project Integration
         - File Watching/Updates
-        - Agent System
-        - Agent Validation & Review
-        - Agent Task Execution
-        - Agent Performance & Analysis
+        - Agent Templates/Definitions
+        - Command Generation
+        - Project Setup/Structure
+        - Claude Code Integration
         - Other
     validations:
       required: true
@@ -80,9 +80,9 @@ body:
         - "Integration Improvement"
         - "Developer Experience"
         - "Performance Improvement"
-        - "New Agent"
-        - "Agent Enhancement"
-        - "Agent Validation Improvement"
+        - "New Agent Template"
+        - "Agent Template Enhancement"
+        - "Command Generation Improvement"
         - "Other"
     validations:
       required: true
@@ -132,26 +132,26 @@ body:
   - type: dropdown
     id: agent-involvement
     attributes:
-      label: Agent Involvement
-      description: Does this feature request involve agents?
+      label: Agent Template Involvement
+      description: Does this feature request involve agent templates or definitions?
       options:
-        - "No - Not agent-related"
-        - "New agent needed"
-        - "Enhancement to existing agent"
-        - "Agent integration improvement"
-        - "Agent performance optimization"
-        - "Agent validation enhancement"
+        - "No - Not agent template-related"
+        - "New agent template needed"
+        - "Enhancement to existing agent template"
+        - "Agent template integration improvement"
+        - "Agent template system enhancement"
+        - "Command generation for agents"
 
   - type: textarea
     id: agent-details
     attributes:
-      label: Agent Details (if applicable)
-      description: If this involves agents, provide specific details
+      label: Agent Template Details (if applicable)
+      description: If this involves agent templates, provide specific details
       placeholder: |
-        - Specific agent(s): spec-requirements-validator, spec-task-executor, etc.
-        - Agent capability needed: What should the agent be able to do?
-        - Integration points: How should it work with existing agents?
-        - Triggers: When should the agent be activated?
+        - Specific agent template(s): spec-requirements-validator, spec-task-executor, etc.
+        - Template capability needed: What should the agent template provide?
+        - Integration points: How should it work with existing templates?
+        - Use case: When would this agent template be used in Claude Code?
 
   - type: textarea
     id: additional-context

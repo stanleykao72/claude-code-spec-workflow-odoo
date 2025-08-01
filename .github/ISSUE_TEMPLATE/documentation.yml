@@ -15,9 +15,10 @@ body:
       description: What type of documentation issue is this?
       options:
         - "README improvements"
-        - "CLAUDE.md clarifications"
-        - "Template documentation"
         - "Command documentation"
+        - "Template documentation"
+        - "Agent template documentation"
+        - "Dashboard usage guide"
         - "API/Usage examples"
         - "Installation instructions"
         - "Troubleshooting guide"
@@ -49,8 +50,8 @@ body:
       label: Documentation Location
       description: Where is the documentation issue located?
       placeholder: |
-        - File: README.md, CLAUDE.md, etc.
-        - Section: Installation, Usage, etc.
+        - File: README.md, template files, etc.
+        - Section: Installation, Usage, Commands, etc.
         - Line/Paragraph: If applicable
         - URL: If it's online documentation
 
