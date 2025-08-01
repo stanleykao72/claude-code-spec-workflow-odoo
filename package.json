@@ -10,7 +10,7 @@
   },
   "scripts": {
     "build": "tsc && npm run copy-static",
-    "copy-static": "cpy 'src/dashboard/public/**' 'dist/dashboard/public/'",
+    "copy-static": "cpy 'src/dashboard/public/**' 'dist/dashboard/public/' && cpy 'src/markdown/**' 'dist/markdown/'",
     "prepare": "npm run build",
     "dev": "ts-node src/cli.ts",
     "dev:dashboard": "ts-node src/dashboard/cli.ts",

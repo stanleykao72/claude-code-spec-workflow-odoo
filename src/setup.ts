@@ -1,45 +1,5 @@
 import { promises as fs } from 'fs';
 import { join } from 'path';
-import {
-  getSpecCreateCommand,
-  getSpecExecuteCommand,
-  getSpecStatusCommand,
-  getSpecListCommand,
-  getSpecCompletionReviewCommand,
-  getSpecSteeringSetupCommand,
-  getSpecOrchestrateCommand,
-  getBugCreateCommand,
-  getBugAnalyzeCommand,
-  getBugFixCommand,
-  getBugVerifyCommand,
-  getBugStatusCommand
-} from './commands';
-import {
-  getRequirementsTemplate,
-  getDesignTemplate,
-  getTasksTemplate,
-  getBugReportTemplate,
-  getBugAnalysisTemplate,
-  getBugVerificationTemplate
-} from './templates';
-import {
-  taskExecutorAgent,
-  requirementsValidatorAgent,
-  designValidatorAgent,
-  atomicTaskValidatorAgent,
-  taskImplementationReviewerAgent,
-  specIntegrationTesterAgent,
-  specCompletionReviewerAgent,
-  bugRootCauseAnalyzerAgent,
-  steeringDocumentUpdaterAgent,
-  specDependencyAnalyzerAgent,
-  testGeneratorAgent,
-  documentationGeneratorAgent,
-  performanceAnalyzerAgent,
-  codeDuplicationDetectorAgent,
-  breakingChangeDetectorAgent,
-  getAgentDefinitionFileContent
-} from './agents';
 // CLAUDE.md generation removed - all workflow instructions now in individual commands
 // Script imports removed in v1.2.5 - task command generation now uses NPX command
 
@@ -54,6 +14,12 @@ export class SpecWorkflowSetup {
   private bugsDir: string;
   private agentsDir: string;
   private createAgents: boolean;
+  
+  // Source markdown directories
+  private markdownDir: string;
+  private markdownCommandsDir: string;
+  private markdownTemplatesDir: string;
+  private markdownAgentsDir: string;
 
   constructor(projectRoot: string = process.cwd(), enableAgents: boolean = false) {
     this.projectRoot = projectRoot;
@@ -66,6 +32,12 @@ export class SpecWorkflowSetup {
     this.bugsDir = join(this.claudeDir, 'bugs');
     this.agentsDir = join(this.claudeDir, 'agents');
     this.createAgents = enableAgents;
+    
+    // Initialize source markdown directories
+    this.markdownDir = join(__dirname, 'markdown');
+    this.markdownCommandsDir = join(this.markdownDir, 'commands');
+    this.markdownTemplatesDir = join(this.markdownDir, 'templates');
+    this.markdownAgentsDir = join(this.markdownDir, 'agents');
   }
 
   async claudeDirectoryExists(): Promise<boolean> {
@@ -99,40 +71,59 @@ export class SpecWorkflowSetup {
   }
 
   async createSlashCommands(): Promise<void> {
-    const commands = {
-      'spec-create': getSpecCreateCommand(),
-      'spec-execute': getSpecExecuteCommand(),
-      'spec-orchestrate': getSpecOrchestrateCommand(),
-      'spec-status': getSpecStatusCommand(),
-      'spec-list': getSpecListCommand(),
-      'spec-completion-review': getSpecCompletionReviewCommand(),
-      'spec-steering-setup': getSpecSteeringSetupCommand(),
-      'bug-create': getBugCreateCommand(),
-      'bug-analyze': getBugAnalyzeCommand(),
-      'bug-fix': getBugFixCommand(),
-      'bug-verify': getBugVerifyCommand(),
-      'bug-status': getBugStatusCommand()
-    };
+    const commandNames = [
+      'spec-create',
+      'spec-execute', 
+      'spec-orchestrate',
+      'spec-status',
+      'spec-list',
+      'spec-completion-review',
+      'spec-steering-setup',
+      'bug-create',
+      'bug-analyze',
+      'bug-fix',
+      'bug-verify',
+      'bug-status'
+    ];
 
-    for (const [commandName, commandContent] of Object.entries(commands)) {
-      const commandFile = join(this.commandsDir, `${commandName}.md`);
-      await fs.writeFile(commandFile, commandContent, 'utf-8');
+    for (const commandName of commandNames) {
+      const sourceFile = join(this.markdownCommandsDir, `${commandName}.md`);
+      const destFile = join(this.commandsDir, `${commandName}.md`);
+      
+      try {
+        const commandContent = await fs.readFile(sourceFile, 'utf-8');
+        await fs.writeFile(destFile, commandContent, 'utf-8');
+      } catch (error) {
+        console.error(`Failed to copy command ${commandName}:`, error);
+        throw error;
+      }
     }
   }
 
   async createTemplates(): Promise<void> {
-    const templates = {
-      'requirements-template.md': getRequirementsTemplate(),
-      'design-template.md': getDesignTemplate(),
-      'tasks-template.md': getTasksTemplate(),
-      'bug-report-template.md': getBugReportTemplate(),
-      'bug-analysis-template.md': getBugAnalysisTemplate(),
-      'bug-verification-template.md': getBugVerificationTemplate()
-    };
+    const templateNames = [
+      'requirements-template.md',
+      'design-template.md',
+      'tasks-template.md',
+      'product-template.md',
+      'tech-template.md',
+      'structure-template.md',
+      'bug-report-template.md',
+      'bug-analysis-template.md',
+      'bug-verification-template.md'
+    ];
 
-    for (const [templateName, templateContent] of Object.entries(templates)) {
-      const templateFile = join(this.templatesDir, templateName);
-      await fs.writeFile(templateFile, templateContent, 'utf-8');
+    for (const templateName of templateNames) {
+      const sourceFile = join(this.markdownTemplatesDir, templateName);
+      const destFile = join(this.templatesDir, templateName);
+      
+      try {
+        const templateContent = await fs.readFile(sourceFile, 'utf-8');
+        await fs.writeFile(destFile, templateContent, 'utf-8');
+      } catch (error) {
+        console.error(`Failed to copy template ${templateName}:`, error);
+        throw error;
+      }
     }
   }
 
@@ -144,29 +135,30 @@ export class SpecWorkflowSetup {
       return;
     }
 
-    // Create all spec workflow agents
-    const agents = [
-      taskExecutorAgent,
-      requirementsValidatorAgent,
-      designValidatorAgent,
-      atomicTaskValidatorAgent,
-      taskImplementationReviewerAgent,
-      specIntegrationTesterAgent,
-      specCompletionReviewerAgent,
-      bugRootCauseAnalyzerAgent,
-      steeringDocumentUpdaterAgent,
-      specDependencyAnalyzerAgent,
-      testGeneratorAgent,
-      documentationGeneratorAgent,
-      performanceAnalyzerAgent,
-      codeDuplicationDetectorAgent,
-      breakingChangeDetectorAgent
+    // List of available agent files (extracted to markdown)
+    const agentFiles = [
+      'spec-requirements-validator.md',
+      'spec-design-validator.md', 
+      'spec-task-validator.md',
+      'spec-task-executor.md'
+      // Note: Additional agents can be added here as they are extracted from agents.ts
+      // Remaining agents: spec-task-implementation-reviewer, spec-integration-tester,
+      // spec-completion-reviewer, bug-root-cause-analyzer, steering-document-updater,
+      // spec-dependency-analyzer, spec-test-generator, spec-documentation-generator,
+      // spec-performance-analyzer, spec-duplication-detector, spec-breaking-change-detector
     ];
 
-    for (const agent of agents) {
-      const agentFile = join(this.agentsDir, `${agent.name}.md`);
-      const agentContent = getAgentDefinitionFileContent(agent);
-      await fs.writeFile(agentFile, agentContent, 'utf-8');
+    for (const agentFile of agentFiles) {
+      const sourceFile = join(this.markdownAgentsDir, agentFile);
+      const destFile = join(this.agentsDir, agentFile);
+      
+      try {
+        const agentContent = await fs.readFile(sourceFile, 'utf-8');
+        await fs.writeFile(destFile, agentContent, 'utf-8');
+      } catch (error) {
+        console.error(`Failed to copy agent ${agentFile}:`, error);
+        throw error;
+      }
     }
   }
 
