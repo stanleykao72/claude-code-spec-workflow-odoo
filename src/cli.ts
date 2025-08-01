@@ -8,6 +8,7 @@ import { SpecWorkflowSetup } from './setup';
 import { detectProjectType, validateClaudeCode } from './utils';
 import { parseTasksFromMarkdown, generateTaskCommand } from './task-generator';
 import { getFileContent } from './get-content';
+import { getAgentsEnabled } from './using-agents';
 import { readFileSync } from 'fs';
 import * as path from 'path';
 
@@ -279,6 +280,15 @@ program
   .argument('<file-path>', 'Full path to the file to read')
   .action(async (filePath) => {
     await getFileContent(filePath);
+  });
+
+// Add using-agents command
+program
+  .command('using-agents')
+  .description('Check if agents are enabled in spec-config.json')
+  .option('-p, --project <path>', 'Project directory', process.cwd())
+  .action(async (options) => {
+    await getAgentsEnabled(options.project);
   });
 
 program.parse();
