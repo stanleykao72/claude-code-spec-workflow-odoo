@@ -26,7 +26,7 @@ export class GitUtils {
       // Get remote origin URL
       try {
         const remotes = await git.getRemotes(true);
-        const origin = remotes.find((r: any) => r.name === 'origin');
+        const origin = remotes.find((r: { name: string }) => r.name === 'origin');
         if (origin?.refs?.fetch) {
           info.remoteUrl = origin.refs.fetch;
           // Convert to GitHub URL if it's a git URL

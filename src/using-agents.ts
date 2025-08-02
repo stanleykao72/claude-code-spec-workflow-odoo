@@ -2,7 +2,6 @@
 
 import { readFileSync, existsSync } from 'fs';
 import * as path from 'path';
-import chalk from 'chalk';
 
 export async function getAgentsEnabled(projectPath?: string): Promise<void> {
   try {
@@ -28,7 +27,7 @@ export async function getAgentsEnabled(projectPath?: string): Promise<void> {
     // Return true or false as string
     console.log(agentsEnabled === true ? 'true' : 'false');
     
-  } catch (error) {
+  } catch {
     // On any error, return false
     console.log('false');
   }

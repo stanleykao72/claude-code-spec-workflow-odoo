@@ -147,7 +147,7 @@ export async function getTasks(
         console.log(JSON.stringify(tasks, null, 2));
         break;
         
-      case 'single':
+      case 'single': {
         if (!taskId) {
           console.error(chalk.red('Error: Task ID required for single task mode'));
           process.exit(1);
@@ -160,8 +160,9 @@ export async function getTasks(
           process.exit(1);
         }
         break;
+      }
         
-      case 'next-pending':
+      case 'next-pending': {
         // Find the first pending task
         const nextTask = tasks.find(t => !t.completed);
         if (nextTask) {
@@ -170,8 +171,9 @@ export async function getTasks(
           console.log('No pending tasks found');
         }
         break;
+      }
         
-      case 'complete':
+      case 'complete': {
         if (!taskId) {
           console.error(chalk.red('Error: Task ID required for complete task mode'));
           process.exit(1);
@@ -200,6 +202,7 @@ export async function getTasks(
         writeFileSync(tasksPath, updatedContent, 'utf-8');
         console.log(chalk.green(`✓ Task ${taskId} marked as complete`));
         break;
+      }
         
       default:
         console.error(chalk.red(`Error: Unknown mode ${mode}`));
