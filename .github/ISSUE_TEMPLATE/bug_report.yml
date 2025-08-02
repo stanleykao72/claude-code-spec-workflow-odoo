@@ -117,7 +117,7 @@ body:
       label: Installation Method
       description: How did you install the package?
       options:
-        - "npx @pimzino/claude-code-spec-workflow"
+        - "npx @pimzino/claude-code-spec-workflow@latest"
         - "npm install -g @pimzino/claude-code-spec-workflow"
         - "Local development"
         - "Other"

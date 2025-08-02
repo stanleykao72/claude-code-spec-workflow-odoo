@@ -17,7 +17,7 @@ Transform your development with structured workflows: **Requirements → Design 
 
 ```bash
 # Install and setup in any project
-npx @pimzino/claude-code-spec-workflow
+npx @pimzino/claude-code-spec-workflow@latest
 
 # Start using workflows in Claude Code
 /spec-create user-dashboard "User profile management"
@@ -30,7 +30,7 @@ npx @pimzino/claude-code-spec-workflow
 
 | Method | Command | Use Case |
 |--------|---------|----------|
-| **NPX (Recommended)** | `npx @pimzino/claude-code-spec-workflow` | One-time setup |
+| **NPX (Recommended)** | `npx @pimzino/claude-code-spec-workflow@latest` | One-time setup |
 | **Global** | `npm i -g @pimzino/claude-code-spec-workflow` | Multiple projects |
 | **Local** | `npm i -D @pimzino/claude-code-spec-workflow` | Single project |
 
@@ -191,10 +191,10 @@ your-project/
 
 ```bash
 # Basic setup
-npx @pimzino/claude-code-spec-workflow
+npx @pimzino/claude-code-spec-workflow@latest
 
 # Advanced options  
-npx @pimzino/claude-code-spec-workflow --project /path --force --yes
+npx @pimzino/claude-code-spec-workflow@latest --project /path --force --yes
 ```
 
 **During setup you choose:**
@@ -211,7 +211,7 @@ npx @pimzino/claude-code-spec-workflow --project /path --force --yes
 ```bash
 # 1. Setup (one time)
 cd my-project
-npx @pimzino/claude-code-spec-workflow
+npx @pimzino/claude-code-spec-workflow@latest
 
 # 2. Create steering documents (recommended)
 claude
@@ -250,7 +250,7 @@ claude
 
 **❓ "Command not found"**
 ```bash
-npx @pimzino/claude-code-spec-workflow  # Use full package name
+npx @pimzino/claude-code-spec-workflow@latest  # Use full package name
 ```
 
 **❓ "Claude Code not detected"**  
@@ -260,7 +260,7 @@ npm install -g @anthropic-ai/claude-code
 
 **❓ "Permission errors"**
 ```bash
-npx @pimzino/claude-code-spec-workflow --project ~/my-project
+npx @pimzino/claude-code-spec-workflow@latest --project ~/my-project
 ```
 
 </details>

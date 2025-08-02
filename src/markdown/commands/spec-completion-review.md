@@ -17,7 +17,7 @@ This command is used when all tasks in a specification are marked complete. Your
 **Agent-Based Review (Recommended)**: First check if agents are enabled:
 
 ```bash
-npx @pimzino/claude-code-spec-workflow using-agents
+npx @pimzino/claude-code-spec-workflow@latest using-agents
 ```
 
 If this returns `true`, use the `spec-completion-reviewer` agent for comprehensive validation:

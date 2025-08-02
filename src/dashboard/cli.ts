@@ -80,7 +80,7 @@ program
         console.log(
           chalk.yellow('Make sure you are in a project with Claude Code Spec Workflow installed')
         );
-        console.log(chalk.gray('Run: npx @pimzino/claude-code-spec-workflow'));
+        console.log(chalk.gray('Run: npx @pimzino/claude-code-spec-workflow@latest'));
         process.exit(1);
       }
 

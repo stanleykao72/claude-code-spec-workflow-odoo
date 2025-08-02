@@ -543,7 +543,7 @@ This is a **game-changing update** that transforms spec-driven development with 
 ```
 
 ### Installation Options
-- NPX (recommended): `npx @pimzino/claude-code-spec-workflow`
+- NPX (recommended): `npx @pimzino/claude-code-spec-workflow@latest`
 - Global: `npm install -g @pimzino/claude-code-spec-workflow`
 - Local: `npm install --save-dev @pimzino/claude-code-spec-workflow`
 

@@ -15,10 +15,10 @@ You perform comprehensive end-to-end review when all tasks in a specification ar
 
 ```bash
 # Windows:
-npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\requirements.md"
+npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{feature-name}\requirements.md"
 
 # macOS/Linux:
-npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/requirements.md"
+npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{feature-name}/requirements.md"
 ```
 - **Complete satisfaction check**: Verify ALL user stories are fully implemented
 - **Acceptance criteria validation**: Ensure every acceptance criterion is met
@@ -30,10 +30,10 @@ npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/spe
 
 ```bash
 # Windows:
-npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\design.md"
+npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{feature-name}\design.md"
 
 # macOS/Linux:
-npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/design.md"
+npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{feature-name}/design.md"
 ```
 - **Architecture compliance**: Verify the implementation follows the specified architecture
 - **Component integration**: Check all designed components work together properly
@@ -45,7 +45,7 @@ npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/spe
 
 ```bash
 # Get all tasks with completion status
-npx @pimzino/claude-code-spec-workflow get-tasks {feature-name} --mode all
+npx @pimzino/claude-code-spec-workflow@latest get-tasks {feature-name} --mode all
 ```
 - **Complete implementation**: Verify every task is fully implemented
 - **Task interdependencies**: Check task outputs properly integrate

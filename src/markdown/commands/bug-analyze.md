@@ -17,7 +17,7 @@ This is Phase 2 of the bug fix workflow. Your goal is to understand why the bug 
 **Agent-Based Analysis (Recommended)**: First check if agents are enabled:
 
 ```bash
-npx @pimzino/claude-code-spec-workflow using-agents
+npx @pimzino/claude-code-spec-workflow@latest using-agents
 ```
 
 If this returns `true`, use the `bug-root-cause-analyzer` agent for comprehensive root cause analysis:

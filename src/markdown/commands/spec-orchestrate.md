@@ -17,19 +17,19 @@ You are a **stateless orchestration coordinator**. You delegate all work to spec
 
 ```bash
 # Get next pending task and all task status
-npx @pimzino/claude-code-spec-workflow get-tasks {spec-name} --mode next-pending
-npx @pimzino/claude-code-spec-workflow get-tasks {spec-name} --mode all
+npx @pimzino/claude-code-spec-workflow@latest get-tasks {spec-name} --mode next-pending
+npx @pimzino/claude-code-spec-workflow@latest get-tasks {spec-name} --mode all
 
 # Load context documents
-# Windows: npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{spec-name}\requirements.md"
-# Windows: npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{spec-name}\design.md"
-# macOS/Linux: npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{spec-name}/requirements.md"
-# macOS/Linux: npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{spec-name}/design.md"
+# Windows: npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{spec-name}\requirements.md"
+# Windows: npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{spec-name}\design.md"
+# macOS/Linux: npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{spec-name}/requirements.md"
+# macOS/Linux: npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{spec-name}/design.md"
 
 # Load steering documents
-# npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/steering/product.md"
-# npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/steering/tech.md"
-# npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/steering/structure.md"
+# npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/product.md"
+# npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/tech.md"
+# npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/structure.md"
 ```
 
 ### 2. Show Current Status
@@ -52,7 +52,7 @@ Execute each pending task and **automatically continue** to the next:
 **Step 2 - Check Agent Availability & Delegate:**
 First check if agents are enabled:
 ```bash
-npx @pimzino/claude-code-spec-workflow using-agents
+npx @pimzino/claude-code-spec-workflow@latest using-agents
 ```
 
 If this returns `true`, use spec-task-executor agent (primary method):
@@ -76,7 +76,7 @@ Mark complete in tasks.md when done.
 **Step 5 - Mark task complete and continue:**
 ```bash
 # Mark current task as complete
-npx @pimzino/claude-code-spec-workflow get-tasks {spec-name} {task-id} --mode complete
+npx @pimzino/claude-code-spec-workflow@latest get-tasks {spec-name} {task-id} --mode complete
 ```
 **CRITICAL**: Immediately proceed to next pending task without waiting for user input. Only pause for errors or when all tasks complete.
 

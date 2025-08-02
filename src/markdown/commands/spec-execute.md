@@ -17,7 +17,7 @@ This is Phase 4 of the spec workflow. Your goal is to implement individual tasks
 **Agent-Based Execution (Recommended)**: First check if agents are enabled by running:
 
 ```bash
-npx @pimzino/claude-code-spec-workflow using-agents
+npx @pimzino/claude-code-spec-workflow@latest using-agents
 ```
 
 If this returns `true`, use the `spec-task-executor` agent for optimal task implementation:
@@ -38,21 +38,21 @@ Context files to load using get-content script:
 **Cross-platform examples:**
 ```bash
 # Load specific task details
-npx @pimzino/claude-code-spec-workflow get-tasks {feature-name} {task-id} --mode single
+npx @pimzino/claude-code-spec-workflow@latest get-tasks {feature-name} {task-id} --mode single
 
 # Load context documents
 # Windows
-npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\requirements.md"
-npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\design.md"
+npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{feature-name}\requirements.md"
+npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{feature-name}\design.md"
 
 # macOS/Linux
-npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/requirements.md"
-npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/design.md"
+npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{feature-name}/requirements.md"
+npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{feature-name}/design.md"
 
 # Steering documents (if they exist)
-npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/steering/product.md"
-npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/steering/tech.md"
-npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/steering/structure.md"
+npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/product.md"
+npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/tech.md"
+npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/structure.md"
 ```
 
 Task to implement: {task-id}
@@ -66,33 +66,33 @@ Task to implement: {task-id}
      
      **Requirements document:**
      ```bash
-     # Windows: npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\requirements.md"
-     # macOS/Linux: npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/requirements.md"
+     # Windows: npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{feature-name}\requirements.md"
+     # macOS/Linux: npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{feature-name}/requirements.md"
      ```
      
      **Design document:**
      ```bash
-     # Windows: npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\design.md"
-     # macOS/Linux: npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/design.md"
+     # Windows: npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{feature-name}\design.md"
+     # macOS/Linux: npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{feature-name}/design.md"
      ```
      
      **Task details:**
      ```bash
      # Get specific task details
-     npx @pimzino/claude-code-spec-workflow get-tasks {feature-name} {task-id} --mode single
+     npx @pimzino/claude-code-spec-workflow@latest get-tasks {feature-name} {task-id} --mode single
      ```
      
    - **Load all steering documents** (if available):
      ```bash
      # Windows examples:
-     npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\steering\product.md"
-     npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\steering\tech.md"
-     npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\steering\structure.md"
+     npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\steering\product.md"
+     npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\steering\tech.md"
+     npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\steering\structure.md"
      
      # macOS/Linux examples:
-     npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/steering/product.md"
-     npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/steering/tech.md"
-     npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/steering/structure.md"
+     npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/product.md"
+     npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/tech.md"
+     npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/structure.md"
      ```
    - Identify the specific task to execute
 
@@ -137,7 +137,7 @@ When completing any task during `/spec-execute`:
 7. **Test Generation (if agents enabled)**
 First check if agents are available:
 ```bash
-npx @pimzino/claude-code-spec-workflow using-agents
+npx @pimzino/claude-code-spec-workflow@latest using-agents
 ```
 
 If this returns `true`, use the `spec-test-generator` agent:
@@ -158,7 +158,7 @@ The generated tests ensure comprehensive coverage of the implemented functionali
 8. **Post-Implementation Review (if agents enabled)**
 First check if agents are available:
 ```bash
-npx @pimzino/claude-code-spec-workflow using-agents
+npx @pimzino/claude-code-spec-workflow@latest using-agents
 ```
 
 If this returns `true`, use the `spec-task-implementation-reviewer` agent:
@@ -183,7 +183,7 @@ Context files to review:
 9. **Integration Testing (if agents enabled)**
 First check if agents are available:
 ```bash
-npx @pimzino/claude-code-spec-workflow using-agents
+npx @pimzino/claude-code-spec-workflow@latest using-agents
 ```
 
 If this returns `true`, use the `spec-integration-tester` agent:

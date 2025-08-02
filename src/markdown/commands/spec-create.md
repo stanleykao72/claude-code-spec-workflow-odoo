@@ -60,14 +60,14 @@ You are helping create a new feature specification through the complete workflow
    **Cross-platform examples:**
    ```bash
    # Windows:
-   npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\steering\product.md"
-   npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\steering\tech.md"
-   npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\steering\structure.md"
+   npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\steering\product.md"
+   npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\steering\tech.md"
+   npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\steering\structure.md"
    
    # macOS/Linux:
-   npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/steering/product.md"
-   npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/steering/tech.md"
-   npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/steering/structure.md"
+   npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/product.md"
+   npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/tech.md"
+   npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/structure.md"
    ```
 
 3. **Analyze Existing Codebase** (BEFORE starting any phase)
@@ -84,10 +84,10 @@ You are helping create a new feature specification through the complete workflow
 
 ```bash
 # Windows:
-npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\templates\requirements-template.md"
+npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\templates\requirements-template.md"
 
 # macOS/Linux:
-npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/templates/requirements-template.md"
+npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/templates/requirements-template.md"
 ```
 
 ### Requirements Process
@@ -102,8 +102,8 @@ npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/tem
 ### Requirements Template Usage
 - **Read and follow**: Load the requirements template using:
   ```bash
-  # Windows: npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\templates\requirements-template.md"
-  # macOS/Linux: npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/templates/requirements-template.md"
+  # Windows: npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\templates\requirements-template.md"
+  # macOS/Linux: npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/templates/requirements-template.md"
   ```
 - **Use exact structure**: Follow all sections and formatting from the template
 - **Include all sections**: Don't omit any required template sections
@@ -112,7 +112,7 @@ npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/tem
 - **Automatic Validation (if agents enabled)**: First check if agents are enabled:
 
 ```bash
-npx @pimzino/claude-code-spec-workflow using-agents
+npx @pimzino/claude-code-spec-workflow@latest using-agents
 ```
 
 If this returns `true`, use the `spec-requirements-validator` agent to validate the requirements:
@@ -144,10 +144,10 @@ If validation fails, use the feedback to improve the requirements before present
 
 ```bash
 # Windows:
-npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\templates\design-template.md"
+npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\templates\design-template.md"
 
 # macOS/Linux:
-npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/templates/design-template.md"
+npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/templates/design-template.md"
 ```
 
 ### Design Process
@@ -156,8 +156,8 @@ npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/tem
    - Load requirements document for context:
    
    ```bash
-   # Windows: npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\requirements.md"
-   # macOS/Linux: npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/requirements.md"
+   # Windows: npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{feature-name}\requirements.md"
+   # macOS/Linux: npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{feature-name}/requirements.md"
    ```
 
 2. **Codebase Research** (MANDATORY)
@@ -179,8 +179,8 @@ npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/tem
 ### Design Template Usage
 - **Read and follow**: Load the design template using:
   ```bash
-  # Windows: npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\templates\design-template.md"
-  # macOS/Linux: npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/templates/design-template.md"
+  # Windows: npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\templates\design-template.md"
+  # macOS/Linux: npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/templates/design-template.md"
   ```
 - **Use exact structure**: Follow all sections and formatting from the template
 - **Include Mermaid diagrams**: Add visual representations as shown in template
@@ -189,7 +189,7 @@ npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/tem
 - **Automatic Validation (if agents enabled)**: First check if agents are enabled:
 
 ```bash
-npx @pimzino/claude-code-spec-workflow using-agents
+npx @pimzino/claude-code-spec-workflow@latest using-agents
 ```
 
 If this returns `true`, use the `spec-design-validator` agent to validate the design:
@@ -220,10 +220,10 @@ If validation fails, use the feedback to improve the design before presenting to
 
 ```bash
 # Windows:
-npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\templates\tasks-template.md"
+npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\templates\tasks-template.md"
 
 # macOS/Linux:
-npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/templates/tasks-template.md"
+npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/templates/tasks-template.md"
 ```
 
 ### Task Planning Process
@@ -233,12 +233,12 @@ npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/tem
    
    ```bash
    # Windows:
-   npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\requirements.md"
-   npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\design.md"
+   npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{feature-name}\requirements.md"
+   npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{feature-name}\design.md"
    
    # macOS/Linux:
-   npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/requirements.md"
-   npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/design.md"
+   npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{feature-name}/requirements.md"
+   npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{feature-name}/design.md"
    ```
 
 2. **Generate Atomic Task List**
@@ -268,8 +268,8 @@ npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/tem
 ### Task Template Usage
 - **Read and follow**: Load the tasks template using:
   ```bash
-  # Windows: npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\templates\tasks-template.md"
-  # macOS/Linux: npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/templates/tasks-template.md"
+  # Windows: npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\templates\tasks-template.md"
+  # macOS/Linux: npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/templates/tasks-template.md"
   ```
 - **Use exact structure**: Follow all sections and formatting from the template
 - **Use checkbox format**: Follow the exact task format with requirement references
@@ -278,7 +278,7 @@ npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/tem
 - **Automatic Validation (if agents enabled)**: First check if agents are enabled:
 
 ```bash
-npx @pimzino/claude-code-spec-workflow using-agents
+npx @pimzino/claude-code-spec-workflow@latest using-agents
 ```
 
 If this returns `true`, use the `spec-task-validator` agent to validate the tasks:
@@ -309,7 +309,7 @@ If validation fails, use the feedback to break down tasks further and improve at
 - **Automatic Analysis (if agents enabled)**: First check if agents are enabled:
 
 ```bash
-npx @pimzino/claude-code-spec-workflow using-agents
+npx @pimzino/claude-code-spec-workflow@latest using-agents
 ```
 
 If this returns `true` and validation passes, use the `spec-dependency-analyzer` agent:
