@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.5] - 2025-08-02
+
+### Added
+- Implemented various scripts for the agent/s to call which should improve context management (tasks.md doc no longer loaded into context, only the relevant task is. This is only valid for some scenarios), agent token waste reduction, and task management (tasks.md).
+
+### Enhancements
+- Improved workflow update process for projects where the workflow has been used previously.
+- Agents, Commands, Templates have all been removed from functions and are now markdown documents in the repository /src/markdown. This should make it easier to modify / update in future as well as allow anyone to suggest changes or read the agents / commands directly in the repo without having to read a ton of typescript in between.
+
+### Fixed
+- Fixed ESLint warnings in dashboard parser (unused variables in catch blocks)
+
 ## [1.4.4] - 2025-08-01
 
 ### Added
