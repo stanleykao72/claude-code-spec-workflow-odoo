@@ -30,7 +30,7 @@ The agent should:
 2. Load steering documents from .claude/steering/ (if available)  
 3. Implement ONLY the specified task
 4. Follow all project conventions and leverage existing code
-5. Mark the task as complete in tasks.md
+5. Mark the task as complete using get-tasks --mode complete
 6. Provide a completion summary
 
 Context files to load using get-content script:
@@ -103,7 +103,11 @@ Task to implement: {task-id}
    3. Implement following existing code patterns and conventions
    4. Validate implementation against referenced requirements
    5. Run tests and checks if applicable
-   6. **CRITICAL**: Mark task as complete by changing [ ] to [x] in tasks.md
+   6. **CRITICAL**: Mark task as complete using the get-tasks script:
+      ```bash
+      # Cross-platform command:
+      npx @pimzino/claude-code-spec-workflow@latest get-tasks {feature-name} {task-id} --mode complete
+      ```
    7. Confirm task completion status to user
    8. **CRITICAL**: Stop and wait for user review before proceeding
 
@@ -129,7 +133,11 @@ Task to implement: {task-id}
 
 6. **Task Completion Protocol**
 When completing any task during `/spec-execute`:
-   1. **Update tasks.md**: Change task status from `- [ ]` to `- [x]`
+   1. **Mark task complete**: Use the get-tasks script to mark completion:
+      ```bash
+      # Cross-platform command:
+      npx @pimzino/claude-code-spec-workflow@latest get-tasks {feature-name} {task-id} --mode complete
+      ```
    2. **Confirm to user**: State clearly "Task X has been marked as complete"
    3. **Stop execution**: Do not proceed to next task automatically
    4. **Wait for instruction**: Let user decide next steps
@@ -212,7 +220,7 @@ Test context:
 
 ### Task Execution
 - **ONLY** execute one task at a time during implementation
-- **CRITICAL**: Mark completed tasks as [x] in tasks.md before stopping
+- **CRITICAL**: Mark completed tasks using get-tasks --mode complete before stopping
 - **ALWAYS** stop after completing a task
 - **NEVER** automatically proceed to the next task
 - **MUST** wait for user to request next task execution
@@ -243,7 +251,7 @@ If no feature-name specified:
 
 ## Important Rules
 - Only execute ONE task at a time
-- **ALWAYS** mark completed tasks as [x] in tasks.md
+- **ALWAYS** mark completed tasks using get-tasks --mode complete
 - Always stop after completing a task
 - Wait for user approval before continuing
 - Never skip tasks or jump ahead

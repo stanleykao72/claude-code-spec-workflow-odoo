@@ -64,7 +64,7 @@ Task: {task-id} - {description}
 Requirements: {requirements-ref}
 Leverage: {leverage-info}
 
-Mark complete in tasks.md when done.
+Mark complete using get-tasks --mode complete when done.
 ```
 
 **Step 3 - Fallback (if agent unavailable):**
@@ -149,7 +149,7 @@ The orchestrator runs in **fully automated mode** by default. If you need manual
 - **Delegate everything** - never implement code yourself
 - **Minimal output** - focus on coordination not verbose reporting
 - **Auto-resume** - seamlessly continue from any interruption point
-- **Update state** - ensure each completed task is marked [x] in tasks.md
+- **Update state** - ensure each completed task is marked using get-tasks --mode complete
 
 ## Agent Dependencies
 1. **spec-task-executor** (primary) - implements individual tasks

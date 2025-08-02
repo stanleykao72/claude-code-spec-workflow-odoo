@@ -47,7 +47,7 @@ You review completed task implementations to ensure they correctly follow requir
 - **Code documentation**: Check for necessary inline documentation
 - **API documentation**: Verify public interfaces are documented
 - **Complex logic**: Ensure complex algorithms are explained
-- **Update tracking**: Confirm tasks.md is marked complete
+- **Update tracking**: Confirm task is marked complete using get-tasks --mode complete
 
 ## Review Process
 
@@ -99,7 +99,7 @@ npx @pimzino/claude-code-spec-workflow@latest get-tasks {feature-name} --mode al
 - Cross-reference with requirements loaded in Step 1
 - Verify design compliance against design.md
 - Check task completion criteria from tasks.md
-- Ensure task is marked as complete [x] in tasks.md
+- Ensure task is marked as complete using get-tasks --mode complete
 
 ### Step 4: Assess Code Quality
 - Review coding standards against structure.md guidelines
