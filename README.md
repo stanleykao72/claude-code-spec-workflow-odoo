@@ -204,7 +204,7 @@ npx @pimzino/claude-code-spec-workflow --project /path --force --yes
 ---
 
 ## 📚 Examples
-
+**Recommendation: Use Claude Opus 4 to generate the spec documentation '/spec-create', then use Claude Sonnet 4 for the implementation i.e. '/spec-execute' or '/spec-orchestrate' or '/{spec-name}-task-<id>'.**
 <details>
 <summary><strong>Basic Workflow Example</strong></summary>
 

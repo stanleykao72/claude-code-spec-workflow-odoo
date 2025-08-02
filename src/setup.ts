@@ -14,6 +14,7 @@ export class SpecWorkflowSetup {
   private bugsDir: string;
   private agentsDir: string;
   private createAgents: boolean;
+  public _updateChoices?: { updateItems: string[] };
   
   // Source markdown directories
   private markdownDir: string;

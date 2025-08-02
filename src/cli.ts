@@ -36,7 +36,7 @@ program
   .option('-f, --force', 'Force overwrite existing files')
   .option('-y, --yes', 'Skip confirmation prompts')
   .action(async (options) => {
-    console.log(chalk.cyan.bold('🚀 Claude Code Spec Workflow Setup'));
+    console.log(chalk.cyan.bold('Claude Code Spec Workflow Setup'));
     console.log(chalk.gray('Automated spec-driven development with intelligent orchestration'));
     console.log();
 
@@ -49,15 +49,15 @@ program
       spinner.succeed(`Project analyzed: ${projectPath}`);
 
       if (projectTypes.length > 0) {
-        console.log(chalk.blue(`📊 Detected project type(s): ${projectTypes.join(', ')}`));
+        console.log(chalk.blue(`Detected project type(s): ${projectTypes.join(', ')}`));
       }
 
       // Check Claude Code availability
       const claudeAvailable = await validateClaudeCode();
       if (claudeAvailable) {
-        console.log(chalk.green('✓ Claude Code is available'));
+        console.log(chalk.green('Claude Code is available'));
       } else {
-        console.log(chalk.yellow('⚠️  Claude Code not found. Please install Claude Code first.'));
+        console.log(chalk.yellow('WARNING: Claude Code not found. Please install Claude Code first.'));
         console.log(chalk.gray('   Visit: https://docs.anthropic.com/claude-code'));
       }
 
@@ -67,19 +67,59 @@ program
 
       if (claudeExists && !options.force) {
         if (!options.yes) {
-          const { proceed } = await inquirer.prompt([
+          console.log(chalk.cyan('Existing installation detected'));
+          console.log(chalk.green('Your spec documents (requirements.md, design.md, tasks.md) will not be modified'));
+          console.log();
+
+          // Ask what to update
+          const updateChoices = await inquirer.prompt([
+            {
+              type: 'checkbox',
+              name: 'updateItems',
+              message: 'What would you like to update?',
+              choices: [
+                { name: 'Commands (slash commands)', value: 'commands', checked: true },
+                { name: 'Templates', value: 'templates', checked: true },
+                { name: 'Agents', value: 'agents', checked: true },
+                { name: 'Task commands (regenerate for existing specs)', value: 'taskCommands', checked: true }
+              ],
+              validate: (answer) => {
+                if (answer.length < 1) {
+                  return 'You must choose at least one item to update.';
+                }
+                return true;
+              }
+            }
+          ]);
+
+          console.log();
+          console.log(chalk.yellow('WARNING: This will overwrite existing files'));
+          console.log(chalk.gray('- Commands and templates will be replaced with latest versions'));
+          console.log(chalk.gray('- Selected task commands will be regenerated'));
+          console.log(chalk.green('Your spec documents (requirements.md, design.md, tasks.md) will not be modified'));
+          console.log();
+
+          const { confirmUpdate } = await inquirer.prompt([
             {
               type: 'confirm',
-              name: 'proceed',
-              message: '.claude directory already exists. Update with latest commands?',
+              name: 'confirmUpdate',
+              message: 'Continue with update?',
               default: true
             }
           ]);
 
-          if (!proceed) {
-            console.log(chalk.yellow('Setup cancelled.'));
+          if (!confirmUpdate) {
+            console.log(chalk.yellow('Update cancelled.'));
             process.exit(0);
           }
+
+          // Store update choices for later use
+          setup._updateChoices = updateChoices;
+        } else {
+          // Auto-select all items if --yes flag is used
+          setup._updateChoices = {
+            updateItems: ['commands', 'templates', 'agents', 'taskCommands']
+          };
         }
       }
 
@@ -87,14 +127,14 @@ program
       if (!options.yes) {
         console.log();
         console.log(chalk.cyan('This will create:'));
-        console.log(chalk.gray('  📁 .claude/ directory structure'));
-        console.log(chalk.gray('  📝 14 slash commands (9 spec workflow + 5 bug fix workflow)'));
-        console.log(chalk.gray('  🤖 Auto-generated task commands'));
-        console.log(chalk.gray('  🎯 Intelligent orchestrator for automated execution'));
-        console.log(chalk.gray('  📋 Document templates'));
-        console.log(chalk.gray('  🔧 NPX-based task command generation'));
-        console.log(chalk.gray('  ⚙️  Configuration files'));
-        console.log(chalk.gray('  📖 Complete workflow instructions embedded in each command'));
+        console.log(chalk.gray('  .claude/ directory structure'));
+        console.log(chalk.gray('  14 slash commands (9 spec workflow + 5 bug fix workflow)'));
+        console.log(chalk.gray('  Auto-generated task commands'));
+        console.log(chalk.gray('  Intelligent orchestrator for automated execution'));
+        console.log(chalk.gray('  Document templates'));
+        console.log(chalk.gray('  NPX-based task command generation'));
+        console.log(chalk.gray('  Configuration files'));
+        console.log(chalk.gray('  Complete workflow instructions embedded in each command'));
         console.log();
 
         const { useAgents } = await inquirer.prompt([
@@ -110,19 +150,50 @@ program
         setup = new SpecWorkflowSetup(process.cwd(), useAgents);
       }
 
-      // Run setup
-      const setupSpinner = ora('Setting up spec workflow...').start();
-      await setup.runSetup();
-      setupSpinner.succeed('Setup complete!');
+      // Run setup or update
+      if (claudeExists && setup._updateChoices) {
+        // This is an update scenario
+        const updateSpinner = ora('Updating installation...').start();
+        
+        const { SpecWorkflowUpdater } = await import('./update');
+        const updater = new SpecWorkflowUpdater(projectPath);
+
+        if (setup._updateChoices.updateItems.includes('commands')) {
+          await updater.updateCommands();
+        }
+
+        if (setup._updateChoices.updateItems.includes('templates')) {
+          await updater.updateTemplates();
+        }
+
+        if (setup._updateChoices.updateItems.includes('agents')) {
+          await updater.updateAgents();
+        }
+
+        if (setup._updateChoices.updateItems.includes('taskCommands')) {
+          await updater.regenerateTaskCommands();
+        }
+
+        updateSpinner.succeed('Update complete!');
+      } else {
+        // This is a fresh setup
+        const setupSpinner = ora('Setting up spec workflow...').start();
+        await setup.runSetup();
+        setupSpinner.succeed('Setup complete!');
+      }
 
       // Success message
       console.log();
-      console.log(chalk.green.bold('✅ Spec Workflow installed successfully!'));
+      if (claudeExists && setup._updateChoices) {
+        console.log(chalk.green.bold('Spec Workflow updated successfully!'));
+      } else {
+        console.log(chalk.green.bold('Spec Workflow installed successfully!'));
+      }
       console.log();
       console.log(chalk.cyan('Available commands:'));
-      console.log(chalk.white.bold('📊 Spec Workflow (for new features):'));
+      console.log(chalk.white.bold('Spec Workflow (for new features):'));
       console.log(chalk.gray('  /spec-create <feature-name>  - Create a new spec'));
-      console.log(chalk.gray('  /spec-orchestrate <spec>     - 🎯 NEW! Automated execution'));
+      console.log(chalk.gray('  /spec-orchestrate <spec>     - NEW! Automated execution'));
       console.log(chalk.gray('  /spec-execute <task-id>      - Execute tasks manually'));
       console.log(chalk.gray('  /{spec-name}-task-{id}       - Auto-generated task commands'));
       console.log(chalk.gray('  /spec-status                 - Show status'));
@@ -132,7 +203,7 @@ program
       
       // Show agents section if enabled
       if (setup && setup['createAgents']) {
-        console.log(chalk.white.bold('🤖 Sub-Agents (automatic):'));
+        console.log(chalk.white.bold('Sub-Agents (automatic):'));
         console.log(chalk.gray('  spec-task-executor                - Specialized task implementation agent'));
         console.log(chalk.gray('  spec-requirements-validator       - Requirements quality validation agent'));
         console.log(chalk.gray('  spec-design-validator             - Design quality validation agent'));
@@ -151,19 +222,31 @@ program
         console.log();
       }
       
-      console.log(chalk.white.bold('🐛 Bug Fix Workflow (for bug fixes):'));
+      console.log(chalk.white.bold('Bug Fix Workflow (for bug fixes):'));
       console.log(chalk.gray('  /bug-create <bug-name>       - Start bug fix'));
       console.log(chalk.gray('  /bug-analyze                 - Analyze root cause'));
       console.log(chalk.gray('  /bug-fix                     - Implement fix'));
       console.log(chalk.gray('  /bug-verify                  - Verify fix'));
       console.log(chalk.gray('  /bug-status                  - Show bug status'));
       console.log();
+      // Show restart message if commands were updated
+      if (claudeExists && setup._updateChoices && 
+          (setup._updateChoices.updateItems.includes('commands') || 
+           setup._updateChoices.updateItems.includes('taskCommands'))) {
+        console.log(chalk.yellow.bold('RESTART REQUIRED:'));
+        console.log(chalk.gray('You must restart Claude Code for updated commands to be visible'));
+        console.log(chalk.white('- Run "claude --continue" to continue this conversation'));
+        console.log(chalk.white('- Or run "claude" to start a fresh session'));
+        console.log();
+      }
+
       console.log(chalk.yellow('Next steps:'));
       console.log(chalk.gray('1. Run: claude'));
       console.log(chalk.gray('2. For new features: /spec-create my-feature'));
       console.log(chalk.gray('3. For bug fixes: /bug-create my-bug'));
       console.log();
-      console.log(chalk.blue('📖 For help, see the README or run /spec-list'));
+      console.log(chalk.blue('For help, see the README or run /spec-list'));
+      console.log(chalk.blue('To update later: npx @pimzino/claude-code-spec-workflow@latest'));
 
     } catch (error) {
       spinner.fail('Setup failed');
@@ -177,7 +260,7 @@ program
   .command('test')
   .description('Test the setup in a temporary directory')
   .action(async () => {
-    console.log(chalk.cyan('🧪 Testing setup...'));
+    console.log(chalk.cyan('Testing setup...'));
 
     const os = await import('os');
     const path = await import('path');
@@ -189,11 +272,11 @@ program
       const setup = new SpecWorkflowSetup(tempDir);
       await setup.runSetup();
 
-      console.log(chalk.green('✅ Test completed successfully!'));
+      console.log(chalk.green('Test completed successfully!'));
       console.log(chalk.gray(`Test directory: ${tempDir}`));
 
     } catch (error) {
-      console.error(chalk.red('❌ Test failed:'), error);
+      console.error(chalk.red('Test failed:'), error);
       process.exit(1);
     }
   });
@@ -205,7 +288,7 @@ program
   .argument('<spec-name>', 'Name of the spec to generate commands for')
   .option('-p, --project <path>', 'Project directory', process.cwd())
   .action(async (specName, options) => {
-    console.log(chalk.cyan('🔧 Generating task commands...'));
+    console.log(chalk.cyan('Generating task commands...'));
     
     const path = await import('path');
     const fs = await import('fs/promises');
@@ -291,6 +374,7 @@ program
   .action(async (options) => {
     await getAgentsEnabled(options.project);
   });
+
 
 // Add get-tasks command
 program
