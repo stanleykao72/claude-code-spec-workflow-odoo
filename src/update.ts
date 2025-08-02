@@ -210,7 +210,7 @@ export class SpecWorkflowUpdater {
       }
       
       console.log(`Found ${specDirs.length} spec(s): ${specDirs.join(', ')}`);
-    } catch (error) {
+    } catch {
       console.log('No specs directory found, skipping task command regeneration.');
       // Specs directory might not exist
       return;

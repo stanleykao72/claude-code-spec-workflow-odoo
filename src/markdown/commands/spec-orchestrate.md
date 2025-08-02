@@ -81,9 +81,20 @@ If this returns `true`, use the implementation reviewer:
 Use the spec-task-implementation-reviewer agent to review the implementation of task {task-id} for {spec-name}.
 
 Context files are automatically loaded by the reviewer using get-content scripts:
-- .claude/specs/{spec-name}/requirements.md
-- .claude/specs/{spec-name}/design.md  
-- .claude/specs/{spec-name}/tasks.md
+
+```bash
+# Windows:
+npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{spec-name}\requirements.md"
+npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{spec-name}\design.md"
+npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{spec-name}\tasks.md"
+
+# macOS/Linux:
+npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{spec-name}/requirements.md"
+npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{spec-name}/design.md"
+npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{spec-name}/tasks.md"
+```
+
+Additional context:
 - .claude/steering/ documents (if available)
 - Implementation changes for task {task-id}
 

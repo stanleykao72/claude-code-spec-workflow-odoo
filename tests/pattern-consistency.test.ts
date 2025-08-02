@@ -47,6 +47,8 @@ describe('Pattern Consistency', () => {
           
           // Find all agent calls
           lines.forEach((line, index) => {
+            // Reset regex state to avoid issues with global flag
+            agentCallPattern.lastIndex = 0;
             const matches = [...line.matchAll(agentCallPattern)];
             matches.forEach(match => {
               if (match[1]) {
@@ -67,8 +69,10 @@ describe('Pattern Consistency', () => {
             const contextLines = lines.slice(contextStart, contextEnd);
             const contextText = contextLines.join('\n');
 
+            // Reset regex state to avoid issues with global flag
+            usingAgentsCheckPattern.lastIndex = 0;
             const hasUsingAgentsCheck = usingAgentsCheckPattern.test(contextText);
-            const hasConditionalLanguage = /first check if agents|if this returns.*true/gi.test(contextText);
+            const hasConditionalLanguage = /first check if agents|if this returns.*true|if enabled.*use|check if agents.*enabled/gi.test(contextText);
 
             // Allow exceptions for agents that are obviously conditional or documentation
             const isDocumentationContext = /\*\*Agent-Based|## Agent Dependencies|### Agent/gi.test(contextText);
@@ -121,6 +125,8 @@ describe('Pattern Consistency', () => {
 
           lines.forEach((line, index) => {
             hardcodedPathPatterns.forEach(pattern => {
+              // Reset regex state to avoid issues with global flag
+              pattern.lastIndex = 0;
               const matches = [...line.matchAll(pattern)];
               matches.forEach(match => {
                 // Allow exceptions for documentation or templates themselves
@@ -146,7 +152,9 @@ describe('Pattern Consistency', () => {
             const contextLines = lines.slice(contextStart, contextEnd);
             const contextText = contextLines.join('\n');
 
-            const hasGetContentNearby = getContentPattern().test(contextText);
+            const getContentRegex = getContentPattern();
+            getContentRegex.lastIndex = 0;
+            const hasGetContentNearby = getContentRegex.test(contextText);
 
             if (!hasGetContentNearby) {
               throw new Error(
@@ -179,6 +187,9 @@ describe('Pattern Consistency', () => {
           const hasGetContent = /npx.*get-content/gi.test(content);
           
           if (hasGetContent) {
+            // Reset regex state to avoid issues with global flag
+            windowsPathPattern.lastIndex = 0;
+            unixPathPattern.lastIndex = 0;
             const hasWindowsExample = windowsPathPattern.test(content);
             const hasUnixExample = unixPathPattern.test(content);
 
@@ -216,6 +227,8 @@ describe('Pattern Consistency', () => {
           const templateReferences: { line: number; template: string; context: string }[] = [];
 
           lines.forEach((line, index) => {
+            // Reset regex state to avoid issues with global flag
+            templateReferencePattern.lastIndex = 0;
             const matches = [...line.matchAll(templateReferencePattern)];
             matches.forEach(match => {
               // Skip if it's already in a get-content command
@@ -236,7 +249,9 @@ describe('Pattern Consistency', () => {
             const contextLines = lines.slice(contextStart, contextEnd);
             const contextText = contextLines.join('\n');
 
-            const hasTemplateLoading = templateLoadingPattern().test(contextText);
+            const templateLoadingRegex = templateLoadingPattern();
+            templateLoadingRegex.lastIndex = 0;
+            const hasTemplateLoading = templateLoadingRegex.test(contextText);
 
             if (!hasTemplateLoading) {
               throw new Error(

@@ -34,9 +34,20 @@ The agent should:
 6. Assess production readiness and provide final approval
 
 Context files for review (load using get-content script):
-- .claude/specs/{feature-name}/requirements.md
-- .claude/specs/{feature-name}/design.md
-- .claude/specs/{feature-name}/tasks.md
+
+```bash
+# Windows:
+npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{feature-name}\requirements.md"
+npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{feature-name}\design.md"
+npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{feature-name}\tasks.md"
+
+# macOS/Linux:
+npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{feature-name}/requirements.md"
+npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{feature-name}/design.md"
+npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{feature-name}/tasks.md"
+```
+
+Additional context:
 - All git commits related to the feature
 - Steering documents for context
 ```

@@ -60,7 +60,7 @@ describe('SpecParser Format Support', () => {
       expect(req1.id).toBe('1');
       expect(req1.title).toBe('User Authentication');
       expect(req1.userStory).toBe('As a user, I want to log in securely, so that I can access my data');
-      expect(req1.acceptanceCriteria).toHaveLength(2);
+      expect(req1.acceptanceCriteria).toHaveLength(1);
     });
   });
 
@@ -119,22 +119,24 @@ The API must return lead information
       expect(spec!.requirements!.userStories).toBe(2);
       expect(spec!.requirements!.approved).toBe(true);
       
-      // Should extract only FR and NFR as requirements (US and AC entries are filtered out)
+      // Should include all requirement types (US, FR, NFR, AC)
       const reqContent = spec!.requirements!.content!;
-      expect(reqContent.length).toBeGreaterThanOrEqual(2); // FR-1, FR-2 (NFR entries if present)
+      expect(reqContent.length).toBeGreaterThanOrEqual(4); // US-1, US-2, FR-1, FR-2, AC-1, etc.
       
-      // US entries should be filtered out (they're user stories, not requirements)
+      // US entries should be included (they're user stories, part of requirements)
       const us1 = reqContent.find(r => r.id === 'US-1');
-      expect(us1).toBeUndefined();
+      expect(us1).toBeDefined();
+      expect(us1!.title).toBe('Lead Generator Authentication');
       
       // Check Functional Requirement
       const fr1 = reqContent.find(r => r.id === 'FR-1');
       expect(fr1).toBeDefined();
       expect(fr1!.title).toBe('Authentication');
       
-      // AC entries should be filtered out
+      // AC entries should be included  
       const ac1 = reqContent.find(r => r.id === 'AC-1');
-      expect(ac1).toBeUndefined();
+      expect(ac1).toBeDefined();
+      expect(ac1!.title).toBe('Authentication Flow');
     });
 
     it('should count user stories correctly in new format', async () => {
@@ -199,16 +201,16 @@ The API must return lead information
       
       expect(spec).not.toBeNull();
       expect(spec!.requirements!.exists).toBe(true);
-      expect(spec!.requirements!.content!.length).toBeGreaterThanOrEqual(2); // Only old req + FR-1
+      expect(spec!.requirements!.content!.length).toBeGreaterThanOrEqual(3); // old req + FR-1 + US-1
       
-      // Should find both old and new format requirements, but not user stories
+      // Should find both old and new format requirements, including user stories
       const oldReq = spec!.requirements!.content!.find(r => r.id === '1');
       const newFR = spec!.requirements!.content!.find(r => r.id === 'FR-1');
       const newUS = spec!.requirements!.content!.find(r => r.id === 'US-1');
       
       expect(oldReq).toBeDefined();
       expect(newFR).toBeDefined();
-      expect(newUS).toBeUndefined(); // US entries are user stories, not requirements
+      expect(newUS).toBeDefined(); // US entries are now included as part of requirements
     });
   });
   

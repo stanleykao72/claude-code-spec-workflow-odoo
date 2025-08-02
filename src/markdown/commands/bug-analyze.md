@@ -26,7 +26,14 @@ If this returns `true`, use the `bug-root-cause-analyzer` agent for comprehensiv
 Use the bug-root-cause-analyzer agent to perform enhanced root cause analysis for the {bug-name} bug.
 
 The agent should:
-1. Load the bug report using get-content script for .claude/bugs/{bug-name}/report.md
+1. Load the bug report using get-content script:
+   ```bash
+   # Windows:
+   npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\bugs\{bug-name}\report.md"
+   
+   # macOS/Linux:
+   npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/bugs/{bug-name}/report.md"
+   ```
 2. Perform git archaeology to find when the bug was introduced
 3. Analyze git history for similar issues and patterns
 4. Investigate code context and evolution
@@ -47,8 +54,15 @@ Context for analysis:
    - Ensure report.md exists and is complete
    - Load the bug report for context
    - **Load steering documents**: 
-     - Check for .claude/steering/tech.md for technical patterns
-     - Check for .claude/steering/structure.md for project organization
+     ```bash
+     # Windows:
+     npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\steering\tech.md"
+     npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\steering\structure.md"
+     
+     # macOS/Linux:
+     npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/tech.md"
+     npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/structure.md"
+     ```
    - Understand the reported issue completely
 
 2. **Investigation Process**
@@ -71,8 +85,15 @@ Context for analysis:
       - Identify potential risks
 
 3. **Create Analysis Document**
-   - **Template to Follow**: Use the exact structure from `.claude/templates/bug-analysis-template.md`
-   - **Read and follow**: Load the template and follow all sections precisely
+   - **Template to Follow**: Load the template structure using get-content script:
+     ```bash
+     # Windows:
+     npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\templates\bug-analysis-template.md"
+     
+     # macOS/Linux:
+     npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/templates/bug-analysis-template.md"
+     ```
+   - **Read and follow**: Use the loaded template and follow all sections precisely
    - Document investigation findings following the template structure
 
 ## Template Usage
