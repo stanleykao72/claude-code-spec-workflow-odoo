@@ -41,7 +41,7 @@ npx @pimzino/claude-code-spec-workflow@latest
 - **📁 Complete .claude/ structure** - All files and directories
 - **📝 14 slash commands** - 9 spec workflow + 5 bug fix workflow  
 - **🎯 Intelligent orchestrator** - Automated task execution
-- **🤖 15 specialized agents** - Enhanced automation (optional)
+- **🤖 16 specialized agents** - Enhanced automation (optional)
 - **📊 Real-time dashboard** - Monitor progress visually
 - **🔧 Auto-generated commands** - One command per task
 - **📋 Document templates** - Professional spec documents

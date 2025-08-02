@@ -136,10 +136,11 @@ export class SpecWorkflowSetup {
       return;
     }
 
-    // List of available agent files (all 15 agents now extracted to markdown)
+    // List of available agent files (all 16 agents now extracted to markdown)
     const agentFiles = [
       'spec-requirements-validator.md',
       'spec-design-validator.md', 
+      'spec-design-web-researcher.md',
       'spec-task-validator.md',
       'spec-task-executor.md',
       'spec-task-implementation-reviewer.md',

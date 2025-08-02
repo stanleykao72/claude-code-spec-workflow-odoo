@@ -168,8 +168,26 @@ npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.cla
    - **Verify against structure.md**: Ensure file organization follows project conventions
    - **Identify integration points**: Map how new feature connects to existing auth, database, APIs
 
-3. **Create Design Document**
+3. **Technology Research** (if agents enabled)
+   - Check if agents are enabled: `npx @pimzino/claude-code-spec-workflow@latest using-agents`
+   - If enabled, use the `spec-design-web-researcher` agent BEFORE creating the design:
+   
+   ```
+   Use the spec-design-web-researcher agent to research current best practices and documentation for technologies that will be used in the {feature-name} design.
+   
+   The agent should:
+   1. Analyze the requirements document to identify likely technologies
+   2. Search for latest documentation and best practices
+   3. Check for deprecated APIs or methods
+   4. Find security advisories or known issues
+   5. Provide recommendations for modern approaches
+   
+   Use the research findings to ensure the design uses current, secure approaches.
+   ```
+
+4. **Create Design Document**
    - Use the design template structure precisely
+   - **Incorporate research findings** from web researcher agent (if available)
    - **Build on existing patterns** rather than creating new ones
    - **Follow tech.md standards**: Ensure design adheres to documented technical guidelines
    - **Respect structure.md conventions**: Organize components according to project structure
