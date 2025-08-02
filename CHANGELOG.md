@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.4] - 2025-08-02
+
+### Fixed
+1. Fixed Regex Global Flag Issues: Added lastIndex = 0 resets to prevent state pollution between tests
+2. Updated Conditional Language Regex: Enhanced pattern matching for agent usage checks
+3. Standardized Get-Content Usage: Replaced all hardcoded file paths with proper cross-platform get-content script examples
+4. Fixed Unused Variable: Cleaned up lint error in src/update.ts
+5. Updated Parser Test Expectations: Aligned tests with new parser behavior that includes all requirement types
+
 ## [1.5.3] - 2025-08-02
 
 ### Added
