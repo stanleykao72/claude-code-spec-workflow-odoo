@@ -26,6 +26,13 @@ try {
 
 const program = new Command();
 
+// Debug logging for WSL issues
+if (process.env.DEBUG_CLI) {
+  console.log('process.argv:', process.argv);
+  console.log('process.execPath:', process.execPath);
+  console.log('__filename:', __filename);
+}
+
 program
   .name('claude-spec-setup')
   .description('Set up Claude Code Spec Workflow with automated orchestration in your project')
@@ -43,9 +50,9 @@ For help with a specific command:
   npx @pimzino/claude-code-spec-workflow@latest <command> --help
 `);
 
-// Setup command (default command when no subcommand is provided)
+// Setup command
 program
-  .command('setup', { isDefault: true })
+  .command('setup')
   .description('Set up Claude Code Spec Workflow in your project')
   .option('-p, --project <path>', 'Project directory', process.cwd())
   .option('-f, --force', 'Force overwrite existing files')
@@ -434,6 +441,14 @@ program.on('command:*', () => {
   console.log(chalk.gray('  npx @pimzino/claude-code-spec-workflow@latest <command> --help'));
   process.exit(1);
 });
+
+// Check if we should add 'setup' as default command
+const args = process.argv.slice(2);
+if (args.length === 0 || (args.length > 0 && !args[0].startsWith('-') && !program.commands.some(cmd => cmd.name() === args[0]))) {
+  // No command provided or first arg is not a known command and not a flag
+  // Insert 'setup' as the command
+  process.argv.splice(2, 0, 'setup');
+}
 
 // Parse arguments normally - let Commander.js handle everything
 program.parse();

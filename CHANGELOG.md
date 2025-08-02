@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.2] - 2025-08-02
+
+### Fixed
+- The { isDefault: true } flag in Commander.js was too aggressive in matching - it would route ANY unmatched input to the default command, even when that input was actually meant to be a different command that Commander.js failed to parse correctly in certain environments.
+
 ## [1.5.1] - 2025-08-02
 
 ### Fixed
