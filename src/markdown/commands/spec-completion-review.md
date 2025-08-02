@@ -33,7 +33,7 @@ The agent should:
 5. Validate requirements fulfillment and design compliance
 6. Assess production readiness and provide final approval
 
-Context files for review:
+Context files for review (load using get-content script):
 - .claude/specs/{feature-name}/requirements.md
 - .claude/specs/{feature-name}/design.md
 - .claude/specs/{feature-name}/tasks.md
@@ -99,7 +99,12 @@ After completion review:
 After approval, consider running these additional agents:
 
 ### Documentation Generation
-Use the `spec-documentation-generator` agent:
+First check if agents are available:
+```bash
+npx @pimzino/claude-code-spec-workflow@latest using-agents
+```
+
+If this returns `true`, use the `spec-documentation-generator` agent:
 
 ```
 Use the spec-documentation-generator agent to generate documentation for the completed {feature-name} specification.
@@ -115,7 +120,12 @@ This ensures comprehensive documentation for the completed feature.
 ```
 
 ### Performance Analysis
-Use the `spec-performance-analyzer` agent:
+First check if agents are available:
+```bash
+npx @pimzino/claude-code-spec-workflow@latest using-agents
+```
+
+If this returns `true`, use the `spec-performance-analyzer` agent:
 
 ```
 Use the spec-performance-analyzer agent to analyze performance implications of the {feature-name} implementation.
@@ -131,7 +141,12 @@ This helps ensure the feature performs well at scale.
 ```
 
 ### Breaking Change Detection
-Use the `spec-breaking-change-detector` agent:
+First check if agents are available:
+```bash
+npx @pimzino/claude-code-spec-workflow@latest using-agents
+```
+
+If this returns `true`, use the `spec-breaking-change-detector` agent:
 
 ```
 Use the spec-breaking-change-detector agent to detect any breaking changes in the {feature-name} implementation.
@@ -147,7 +162,12 @@ This ensures backward compatibility is maintained.
 ```
 
 ### Steering Document Updates
-Use the `steering-document-updater` agent:
+First check if agents are available:
+```bash
+npx @pimzino/claude-code-spec-workflow@latest using-agents
+```
+
+If this returns `true`, use the `steering-document-updater` agent:
 
 ```
 Use the steering-document-updater agent to analyze if steering documents need updates based on the {feature-name} implementation.

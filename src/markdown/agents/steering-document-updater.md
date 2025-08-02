@@ -40,7 +40,7 @@ You analyze the codebase after major implementations to identify patterns, conve
 
 ## Analysis Process
 1. **Load current steering documents**:
-   - Read .claude/steering/product.md, tech.md, structure.md
+   - Use get-content script to load .claude/steering/product.md, tech.md, structure.md
    - Understand documented patterns and standards
 2. **Analyze recent implementations**:
    - Review code from recent specs/features

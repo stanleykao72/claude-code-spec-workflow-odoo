@@ -70,10 +70,30 @@ Mark complete in tasks.md when done.
 **Step 3 - Fallback (if agent unavailable):**
 `/{spec-name}-task-{task-id}`
 
-**Step 4 - Report completion:**
-`✅ Task {id} complete`
+**Step 4 - Implementation Review (if agents enabled):**
+First check if agents are available:
+```bash
+npx @pimzino/claude-code-spec-workflow@latest using-agents
+```
 
-**Step 5 - Mark task complete and continue:**
+If this returns `true`, use the implementation reviewer:
+```
+Use the spec-task-implementation-reviewer agent to review the implementation of task {task-id} for {spec-name}.
+
+Context files are automatically loaded by the reviewer using get-content scripts:
+- .claude/specs/{spec-name}/requirements.md
+- .claude/specs/{spec-name}/design.md  
+- .claude/specs/{spec-name}/tasks.md
+- .claude/steering/ documents (if available)
+- Implementation changes for task {task-id}
+
+The reviewer provides quality validation before proceeding to the next task.
+```
+
+**Step 5 - Report completion:**
+`✅ Task {id} complete and reviewed`
+
+**Step 6 - Mark task complete and continue:**
 ```bash
 # Mark current task as complete
 npx @pimzino/claude-code-spec-workflow@latest get-tasks {spec-name} {task-id} --mode complete

@@ -16,6 +16,7 @@
     "dev": "ts-node src/cli.ts",
     "dev:dashboard": "ts-node src/dashboard/cli.ts",
     "test": "jest",
+    "test:patterns": "jest tests/pattern-consistency.test.ts",
     "lint": "eslint src --ext .ts",
     "format": "prettier --write src"
   },

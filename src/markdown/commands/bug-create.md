@@ -26,9 +26,19 @@ You are helping create a new bug fix workflow. This is designed for smaller fixe
    - Initialize report.md, analysis.md, and verification.md files
 
 2. **Load Context** (if available)
-   - Check for .claude/steering/tech.md for technical context
-   - Check for .claude/steering/structure.md for project patterns
-   - Load available steering documents to understand project context
+   - Load steering documents using get-content script for project context:
+   
+   ```bash
+   # Windows:
+   npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\steering\tech.md"
+   npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\steering\structure.md"
+   npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\steering\product.md"
+   
+   # macOS/Linux:
+   npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/tech.md"
+   npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/structure.md"
+   npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/product.md"
+   ```
 
 3. **Gather Bug Information**
    - Take the bug name and optional description
@@ -36,12 +46,19 @@ You are helping create a new bug fix workflow. This is designed for smaller fixe
    - Use structured format for consistency
 
 4. **Generate Bug Report**
-   - **Template to Follow**: Use the exact structure from `.claude/templates/bug-report-template.md`
-   - **Read and follow**: Load the template and follow all sections precisely
-   - Create detailed bug description following the template structure
+   - **Template to Follow**: Load the bug report template using get-content script:
+   
+   ```bash
+   # Windows:
+   npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\templates\bug-report-template.md"
+   
+   # macOS/Linux:
+   npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/templates/bug-report-template.md"
+   ```
+   - Create detailed bug description following the loaded template structure
 
 ## Template Usage
-- **Follow exact structure**: Use `.claude/templates/bug-report-template.md` precisely
+- **Follow exact structure**: Use loaded bug report template precisely
 - **Include all sections**: Don't omit any required template sections
 - **Structured format**: Follow the template's format for consistency
 

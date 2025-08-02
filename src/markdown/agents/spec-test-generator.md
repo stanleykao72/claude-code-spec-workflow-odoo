@@ -46,10 +46,23 @@ You automatically generate test cases and test code from specifications, ensurin
 - **Mocks and stubs**: Create necessary test doubles
 
 ## Generation Process
-1. **Load specification context**:
-   - Read requirements.md for acceptance criteria
-   - Read design.md for technical details
-   - Read tasks.md for implementation context
+1. **Load specification context** using get-content script:
+   
+   ```bash
+   # Load specification documents
+   # Windows:
+   npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{feature-name}\requirements.md"
+   npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{feature-name}\design.md"
+   npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{feature-name}\tasks.md"
+   
+   # macOS/Linux:
+   npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{feature-name}/requirements.md"
+   npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{feature-name}/design.md"
+   npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{feature-name}/tasks.md"
+   
+   # Load specific task context if available:
+   npx @pimzino/claude-code-spec-workflow@latest get-tasks {feature-name} {task-id} --mode single
+   ```
 2. **Analyze existing tests**:
    - Study test patterns in the codebase
    - Identify testing frameworks and tools

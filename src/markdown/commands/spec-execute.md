@@ -161,23 +161,26 @@ First check if agents are available:
 npx @pimzino/claude-code-spec-workflow@latest using-agents
 ```
 
-If this returns `true`, use the `spec-task-implementation-reviewer` agent:
+If this returns `true`, automatically use the `spec-task-implementation-reviewer` agent:
 
 ```
 Use the spec-task-implementation-reviewer agent to review the implementation of task {task-id} for the {feature-name} specification.
 
-The agent should:
-1. Load all specification documents from .claude/specs/{feature-name}/
-2. Load steering documents from .claude/steering/ (if available)
-3. Review the implementation for correctness and compliance
-4. Provide structured feedback on the implementation quality
-5. Identify any issues that need to be addressed
+The agent automatically loads context using helper scripts:
+- Requirements, design, and tasks documents via get-content
+- Steering documents via get-content (if available)
+- Specific task details via get-tasks
+- All implementation changes for task {task-id}
 
-Context files to review:
-- .claude/specs/{feature-name}/requirements.md
-- .claude/specs/{feature-name}/design.md
-- .claude/specs/{feature-name}/tasks.md
-- Implementation changes for task {task-id}
+The reviewer provides:
+- Requirements compliance validation
+- Design adherence verification  
+- Code quality assessment
+- Integration validation
+- Structured feedback on implementation quality
+- Identification of any issues requiring attention
+
+This review ensures quality standards before proceeding to the next task.
 ```
 
 9. **Integration Testing (if agents enabled)**

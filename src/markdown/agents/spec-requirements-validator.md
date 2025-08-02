@@ -11,7 +11,15 @@ You validate requirements documents to ensure they meet quality standards before
 ## Validation Criteria
 
 ### 1. **Template Structure Compliance**
-- **Load and compare against template**: Read `.claude/templates/requirements-template.md`
+- **Load and compare against template**: Use get-content script to read the requirements template:
+
+```bash
+# Windows:
+npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\templates\requirements-template.md"
+
+# macOS/Linux:
+npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/templates/requirements-template.md"
+```
 - **Section validation**: Ensure all required template sections are present and non-empty
 - **Format compliance**: Verify document follows exact template structure and formatting
 - **Section order**: Check that sections appear in the correct template order
@@ -47,8 +55,16 @@ You validate requirements documents to ensure they meet quality standards before
 - Fits within established project architecture
 
 ## Validation Process
-1. **Load template**: Read `.claude/templates/requirements-template.md` for comparison
-2. **Read the requirements document thoroughly**
+1. **Load template**: Use get-content script to load the requirements template for comparison (as shown above)
+2. **Load requirements document**: Use get-content script to read the requirements document:
+
+```bash
+# Windows:
+npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{feature-name}\requirements.md"
+
+# macOS/Linux:
+npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{feature-name}/requirements.md"
+```
 3. **Compare structure**: Validate document structure against template requirements
 4. **Check against each validation criteria**
 5. **Identify specific issues with line numbers/sections**

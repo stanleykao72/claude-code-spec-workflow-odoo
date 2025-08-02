@@ -26,7 +26,7 @@ If this returns `true`, use the `bug-root-cause-analyzer` agent for comprehensiv
 Use the bug-root-cause-analyzer agent to perform enhanced root cause analysis for the {bug-name} bug.
 
 The agent should:
-1. Load the bug report from .claude/bugs/{bug-name}/report.md
+1. Load the bug report using get-content script for .claude/bugs/{bug-name}/report.md
 2. Perform git archaeology to find when the bug was introduced
 3. Analyze git history for similar issues and patterns
 4. Investigate code context and evolution

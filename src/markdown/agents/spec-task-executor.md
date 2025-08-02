@@ -57,8 +57,19 @@ npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.cla
 When you complete a task:
 1. Update tasks.md: Change the task status from [ ] to [x]
 2. Confirm completion: State "Task X.X has been marked as complete in tasks.md"
-3. Stop execution: Do not proceed to other tasks
-4. Summary: Provide a brief summary of what was implemented
+3. **Quality Review (if agents enabled)**: First check if agents are available:
+   ```bash
+   npx @pimzino/claude-code-spec-workflow@latest using-agents
+   ```
+   
+   If this returns `true`, request implementation review:
+   ```
+   Use the spec-task-implementation-reviewer agent to review the implementation of task {task-id} for the {feature-name} specification.
+   
+   The reviewer will automatically load all context and provide quality validation to ensure the implementation meets all requirements and standards.
+   ```
+4. Stop execution: Do not proceed to other tasks
+5. Summary: Provide a brief summary of what was implemented
 
 ## Quality Checklist
 Before marking a task complete, ensure:

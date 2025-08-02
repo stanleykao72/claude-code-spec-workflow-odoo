@@ -18,7 +18,18 @@ You are working on the verification phase of the bug fix workflow.
 
 1. **Prerequisites**
    - Ensure the fix has been implemented
-   - Load report.md, analysis.md for context
+   - Load complete context using get-content script:
+   
+   ```bash
+   # Load bug context documents
+   # Windows:
+   npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\bugs\{bug-name}\report.md"
+   npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\bugs\{bug-name}\analysis.md"
+   
+   # macOS/Linux:
+   npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/bugs/{bug-name}/report.md"
+   npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/bugs/{bug-name}/analysis.md"
+   ```
    - Understand what was changed and why
    - Have the verification plan from analysis.md
 
@@ -49,17 +60,68 @@ You are working on the verification phase of the bug fix workflow.
    - **Code Quality**: Changes follow project conventions
 
 4. **Create Verification Document**
-   - **Template to Follow**: Use the exact structure from `.claude/templates/bug-verification-template.md`
-   - **Read and follow**: Load the template and follow all sections precisely
+   - **Template to Follow**: Load the verification template using get-content script:
+   
+   ```bash
+   # Windows:
+   npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\templates\bug-verification-template.md"
+   
+   # macOS/Linux:
+   npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/templates/bug-verification-template.md"
+   ```
    - Document all test results following the template structure
 
 ## Template Usage
-- **Follow exact structure**: Use `.claude/templates/bug-verification-template.md` precisely
+- **Follow exact structure**: Use loaded verification template precisely
 - **Include all sections**: Don't omit any required template sections
 - **Complete checklist**: Follow the template's checklist format for thoroughness
 
-5. **Final Approval**
-   - Present complete verification results
+5. **Automated Verification (if agents enabled)**
+   First check if agents are available:
+   ```bash
+   npx @pimzino/claude-code-spec-workflow@latest using-agents
+   ```
+   
+   If this returns `true`, use automated verification agents:
+   
+   **Integration Testing:**
+   ```
+   Use the spec-integration-tester agent to perform comprehensive verification of the bug fix for {bug-name}.
+   
+   The agent should:
+   1. Load bug context documents from .claude/bugs/{bug-name}/
+   2. Analyze the original bug reproduction steps
+   3. Run automated tests for the fix
+   4. Validate integration points and API contracts
+   5. Check for regressions using git history analysis
+   6. Verify the fix works in different scenarios
+   7. Provide comprehensive verification feedback
+   
+   This ensures thorough validation of the bug fix.
+   ```
+   
+   **Performance Impact Analysis:**
+   First check if agents are available:
+   ```bash
+   npx @pimzino/claude-code-spec-workflow@latest using-agents
+   ```
+   
+   If this returns true, use the performance analyzer:
+   ```
+   Use the spec-performance-analyzer agent to check performance impact of the bug fix for {bug-name}.
+   
+   The agent should:
+   1. Analyze the performance implications of the fix
+   2. Check for any performance regressions
+   3. Identify potential optimization opportunities
+   4. Validate that the fix doesn't introduce bottlenecks
+   5. Recommend performance testing strategies if needed
+   
+   This ensures the fix doesn't negatively impact system performance.
+   ```
+
+6. **Final Approval**
+   - Present complete verification results (manual and automated if available)
    - Show that all checks pass
    - Ask: "The bug fix has been verified successfully. Is this bug resolved?"
    - Get final confirmation before closing

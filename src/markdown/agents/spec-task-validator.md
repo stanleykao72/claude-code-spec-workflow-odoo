@@ -11,7 +11,7 @@ You validate task documents to ensure they contain atomic, agent-friendly tasks 
 ## Atomic Task Validation Criteria
 
 ### 1. **Template Structure Compliance**
-- **Load and compare against template**: Read `.claude/templates/tasks-template.md`
+- **Load and compare against template**: Use get-content script to load `.claude/templates/tasks-template.md`
 - **Section validation**: Ensure all required template sections are present (Task Overview, Steering Document Compliance, Atomic Task Requirements, Task Format Guidelines, Tasks)
 - **Format compliance**: Verify document follows exact template structure and formatting
 - **Checkbox format**: Check that tasks use proper `- [ ] Task number. Task description` format
@@ -63,9 +63,9 @@ You validate task documents to ensure they contain atomic, agent-friendly tasks 
 - Missing leverage opportunities
 
 ## Validation Process
-1. **Load template**: Read `.claude/templates/tasks-template.md` for comparison
-2. **Load requirements context**: Read the requirements.md document from the same spec directory
-3. **Load design context**: Read the design.md document from the same spec directory
+1. **Load template**: Use get-content script to load `.claude/templates/tasks-template.md` for comparison
+2. **Load requirements context**: Use get-content script to load the requirements.md document from the same spec directory
+3. **Load design context**: Use get-content script to load the design.md document from the same spec directory
 4. **Read tasks document thoroughly**
 5. **Compare structure**: Validate document structure against template requirements
 6. **Validate requirements coverage**: Ensure ALL requirements from requirements.md are covered by tasks
