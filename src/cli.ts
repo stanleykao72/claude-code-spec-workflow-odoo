@@ -29,9 +29,24 @@ const program = new Command();
 program
   .name('claude-spec-setup')
   .description('Set up Claude Code Spec Workflow with automated orchestration in your project')
-  .version(packageJson.version);
+  .version(packageJson.version)
+  .addHelpText('after', `
+Examples:
+  npx @pimzino/claude-code-spec-workflow@latest           # Run setup (default)
+  npx @pimzino/claude-code-spec-workflow@latest setup     # Run setup explicitly
+  npx @pimzino/claude-code-spec-workflow@latest test      # Test setup in temp directory
+  npx @pimzino/claude-code-spec-workflow@latest get-content <file>  # Read file content
+  npx @pimzino/claude-code-spec-workflow@latest using-agents       # Check if agents enabled
+  npx @pimzino/claude-code-spec-workflow@latest get-tasks <spec>   # Get tasks from spec
 
+For help with a specific command:
+  npx @pimzino/claude-code-spec-workflow@latest <command> --help
+`);
+
+// Setup command (default command when no subcommand is provided)
 program
+  .command('setup')
+  .description('Set up Claude Code Spec Workflow in your project')
   .option('-p, --project <path>', 'Project directory', process.cwd())
   .option('-f, --force', 'Force overwrite existing files')
   .option('-y, --yes', 'Skip confirmation prompts')
@@ -275,7 +290,8 @@ program
       await setup.runSetup();
 
       console.log(chalk.green('Test completed successfully!'));
-      console.log(chalk.gray(`Test directory: ${tempDir}`));
+      console.log(chalk.gray(`Test directory: ${path.resolve(tempDir)}`));
+      console.log(chalk.blue('You can inspect the generated files in the test directory.'));
 
     } catch (error) {
       console.error(chalk.red('Test failed:'), error);
@@ -401,4 +417,51 @@ program
     await getTasks(specName, taskId, mode, options.project);
   });
 
-program.parse();
+// Add error handling for unknown commands
+program.on('command:*', () => {
+  const availableCommands = program.commands.map(cmd => cmd.name()).filter(name => name !== 'help');
+  console.error(chalk.red(`Error: Unknown command '${program.args[0]}'`));
+  console.log();
+  console.log(chalk.cyan('Available commands:'));
+  availableCommands.forEach(cmd => {
+    const command = program.commands.find(c => c.name() === cmd);
+    if (command) {
+      console.log(chalk.gray(`  ${cmd} - ${command.description()}`));
+    }
+  });
+  console.log();
+  console.log(chalk.yellow('For help with a specific command, run:'));
+  console.log(chalk.gray('  npx @pimzino/claude-code-spec-workflow@latest <command> --help'));
+  process.exit(1);
+});
+
+// Custom argument handling for backwards compatibility
+const args = process.argv.slice(2);
+
+// If no arguments provided, show help
+if (args.length === 0) {
+  program.help();
+}
+
+// If the first argument is not a known command and not a flag, check if it's likely a command or path
+const firstArg = args[0];
+const knownCommands = ['setup', 'test', 'generate-task-commands', 'get-content', 'using-agents', 'get-tasks', 'help', '--help', '-h', '--version', '-V'];
+
+if (!knownCommands.includes(firstArg) && !firstArg.startsWith('-')) {
+  // Check if it looks like a command (contains hyphens, short words, etc.) vs a path
+  const looksLikeCommand = firstArg.includes('-') || (firstArg.length > 2 && firstArg.length < 15 && !/[\/\\]/.test(firstArg));
+  
+  if (looksLikeCommand) {
+    // It's likely an unknown command, let Commander.js handle the error
+    // Don't modify the arguments
+  } else {
+    // It's likely a path, so prepend 'setup' for backwards compatibility
+    process.argv.splice(2, 0, 'setup');
+  }
+}
+
+// Parse arguments with better error handling
+program.parseAsync(process.argv).catch((error) => {
+  console.error(chalk.red('Error:'), error.message);
+  process.exit(1);
+});
