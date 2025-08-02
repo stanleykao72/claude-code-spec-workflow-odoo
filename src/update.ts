@@ -193,6 +193,8 @@ export class SpecWorkflowUpdater {
   }
 
   async regenerateTaskCommands(): Promise<void> {
+    console.log('Scanning for existing specs...');
+    
     // Find all existing specs
     let specDirs: string[] = [];
     
@@ -201,7 +203,15 @@ export class SpecWorkflowUpdater {
       specDirs = specsEntries
         .filter(entry => entry.isDirectory())
         .map(entry => entry.name);
-    } catch {
+      
+      if (specDirs.length === 0) {
+        console.log('No specs found to regenerate task commands for.');
+        return;
+      }
+      
+      console.log(`Found ${specDirs.length} spec(s): ${specDirs.join(', ')}`);
+    } catch (error) {
+      console.log('No specs directory found, skipping task command regeneration.');
       // Specs directory might not exist
       return;
     }
@@ -219,6 +229,16 @@ export class SpecWorkflowUpdater {
         // Read tasks.md
         const tasksContent = await fs.readFile(tasksFile, 'utf8');
         
+        // Parse tasks and generate commands
+        const tasks = parseTasksFromMarkdown(tasksContent);
+        
+        if (tasks.length === 0) {
+          console.log(`  ${specName}: No tasks found in tasks.md, skipping`);
+          continue;
+        }
+        
+        console.log(`  ${specName}: Regenerating ${tasks.length} task commands...`);
+        
         // Delete existing task commands for this spec
         try {
           await fs.rm(commandsSpecDir, { recursive: true });
@@ -229,17 +249,20 @@ export class SpecWorkflowUpdater {
         // Create spec commands directory
         await fs.mkdir(commandsSpecDir, { recursive: true });
         
-        // Parse tasks and generate commands
-        const tasks = parseTasksFromMarkdown(tasksContent);
-        
+        // Generate commands
         for (const task of tasks) {
           await generateTaskCommand(commandsSpecDir, specName, task);
         }
         
+        console.log(`  ${specName}: Generated commands for tasks: ${tasks.map(t => t.id).join(', ')}`);
+        
       } catch {
+        console.log(`  ${specName}: No tasks.md found, skipping`);
         // tasks.md doesn't exist for this spec, skip
         continue;
       }
     }
+    
+    console.log('Task command regeneration complete!');
   }
 }

@@ -146,8 +146,10 @@ program
           }
         ]);
 
-        // Create setup instance with agent preference
+        // Create setup instance with agent preference, preserving update choices
+        const updateChoices = setup._updateChoices;
         setup = new SpecWorkflowSetup(process.cwd(), useAgents);
+        setup._updateChoices = updateChoices;
       }
 
       // Run setup or update
