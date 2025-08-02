@@ -45,7 +45,7 @@ For help with a specific command:
 
 // Setup command (default command when no subcommand is provided)
 program
-  .command('setup')
+  .command('setup', { isDefault: true })
   .description('Set up Claude Code Spec Workflow in your project')
   .option('-p, --project <path>', 'Project directory', process.cwd())
   .option('-f, --force', 'Force overwrite existing files')
@@ -435,33 +435,5 @@ program.on('command:*', () => {
   process.exit(1);
 });
 
-// Custom argument handling for backwards compatibility
-const args = process.argv.slice(2);
-
-// If no arguments provided, show help
-if (args.length === 0) {
-  program.help();
-}
-
-// If the first argument is not a known command and not a flag, check if it's likely a command or path
-const firstArg = args[0];
-const knownCommands = ['setup', 'test', 'generate-task-commands', 'get-content', 'using-agents', 'get-tasks', 'help', '--help', '-h', '--version', '-V'];
-
-if (!knownCommands.includes(firstArg) && !firstArg.startsWith('-')) {
-  // Check if it looks like a command (contains hyphens, short words, etc.) vs a path
-  const looksLikeCommand = firstArg.includes('-') || (firstArg.length > 2 && firstArg.length < 15 && !/[\/\\]/.test(firstArg));
-  
-  if (looksLikeCommand) {
-    // It's likely an unknown command, let Commander.js handle the error
-    // Don't modify the arguments
-  } else {
-    // It's likely a path, so prepend 'setup' for backwards compatibility
-    process.argv.splice(2, 0, 'setup');
-  }
-}
-
-// Parse arguments with better error handling
-program.parseAsync(process.argv).catch((error) => {
-  console.error(chalk.red('Error:'), error.message);
-  process.exit(1);
-});
+// Parse arguments normally - let Commander.js handle everything
+program.parse();
