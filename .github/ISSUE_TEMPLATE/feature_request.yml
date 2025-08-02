@@ -6,155 +6,52 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for suggesting a new feature! Please provide as much detail as possible to help us understand your request.
-
-  - type: dropdown
-    id: feature-area
-    attributes:
-      label: Feature Area
-      description: Which area would this feature affect?
-      options:
-        - CLI Interface
-        - Spec Workflow (Requirements/Design/Tasks)
-        - Bug Workflow
-        - Dashboard (Monitoring)
-        - Templates & Documentation
-        - Task Generation
-        - Project Integration
-        - File Watching/Updates
-        - Agent Templates/Definitions
-        - Command Generation
-        - Project Setup/Structure
-        - Claude Code Integration
-        - Other
-    validations:
-      required: true
+        Thanks for suggesting a feature! Help us understand what you'd like to see.
 
   - type: textarea
-    id: feature-summary
+    id: feature-description
     attributes:
-      label: Feature Summary
-      description: A clear and concise description of the feature you'd like to see
-      placeholder: Briefly describe the feature...
+      label: Feature Description
+      description: What feature would you like to see?
+      placeholder: Describe the feature you'd like...
     validations:
       required: true
 
   - type: textarea
     id: problem-statement
     attributes:
-      label: Problem Statement
-      description: What problem does this feature solve? What use case does it address?
+      label: Problem or Use Case
+      description: What problem would this solve or what would you use it for?
       placeholder: |
-        Describe the problem or limitation you're facing...
-        - Current behavior: ...
-        - Desired behavior: ...
+        Describe the problem or use case:
+        - What are you trying to accomplish?
+        - What's currently difficult or missing?
     validations:
       required: true
 
   - type: textarea
     id: proposed-solution
     attributes:
-      label: Proposed Solution
-      description: Describe your ideal solution for this feature
+      label: How should it work?
+      description: Describe how you envision this feature working
       placeholder: How would you like this feature to work?
-    validations:
-      required: true
-
-  - type: textarea
-    id: alternative-solutions
-    attributes:
-      label: Alternative Solutions
-      description: Describe any alternative solutions or workarounds you've considered
-      placeholder: Have you considered any alternatives?
 
   - type: dropdown
-    id: feature-type
+    id: feature-area
     attributes:
-      label: Feature Type
-      description: What type of feature is this?
+      label: Feature Area
+      description: Which area would this affect?
       options:
-        - "New Command/Workflow"
-        - "Enhancement to Existing Feature"
-        - "Dashboard Improvement"
-        - "Template Enhancement"
-        - "Integration Improvement"
-        - "Developer Experience"
-        - "Performance Improvement"
-        - "New Agent Template"
-        - "Agent Template Enhancement"
-        - "Command Generation Improvement"
-        - "Other"
-    validations:
-      required: true
-
-  - type: dropdown
-    id: priority
-    attributes:
-      label: Priority
-      description: How important is this feature to you?
-      options:
-        - "Nice to have"
-        - "Would be helpful"
-        - "Important for my workflow"
-        - "Critical/Blocking"
-    validations:
-      required: true
-
-  - type: textarea
-    id: use-cases
-    attributes:
-      label: Use Cases
-      description: Provide specific examples of how this feature would be used
-      placeholder: |
-        Example scenarios:
-        1. When working on...
-        2. During the process of...
-        3. To help with...
-
-  - type: textarea
-    id: implementation-ideas
-    attributes:
-      label: Implementation Ideas (Optional)
-      description: If you have ideas about how this could be implemented, share them here
-      placeholder: Any thoughts on implementation details?
-
-  - type: checkboxes
-    id: compatibility
-    attributes:
-      label: Compatibility Considerations
-      description: Please check all that apply
-      options:
-        - label: This should work with all supported Node.js versions (16+)
-        - label: This should work across all operating systems (Windows, macOS, Linux)
-        - label: This should maintain backward compatibility with existing workflows
-        - label: This should integrate well with Claude Code
-
-  - type: dropdown
-    id: agent-involvement
-    attributes:
-      label: Agent Template Involvement
-      description: Does this feature request involve agent templates or definitions?
-      options:
-        - "No - Not agent template-related"
-        - "New agent template needed"
-        - "Enhancement to existing agent template"
-        - "Agent template integration improvement"
-        - "Agent template system enhancement"
-        - "Command generation for agents"
-
-  - type: textarea
-    id: agent-details
-    attributes:
-      label: Agent Template Details (if applicable)
-      description: If this involves agent templates, provide specific details
-      placeholder: |
-        - Specific agent template(s): spec-requirements-validator, spec-task-executor, etc.
-        - Template capability needed: What should the agent template provide?
-        - Integration points: How should it work with existing templates?
-        - Use case: When would this agent template be used in Claude Code?
+        - CLI Commands
+        - Dashboard
+        - Workflows (Spec/Bug)
+        - Templates
+        - Claude Code Integration
+        - Other
 
   - type: textarea
     id: additional-context
     attributes:
       label: Additional Context
-      description: Add any other context, mockups, or examples that would help explain this feature request
+      description: Anything else that would help us understand this request?
+      placeholder: Add any other details, examples, or context here...

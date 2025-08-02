@@ -1,14 +1,12 @@
 name: 📊 Dashboard Issue
-description: Report an issue or request a feature specifically for the read-only monitoring dashboard
+description: Report an issue or request a feature for the dashboard
 title: "[Dashboard]: "
 labels: ["dashboard", "needs-triage"]
 body:
   - type: markdown
     attributes:
       value: |
-        This template is for issues specifically related to the `claude-spec-dashboard` component.
-
-        **Note**: The dashboard is a read-only monitoring tool that displays spec progress, task status, and project information. It does not have interactive agent functionality.
+        Report issues with the `claude-spec-dashboard` monitoring tool.
 
   - type: dropdown
     id: issue-type
@@ -17,15 +15,9 @@ body:
       description: What type of dashboard issue is this?
       options:
         - "Bug - Dashboard not loading"
-        - "Bug - WebSocket connection issues"
-        - "Bug - File updates not reflecting"
-        - "Bug - UI/Display issues"
-        - "Bug - Multi-project mode issues"
-        - "Bug - Spec/task status display"
-        - "Feature - New dashboard functionality"
-        - "Feature - UI/UX improvements"
-        - "Feature - Better monitoring capabilities"
-        - "Feature - Additional project information"
+        - "Bug - Display/UI issues"
+        - "Bug - Updates not showing"
+        - "Feature request"
         - "Performance issue"
         - "Other"
     validations:
@@ -34,22 +26,21 @@ body:
   - type: textarea
     id: issue-description
     attributes:
-      label: Issue Description
-      description: Detailed description of the issue or feature request
-      placeholder: Describe what's happening with the dashboard...
+      label: What's happening?
+      description: Describe the issue or feature request
+      placeholder: Tell us what's wrong or what you'd like to see...
     validations:
       required: true
 
-  - type: dropdown
-    id: dashboard-mode
+  - type: textarea
+    id: steps-to-reproduce
     attributes:
-      label: Dashboard Mode
-      description: Which dashboard mode are you using?
-      options:
-        - "Single project mode (default)"
-        - "Multi-project mode (--multi)"
-        - "Both modes affected"
-        - "Not applicable"
+      label: Steps to Reproduce
+      description: How can we reproduce this issue?
+      placeholder: |
+        1. Start dashboard with...
+        2. Do this...
+        3. See issue
     validations:
       required: true
 
@@ -59,94 +50,20 @@ body:
       label: Command Used
       description: What command did you use to start the dashboard?
       render: shell
-      placeholder: |
-        npx -p @pimzino/claude-code-spec-workflow claude-spec-dashboard
-        # or
-        claude-spec-dashboard --multi --port 8080
-    validations:
-      required: true
-
-  - type: textarea
-    id: browser-info
-    attributes:
-      label: Browser Information
-      description: Browser and version you're using
-      placeholder: |
-        - Browser: Chrome 120.0.0.0
-        - Operating System: Windows 11
-        - Any browser extensions that might interfere?
-
-  - type: textarea
-    id: project-structure
-    attributes:
-      label: Project Structure
-      description: Information about your project(s) and .claude directory structure
-      placeholder: |
-        - Number of projects (if multi-mode): 
-        - .claude/ directory structure:
-        - Any custom spec configurations:
-        - Git repository status:
-
-  - type: textarea
-    id: console-errors
-    attributes:
-      label: Console Errors
-      description: Any errors from the browser developer console or terminal
-      render: shell
-      placeholder: Paste any error messages here...
-
-  - type: textarea
-    id: expected-behavior
-    attributes:
-      label: Expected Behavior
-      description: What should the dashboard be doing?
-      placeholder: Describe what you expected to see...
-
-  - type: textarea
-    id: actual-behavior
-    attributes:
-      label: Actual Behavior
-      description: What is the dashboard actually doing?
-      placeholder: Describe what you're actually seeing...
-
-  - type: textarea
-    id: steps-to-reproduce
-    attributes:
-      label: Steps to Reproduce
-      description: How can we reproduce this issue?
-      placeholder: |
-        1. Start dashboard with...
-        2. Navigate to...
-        3. Perform action...
-        4. Observe...
+      placeholder: claude-spec-dashboard
 
   - type: dropdown
-    id: monitoring-functionality
+    id: dashboard-mode
     attributes:
-      label: Monitoring Functionality
-      description: Is this related to the dashboard's monitoring capabilities?
+      label: Dashboard Mode
       options:
-        - "No - Not monitoring-related"
-        - "Yes - Spec status not displaying correctly"
-        - "Yes - Task progress not updating"
-        - "Yes - Project information missing"
-        - "Yes - File change detection issues"
-        - "Yes - WebSocket update problems"
-
-  - type: textarea
-    id: monitoring-details
-    attributes:
-      label: Monitoring Details (if applicable)
-      description: If this involves monitoring functionality, provide details
-      placeholder: |
-        - What should be displayed: Expected information or status
-        - Current behavior: What's actually showing
-        - Missing information: What data is not appearing
-        - Update frequency: How often should information refresh
+        - "Single project (default)"
+        - "Multi-project (--multi)"
+        - "Not sure"
 
   - type: textarea
     id: additional-context
     attributes:
       label: Additional Context
-      description: Any additional information, screenshots, or files that might help
+      description: Any other details, error messages, or screenshots?
       placeholder: Add any other context here...

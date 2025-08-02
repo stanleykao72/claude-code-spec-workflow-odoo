@@ -6,34 +6,14 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to report a bug! Please fill out the information below to help us diagnose and fix the issue.
-
-  - type: dropdown
-    id: component
-    attributes:
-      label: Component
-      description: Which component is affected by this bug?
-      options:
-        - CLI Setup (`claude-spec-setup`)
-        - Dashboard (`claude-spec-dashboard`)
-        - Spec Workflow Commands
-        - Bug Workflow Commands
-        - Task Generation
-        - Templates
-        - File Watching/Updates
-        - Agent Templates/Definitions
-        - Command Generation
-        - Project Structure
-        - Other
-    validations:
-      required: true
+        Thanks for reporting a bug! Please provide the essential details below to help us fix the issue quickly.
 
   - type: textarea
-    id: bug-description
+    id: what-happened
     attributes:
-      label: Bug Description
-      description: A clear and concise description of what the bug is.
-      placeholder: Describe what happened...
+      label: What happened?
+      description: Describe the bug clearly and concisely
+      placeholder: Tell us what went wrong...
     validations:
       required: true
 
@@ -41,10 +21,10 @@ body:
     id: steps-to-reproduce
     attributes:
       label: Steps to Reproduce
-      description: Steps to reproduce the behavior
+      description: How can we reproduce this issue?
       placeholder: |
         1. Run command '...'
-        2. Navigate to '...'
+        2. Do this...
         3. See error
     validations:
       required: true
@@ -53,48 +33,25 @@ body:
     id: expected-behavior
     attributes:
       label: Expected Behavior
-      description: A clear and concise description of what you expected to happen.
-      placeholder: What should have happened instead?
-    validations:
-      required: true
-
-  - type: textarea
-    id: actual-behavior
-    attributes:
-      label: Actual Behavior
-      description: What actually happened?
-      placeholder: What actually happened?
+      description: What should have happened instead?
+      placeholder: Describe what you expected to happen...
     validations:
       required: true
 
   - type: textarea
     id: error-output
     attributes:
-      label: Error Output
-      description: If applicable, paste any error messages or stack traces
+      label: Error Output (if any)
+      description: Paste any error messages or logs
       render: shell
-      placeholder: Paste error output here...
+      placeholder: Paste error messages here...
 
   - type: input
-    id: package-version
+    id: version
     attributes:
-      label: Package Version
-      description: What version of the package are you using?
+      label: Version
+      description: What version are you using?
       placeholder: "1.4.4"
-    validations:
-      required: true
-
-  - type: dropdown
-    id: node-version
-    attributes:
-      label: Node.js Version
-      description: What version of Node.js are you using?
-      options:
-        - "18.x"
-        - "20.x"
-        - "21.x"
-        - "22.x"
-        - "Other (specify in additional context)"
     validations:
       required: true
 
@@ -102,67 +59,15 @@ body:
     id: os
     attributes:
       label: Operating System
-      description: What operating system are you using?
       options:
         - Windows
         - macOS
         - Linux
-        - Other (specify in additional context)
-    validations:
-      required: true
-
-  - type: dropdown
-    id: installation-method
-    attributes:
-      label: Installation Method
-      description: How did you install the package?
-      options:
-        - "npx @pimzino/claude-code-spec-workflow@latest"
-        - "npm install -g @pimzino/claude-code-spec-workflow"
-        - "Local development"
-        - "Other"
-    validations:
-      required: true
-
-  - type: textarea
-    id: project-structure
-    attributes:
-      label: Project Structure
-      description: If relevant, describe your project structure and setup
-      placeholder: |
-        - Project type: Node.js/Python/Java/etc.
-        - Has .claude/ directory: Yes/No
-        - Using Claude Code: Yes/No
-        - Custom configuration: Yes/No
-
-  - type: dropdown
-    id: workflow-context
-    attributes:
-      label: Workflow Context
-      description: In what context did this issue occur?
-      options:
-        - "Manual command execution"
-        - "Using generated slash commands"
-        - "Dashboard monitoring"
-        - "Template/file generation"
-        - "Project setup/initialization"
-        - "Claude Code integration"
-        - "Other"
-
-  - type: textarea
-    id: workflow-details
-    attributes:
-      label: Workflow Details (if applicable)
-      description: Provide details about the workflow context where the issue occurred
-      placeholder: |
-        - Command used: /spec-create, /spec-execute, etc.
-        - Workflow stage: Requirements, Design, Tasks, Implementation
-        - Generated files involved: Which templates or commands
-        - Expected workflow behavior: What should have happened
-        - Actual workflow behavior: What actually happened
+        - Other
 
   - type: textarea
     id: additional-context
     attributes:
       label: Additional Context
-      description: Add any other context about the problem here, including screenshots if helpful.
+      description: Anything else that might help us understand the issue?
+      placeholder: Add any other details, screenshots, or context here...
