@@ -37,15 +37,17 @@ Context files to load using get-content script:
 
 **Cross-platform examples:**
 ```bash
+# Load specific task details
+npx @pimzino/claude-code-spec-workflow get-tasks {feature-name} {task-id} --mode single
+
+# Load context documents
 # Windows
 npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\requirements.md"
 npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\design.md"
-npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\tasks.md"
 
 # macOS/Linux
 npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/requirements.md"
 npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/design.md"
-npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/tasks.md"
 
 # Steering documents (if they exist)
 npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/steering/product.md"
@@ -74,10 +76,10 @@ Task to implement: {task-id}
      # macOS/Linux: npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/design.md"
      ```
      
-     **Tasks document:**
+     **Task details:**
      ```bash
-     # Windows: npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\tasks.md"
-     # macOS/Linux: npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/tasks.md"
+     # Get specific task details
+     npx @pimzino/claude-code-spec-workflow get-tasks {feature-name} {task-id} --mode single
      ```
      
    - **Load all steering documents** (if available):

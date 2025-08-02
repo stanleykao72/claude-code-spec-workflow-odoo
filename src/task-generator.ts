@@ -164,17 +164,19 @@ The agent should:
 
 Context files to load using get-content script:
 
-**Cross-platform examples:**
+**Load task-specific context:**
 \`\`\`bash
+# Get specific task details with all information
+npx @pimzino/claude-code-spec-workflow get-tasks ${specName} ${task.id} --mode single
+
+# Load context documents
 # Windows:
 npx @pimzino/claude-code-spec-workflow get-content "C:\\path\\to\\project\\.claude\\specs\\${specName}\\requirements.md"
 npx @pimzino/claude-code-spec-workflow get-content "C:\\path\\to\\project\\.claude\\specs\\${specName}\\design.md"
-npx @pimzino/claude-code-spec-workflow get-content "C:\\path\\to\\project\\.claude\\specs\\${specName}\\tasks.md"
 
 # macOS/Linux:
 npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/${specName}/requirements.md"
 npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/${specName}/design.md"
-npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/${specName}/tasks.md"
 
 # Steering documents (if they exist):
 npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/steering/product.md"
@@ -207,9 +209,8 @@ Before executing the task, you MUST load all relevant context using the get-cont
 # Windows: npx @pimzino/claude-code-spec-workflow get-content "C:\\path\\to\\project\\.claude\\specs\\${specName}\\design.md"
 # macOS/Linux: npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/${specName}/design.md"
 
-# Tasks document:
-# Windows: npx @pimzino/claude-code-spec-workflow get-content "C:\\path\\to\\project\\.claude\\specs\\${specName}\\tasks.md"
-# macOS/Linux: npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/${specName}/tasks.md"
+# Task details:
+npx @pimzino/claude-code-spec-workflow get-tasks ${specName} ${task.id} --mode single
 \`\`\`
 
 **2. Steering Documents (if available):**
@@ -246,7 +247,10 @@ npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/ste
 
 ## Task Completion Protocol
 When completing this task:
-1. **Update tasks.md**: Change task ${task.id} status from \`- [ ]\` to \`- [x]\`
+1. **Mark task complete**: Use the get-tasks script to mark completion:
+   \`\`\`bash
+   npx @pimzino/claude-code-spec-workflow get-tasks ${specName} ${task.id} --mode complete
+   \`\`\`
 2. **Confirm to user**: State clearly "Task ${task.id} has been marked as complete"
 3. **Stop execution**: Do not proceed to next task automatically
 4. **Wait for instruction**: Let user decide next steps

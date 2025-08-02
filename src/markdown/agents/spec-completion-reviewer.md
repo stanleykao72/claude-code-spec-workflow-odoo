@@ -44,11 +44,8 @@ npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/spe
 - **Load tasks document**: Use the get-content script to read the tasks:
 
 ```bash
-# Windows:
-npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\tasks.md"
-
-# macOS/Linux:
-npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/tasks.md"
+# Get all tasks with completion status
+npx @pimzino/claude-code-spec-workflow get-tasks {feature-name} --mode all
 ```
 - **Complete implementation**: Verify every task is fully implemented
 - **Task interdependencies**: Check task outputs properly integrate

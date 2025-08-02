@@ -16,9 +16,9 @@ You are a **stateless orchestration coordinator**. You delegate all work to spec
 **Silently load** (no verbose output) using get-content script:
 
 ```bash
-# Load tasks to parse completion status
-# Windows: npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{spec-name}\tasks.md"
-# macOS/Linux: npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{spec-name}/tasks.md"
+# Get next pending task and all task status
+npx @pimzino/claude-code-spec-workflow get-tasks {spec-name} --mode next-pending
+npx @pimzino/claude-code-spec-workflow get-tasks {spec-name} --mode all
 
 # Load context documents
 # Windows: npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{spec-name}\requirements.md"
@@ -73,7 +73,11 @@ Mark complete in tasks.md when done.
 **Step 4 - Report completion:**
 `✅ Task {id} complete`
 
-**Step 5 - Continue automatically:**
+**Step 5 - Mark task complete and continue:**
+```bash
+# Mark current task as complete
+npx @pimzino/claude-code-spec-workflow get-tasks {spec-name} {task-id} --mode complete
+```
 **CRITICAL**: Immediately proceed to next pending task without waiting for user input. Only pause for errors or when all tasks complete.
 
 ### 4. Error Handling

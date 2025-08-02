@@ -9,6 +9,7 @@ import { detectProjectType, validateClaudeCode } from './utils';
 import { parseTasksFromMarkdown, generateTaskCommand } from './task-generator';
 import { getFileContent } from './get-content';
 import { getAgentsEnabled } from './using-agents';
+import { getTasks } from './get-tasks';
 import { readFileSync } from 'fs';
 import * as path from 'path';
 
@@ -289,6 +290,29 @@ program
   .option('-p, --project <path>', 'Project directory', process.cwd())
   .action(async (options) => {
     await getAgentsEnabled(options.project);
+  });
+
+// Add get-tasks command
+program
+  .command('get-tasks')
+  .description('Get tasks from a specification')
+  .argument('<spec-name>', 'Name of the spec to get tasks from')
+  .argument('[task-id]', 'Specific task ID to retrieve')
+  .option('-m, --mode <mode>', 'Mode: all, single, next-pending, or complete', 'all')
+  .option('-p, --project <path>', 'Project directory', process.cwd())
+  .action(async (specName, taskId, options) => {
+    let mode = options.mode as 'all' | 'single' | 'next-pending' | 'complete';
+    
+    // Auto-detect mode if taskId is provided and mode is default
+    if (taskId && mode === 'all') {
+      mode = 'single';
+    }
+    
+    if (!['all', 'single', 'next-pending', 'complete'].includes(mode)) {
+      console.error(chalk.red('Error: Invalid mode. Use: all, single, next-pending, or complete'));
+      process.exit(1);
+    }
+    await getTasks(specName, taskId, mode, options.project);
   });
 
 program.parse();

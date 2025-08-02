@@ -19,15 +19,17 @@ Before implementing any task, you MUST load and understand the following files u
 ### 1. **Specification Context**
 **Cross-platform examples:**
 ```bash
+# Load specific task details
+npx @pimzino/claude-code-spec-workflow get-tasks {feature-name} {task-id} --mode single
+
+# Load context documents
 # Windows:
 npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\requirements.md"
 npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\design.md"
-npx @pimzino/claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\tasks.md"
 
 # macOS/Linux:
 npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/requirements.md"
 npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/design.md"
-npx @pimzino/claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/tasks.md"
 ```
 
 ### 2. **Project Context (Steering Documents)**
