@@ -50,6 +50,127 @@ export class SpecWorkflowSetup {
     }
   }
 
+  /**
+   * Check if the installation is complete by verifying all required files and directories exist
+   * This prevents treating incomplete installations as complete ones
+   */
+  async isInstallationComplete(): Promise<boolean> {
+    try {
+      // First check if .claude directory exists
+      if (!await this.claudeDirectoryExists()) {
+        return false;
+      }
+
+      // Check all required directories
+      const requiredDirectories = [
+        this.commandsDir,
+        this.specsDir,
+        this.templatesDir,
+        this.steeringDir,
+        this.bugsDir
+      ];
+
+      // Only check agents directory if agents are enabled
+      if (this.createAgents) {
+        requiredDirectories.push(this.agentsDir);
+      }
+
+      for (const dir of requiredDirectories) {
+        try {
+          await fs.access(dir);
+        } catch {
+          return false;
+        }
+      }
+
+      // Check all required command files
+      const requiredCommands = [
+        'spec-create.md',
+        'spec-execute.md',
+        'spec-orchestrate.md',
+        'spec-status.md',
+        'spec-list.md',
+        'spec-completion-review.md',
+        'spec-steering-setup.md',
+        'bug-create.md',
+        'bug-analyze.md',
+        'bug-fix.md',
+        'bug-verify.md',
+        'bug-status.md'
+      ];
+
+      for (const commandFile of requiredCommands) {
+        try {
+          await fs.access(join(this.commandsDir, commandFile));
+        } catch {
+          return false;
+        }
+      }
+
+      // Check all required template files
+      const requiredTemplates = [
+        'requirements-template.md',
+        'design-template.md',
+        'tasks-template.md',
+        'product-template.md',
+        'tech-template.md',
+        'structure-template.md',
+        'bug-report-template.md',
+        'bug-analysis-template.md',
+        'bug-verification-template.md'
+      ];
+
+      for (const templateFile of requiredTemplates) {
+        try {
+          await fs.access(join(this.templatesDir, templateFile));
+        } catch {
+          return false;
+        }
+      }
+
+      // Check required agent files if agents are enabled
+      if (this.createAgents) {
+        const requiredAgents = [
+          'spec-requirements-validator.md',
+          'spec-design-validator.md',
+          'spec-design-web-researcher.md',
+          'spec-task-validator.md',
+          'spec-task-executor.md',
+          'spec-task-implementation-reviewer.md',
+          'spec-integration-tester.md',
+          'spec-completion-reviewer.md',
+          'bug-root-cause-analyzer.md',
+          'steering-document-updater.md',
+          'spec-dependency-analyzer.md',
+          'spec-test-generator.md',
+          'spec-documentation-generator.md',
+          'spec-performance-analyzer.md',
+          'spec-duplication-detector.md',
+          'spec-breaking-change-detector.md'
+        ];
+
+        for (const agentFile of requiredAgents) {
+          try {
+            await fs.access(join(this.agentsDir, agentFile));
+          } catch {
+            return false;
+          }
+        }
+      }
+
+      // Check config file
+      try {
+        await fs.access(join(this.claudeDir, 'spec-config.json'));
+      } catch {
+        return false;
+      }
+
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   async setupDirectories(): Promise<void> {
     const directories = [
       this.claudeDir,

@@ -10,8 +10,9 @@ import { parseTasksFromMarkdown, generateTaskCommand } from './task-generator';
 import { getFileContent } from './get-content';
 import { getAgentsEnabled } from './using-agents';
 import { getTasks } from './get-tasks';
-import { readFileSync } from 'fs';
+import { readFileSync, promises as fs } from 'fs';
 import * as path from 'path';
+import { join } from 'path';
 
 // Read version from package.json
 // Use require.resolve to find package.json in both dev and production
@@ -83,14 +84,69 @@ program
         console.log(chalk.gray('   Visit: https://docs.anthropic.com/claude-code'));
       }
 
-      // Check for existing .claude directory
+      // Check for existing .claude directory and installation completeness
       let setup = new SpecWorkflowSetup(projectPath);
       const claudeExists = await setup.claudeDirectoryExists();
 
-      if (claudeExists && !options.force) {
+      // For installation completeness check, we need to know if agents should be enabled
+      // We'll do a preliminary check first, then a proper check after we know the agent preference
+      let isComplete = false;
+
+      if (claudeExists) {
+        // Try to determine agent preference from existing config
+        let agentsEnabled = false;
+        try {
+          const configPath = join(projectPath, '.claude', 'spec-config.json');
+          const configContent = await fs.readFile(configPath, 'utf-8');
+          const config = JSON.parse(configContent);
+          agentsEnabled = config.spec_workflow?.agents_enabled || false;
+        } catch {
+          // Config doesn't exist or is malformed, assume agents disabled for completeness check
+          agentsEnabled = false;
+        }
+
+        // Create temporary setup instance with detected agent preference for completeness check
+        const tempSetup = new SpecWorkflowSetup(projectPath, agentsEnabled);
+        isComplete = await tempSetup.isInstallationComplete();
+      }
+
+      // Handle incomplete installations
+      if (claudeExists && !isComplete && !options.force) {
+        if (!options.yes) {
+          console.log(chalk.yellow('Incomplete installation detected'));
+          console.log(chalk.gray('Some required files or directories are missing from your .claude installation.'));
+          console.log(chalk.green('Your spec documents (requirements.md, design.md, tasks.md) will not be modified'));
+          console.log();
+
+          const { completeInstallation } = await inquirer.prompt([
+            {
+              type: 'confirm',
+              name: 'completeInstallation',
+              message: 'Would you like to complete the installation by adding missing files?',
+              default: true
+            }
+          ]);
+
+          if (!completeInstallation) {
+            console.log(chalk.yellow('Installation completion cancelled.'));
+            process.exit(0);
+          }
+        }
+        // For incomplete installations, we'll proceed with fresh setup to add missing files
+        // The setup process will only create missing files/directories
+      }
+
+      if (claudeExists && isComplete && !options.force) {
         if (!options.yes) {
           console.log(chalk.cyan('Existing installation detected'));
           console.log(chalk.green('Your spec documents (requirements.md, design.md, tasks.md) will not be modified'));
+          console.log();
+
+          // Show recommendation note for task commands before selection
+          console.log(chalk.cyan('💡 Task Commands Recommendation:'));
+          console.log(chalk.gray('   Task commands often contain improved instructions, bug fixes, and enhanced'));
+          console.log(chalk.gray('   functionality compared to older versions. Regenerating them ensures you get'));
+          console.log(chalk.gray('   the latest optimizations and agent compatibility improvements.'));
           console.log();
 
           // Ask what to update
@@ -103,7 +159,7 @@ program
                 { name: 'Commands (slash commands)', value: 'commands', checked: true },
                 { name: 'Templates', value: 'templates', checked: true },
                 { name: 'Agents', value: 'agents', checked: true },
-                { name: 'Task commands (regenerate for existing specs)', value: 'taskCommands', checked: true }
+                { name: 'Task commands (regenerate individual task commands from tasks.md files) - RECOMMENDED', value: 'taskCommands', checked: true }
               ],
               validate: (answer) => {
                 if (answer.length < 1) {
@@ -116,8 +172,32 @@ program
 
           console.log();
           console.log(chalk.yellow('WARNING: This will overwrite existing files'));
-          console.log(chalk.gray('- Commands and templates will be replaced with latest versions'));
-          console.log(chalk.gray('- Selected task commands will be regenerated'));
+
+          // Dynamic warnings based on user selection
+          const selectedItems = updateChoices.updateItems;
+
+          if (selectedItems.includes('commands')) {
+            console.log(chalk.gray('- Commands (slash commands) will be replaced with latest versions'));
+          }
+
+          if (selectedItems.includes('templates')) {
+            console.log(chalk.gray('- Templates will be replaced with latest versions'));
+          }
+
+          if (selectedItems.includes('agents')) {
+            console.log(chalk.gray('- Agents will be replaced with latest versions'));
+          }
+
+          if (selectedItems.includes('taskCommands')) {
+            console.log(chalk.gray('- Task commands will be regenerated from existing tasks.md files'));
+          }
+
+          // Show backup warning if any component that might affect custom files is selected
+          if (selectedItems.includes('commands') || selectedItems.includes('agents') || selectedItems.includes('templates')) {
+            console.log(chalk.gray('- Custom files may be overwritten (automatic backup will be created)'));
+          }
+
+          // Always show this message
           console.log(chalk.green('Your spec documents (requirements.md, design.md, tasks.md) will not be modified'));
           console.log();
 
@@ -175,12 +255,22 @@ program
       }
 
       // Run setup or update
-      if (claudeExists && setup._updateChoices) {
-        // This is an update scenario
-        const updateSpinner = ora('Updating installation...').start();
-        
+      if (claudeExists && isComplete && setup._updateChoices) {
+        // This is an update scenario (complete installation being updated)
+        const updateSpinner = ora('Creating backup...').start();
+
         const { SpecWorkflowUpdater } = await import('./update');
         const updater = new SpecWorkflowUpdater(projectPath);
+
+        // Create backup before making any changes
+        try {
+          await updater.createBackup();
+          updateSpinner.text = 'Updating installation...';
+        } catch (error) {
+          updateSpinner.fail('Backup creation failed');
+          console.error(chalk.red('Update cancelled for safety. Error:'), error instanceof Error ? error.message : error);
+          process.exit(1);
+        }
 
         if (setup._updateChoices.updateItems.includes('commands')) {
           await updater.updateCommands();
@@ -198,18 +288,26 @@ program
           await updater.regenerateTaskCommands();
         }
 
+        // Clean up old backups (keep 5 most recent)
+        await updater.cleanupOldBackups(5);
+
         updateSpinner.succeed('Update complete!');
       } else {
-        // This is a fresh setup
-        const setupSpinner = ora('Setting up spec workflow...').start();
+        // This is a fresh setup or completing an incomplete installation
+        const isCompletion = claudeExists && !isComplete;
+        const setupSpinner = ora(isCompletion ? 'Completing installation...' : 'Setting up spec workflow...').start();
         await setup.runSetup();
-        setupSpinner.succeed('Setup complete!');
+        setupSpinner.succeed(isCompletion ? 'Installation completed!' : 'Setup complete!');
       }
 
       // Success message
       console.log();
-      if (claudeExists && setup._updateChoices) {
+      if (claudeExists && isComplete && setup._updateChoices) {
         console.log(chalk.green.bold('Spec Workflow updated successfully!'));
+        console.log(chalk.gray('A backup of your previous installation was created automatically.'));
+      } else if (claudeExists && !isComplete) {
+        console.log(chalk.green.bold('Spec Workflow installation completed successfully!'));
+        console.log(chalk.gray('Missing files and directories have been added to your existing installation.'));
       } else {
         console.log(chalk.green.bold('Spec Workflow installed successfully!'));
       }
@@ -253,10 +351,11 @@ program
       console.log(chalk.gray('  /bug-verify                  - Verify fix'));
       console.log(chalk.gray('  /bug-status                  - Show bug status'));
       console.log();
-      // Show restart message if commands were updated
-      if (claudeExists && setup._updateChoices && 
-          (setup._updateChoices.updateItems.includes('commands') || 
-           setup._updateChoices.updateItems.includes('taskCommands'))) {
+      // Show restart message if commands were updated or installation was completed
+      if ((claudeExists && isComplete && setup._updateChoices &&
+          (setup._updateChoices.updateItems.includes('commands') ||
+           setup._updateChoices.updateItems.includes('taskCommands'))) ||
+          (claudeExists && !isComplete)) {
         console.log(chalk.yellow.bold('RESTART REQUIRED:'));
         console.log(chalk.gray('You must restart Claude Code for updated commands to be visible'));
         console.log(chalk.white('- Run "claude --continue" to continue this conversation'));

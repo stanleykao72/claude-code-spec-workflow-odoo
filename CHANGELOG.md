@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- CLI output / messaging when updating agents, commands, and templates is now much cleaner and more informative.
+
+### Added
+- .claude backup mechanism when running updates to avoid lost custom commands, agents and other claude code customizations. (This is precautionary and the package will attempt to ensure all is migrated correctly)
+
 ## [1.5.5] - 2025-08-02
 
 ### Fixed

@@ -91,8 +91,15 @@ export function parseTasksFromMarkdown(content: string): ParsedTask[] {
   // Log parsing results for debugging
   console.log(`Parsed ${tasks.length} tasks from markdown`);
   if (tasks.length === 0 && content.trim().length > 0) {
-    console.log('Warning: No tasks found. Content preview:');
-    console.log(content.substring(0, 500) + '...');
+    console.log('Warning: No tasks found. Tasks must follow this exact format:');
+    console.log('  - [ ] 1. Task description');
+    console.log('  - [ ] 2.1 Subtask description');
+    console.log('    - Additional details');
+    console.log('    - _Requirements: 1.1, 2.2_');
+    console.log('    - _Leverage: path/to/file.ts_');
+    console.log('');
+    console.log('Content preview:');
+    console.log(content.substring(0, 500) + (content.length > 500 ? '...' : ''));
   }
   
   return tasks;

@@ -23,7 +23,7 @@ export class SpecWorkflowUpdater {
     this.templatesDir = join(this.claudeDir, 'templates');
     this.agentsDir = join(this.claudeDir, 'agents');
     this.specsDir = join(this.claudeDir, 'specs');
-    
+
     // Initialize source markdown directories
     this.markdownDir = join(__dirname, 'markdown');
     this.markdownCommandsDir = join(this.markdownDir, 'commands');
@@ -31,11 +31,82 @@ export class SpecWorkflowUpdater {
     this.markdownAgentsDir = join(this.markdownDir, 'agents');
   }
 
+  /**
+   * Create a backup of the current .claude directory before making changes
+   */
+  async createBackup(): Promise<string> {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const backupDir = join(this.projectRoot, `.claude.backup-${timestamp}`);
+
+    try {
+      // Copy the entire .claude directory to backup location
+      await this.copyDirectory(this.claudeDir, backupDir);
+      console.log(`Backup created: ${backupDir}`);
+      return backupDir;
+    } catch (error) {
+      console.error('Failed to create backup:', error);
+      throw new Error('Backup creation failed. Update cancelled for safety.');
+    }
+  }
+
+  /**
+   * Recursively copy a directory
+   */
+  private async copyDirectory(src: string, dest: string): Promise<void> {
+    await fs.mkdir(dest, { recursive: true });
+    const entries = await fs.readdir(src, { withFileTypes: true });
+
+    for (const entry of entries) {
+      const srcPath = join(src, entry.name);
+      const destPath = join(dest, entry.name);
+
+      if (entry.isDirectory()) {
+        await this.copyDirectory(srcPath, destPath);
+      } else {
+        await fs.copyFile(srcPath, destPath);
+      }
+    }
+  }
+
+  /**
+   * List all backup directories in the project root
+   */
+  async listBackups(): Promise<string[]> {
+    try {
+      const entries = await fs.readdir(this.projectRoot, { withFileTypes: true });
+      return entries
+        .filter(entry => entry.isDirectory() && entry.name.startsWith('.claude.backup-'))
+        .map(entry => entry.name)
+        .sort()
+        .reverse(); // Most recent first
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Clean up old backups, keeping only the most recent N backups
+   */
+  async cleanupOldBackups(keepCount: number = 5): Promise<void> {
+    const backups = await this.listBackups();
+    const toDelete = backups.slice(keepCount);
+
+    for (const backup of toDelete) {
+      try {
+        const backupPath = join(this.projectRoot, backup);
+        await fs.rm(backupPath, { recursive: true });
+        console.log(`Cleaned up old backup: ${backup}`);
+      } catch (error) {
+        console.warn(`Failed to clean up backup ${backup}:`, error);
+      }
+    }
+  }
+
   async updateCommands(): Promise<void> {
     // List of default command files to update (exclude task command folders)
     const commandNames = [
       'spec-create',
-      'spec-execute', 
+      'spec-execute',
       'spec-orchestrate',
       'spec-status',
       'spec-list',
@@ -48,15 +119,14 @@ export class SpecWorkflowUpdater {
       'bug-status'
     ];
 
-    // Delete existing default commands (but preserve task command folders)
-    const commandsEntries = await fs.readdir(this.commandsDir, { withFileTypes: true });
-    
-    for (const entry of commandsEntries) {
-      if (entry.isFile() && entry.name.endsWith('.md')) {
-        const commandPath = join(this.commandsDir, entry.name);
+    // Only delete known default command files (preserve custom files)
+    for (const commandName of commandNames) {
+      const commandPath = join(this.commandsDir, `${commandName}.md`);
+      try {
         await fs.unlink(commandPath);
+      } catch {
+        // File might not exist, which is fine
       }
-      // Preserve directories (which contain task commands for specific specs)
     }
 
     // Copy new command files
@@ -87,17 +157,14 @@ export class SpecWorkflowUpdater {
       'bug-verification-template.md'
     ];
 
-    // Delete existing templates
-    try {
-      const templateEntries = await fs.readdir(this.templatesDir);
-      for (const entry of templateEntries) {
-        if (entry.endsWith('.md')) {
-          const templatePath = join(this.templatesDir, entry);
-          await fs.unlink(templatePath);
-        }
+    // Only delete known default template files (preserve custom templates)
+    for (const templateName of templateNames) {
+      const templatePath = join(this.templatesDir, templateName);
+      try {
+        await fs.unlink(templatePath);
+      } catch {
+        // File might not exist, which is fine
       }
-    } catch {
-      // Templates directory might not exist, continue
     }
 
     // Ensure templates directory exists
@@ -161,17 +228,14 @@ export class SpecWorkflowUpdater {
       'spec-breaking-change-detector.md'
     ];
 
-    // Delete existing agents
-    try {
-      const agentEntries = await fs.readdir(this.agentsDir);
-      for (const entry of agentEntries) {
-        if (entry.endsWith('.md')) {
-          const agentPath = join(this.agentsDir, entry);
-          await fs.unlink(agentPath);
-        }
+    // Only delete known default agent files (preserve custom agents)
+    for (const agentFile of agentFiles) {
+      const agentPath = join(this.agentsDir, agentFile);
+      try {
+        await fs.unlink(agentPath);
+      } catch {
+        // File might not exist, which is fine
       }
-    } catch {
-      // Agents directory might not exist, continue
     }
 
     // Ensure agents directory exists
@@ -233,7 +297,7 @@ export class SpecWorkflowUpdater {
         const tasks = parseTasksFromMarkdown(tasksContent);
         
         if (tasks.length === 0) {
-          console.log(`  ${specName}: No tasks found in tasks.md, skipping`);
+          console.log(`  ${specName}: No tasks found in tasks.md (check format: "- [ ] 1. Task description"), skipping`);
           continue;
         }
         
