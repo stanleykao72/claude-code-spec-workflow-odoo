@@ -91,15 +91,15 @@ Tasks follow structure.md conventions with new tunnel module in `src/dashboard/t
   - _Leverage: src/dashboard/parser.ts data patterns_
   - _Requirements: 6.1, 6.2, 6.4_
 
-- [ ] 8. Add CLI support for tunnel features
-  - [ ] 8.1 Extend CLI with tunnel flags
+- [x] 8. Add CLI support for tunnel features
+  - [x] 8.1 Extend CLI with tunnel flags
     - Add --tunnel flag to dashboard command
     - Add --tunnel-password option
     - Add --tunnel-provider selection
     - _Leverage: src/dashboard/cli.ts, Commander patterns_
     - _Requirements: 1.1, 4.1_
   
-  - [ ] 8.2 Implement CLI output formatting
+  - [x] 8.2 Implement CLI output formatting
     - Display tunnel URL prominently
     - Show connection status and metrics
     - Add copy-to-clipboard support

@@ -549,6 +549,64 @@
 
         <!-- Main content -->
         <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <!-- Tunnel Status Section -->
+          <div v-if="tunnelStatus && tunnelStatus.active" class="mb-6 bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <div class="flex-shrink-0">
+                  <i class="fas fa-share-alt text-indigo-500 text-lg"></i>
+                </div>
+                <div class="ml-3">
+                  <h3 class="text-lg font-semibold text-indigo-900 dark:text-indigo-100">
+                    <i class="fas fa-globe mr-2"></i>Tunnel Active
+                  </h3>
+                  <div class="mt-1 flex items-center space-x-4 text-sm">
+                    <div class="flex items-center">
+                      <i class="fas fa-link mr-1 text-indigo-600 dark:text-indigo-400"></i>
+                      <a :href="tunnelStatus.info.url" target="_blank" 
+                         class="font-mono text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 underline">
+                        {{ tunnelStatus.info.url }}
+                      </a>
+                      <button
+                        @click.stop="copyCommand(tunnelStatus.info.url, $event)"
+                        class="ml-2 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
+                        title="Copy tunnel URL"
+                      >
+                        <i class="fas fa-copy"></i>
+                        Copy
+                      </button>
+                    </div>
+                    <div class="flex items-center">
+                      <i class="fas fa-server mr-1 text-gray-500"></i>
+                      <span class="text-gray-600 dark:text-gray-400">{{ tunnelStatus.info.provider }}</span>
+                    </div>
+                    <div v-if="tunnelStatus.viewers !== undefined" class="flex items-center">
+                      <i class="fas fa-eye mr-1 text-gray-500"></i>
+                      <span class="text-gray-600 dark:text-gray-400">{{ tunnelStatus.viewers }} viewers</span>
+                    </div>
+                    <div v-if="tunnelStatus.info.passwordProtected" class="flex items-center">
+                      <i class="fas fa-lock mr-1 text-green-500"></i>
+                      <span class="text-green-600 dark:text-green-400">Password protected</span>
+                    </div>
+                    <div v-if="tunnelStatus.info.expiresAt" class="flex items-center">
+                      <i class="fas fa-clock mr-1 text-yellow-500"></i>
+                      <span class="text-yellow-600 dark:text-yellow-400">Expires {{ formatTunnelExpiry(tunnelStatus.info.expiresAt) }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center space-x-2">
+                <button
+                  @click="stopTunnel"
+                  class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                  title="Stop tunnel"
+                >
+                  <i class="fas fa-stop mr-1"></i>
+                  Stop Tunnel
+                </button>
+              </div>
+            </div>
+          </div>
           <!-- Steering Documents Warning (Only shown when incomplete) -->
           <div v-if="steeringStatus && (!steeringStatus.exists || !steeringStatus.hasProduct || !steeringStatus.hasTech || !steeringStatus.hasStructure)" 
                class="mb-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">

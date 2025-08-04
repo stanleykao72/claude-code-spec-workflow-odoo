@@ -11,6 +11,9 @@ import { WebSocket } from 'ws';
 import { userInfo } from 'os';
 import { isPortAvailable, findAvailablePort } from '../utils';
 import { debug } from './logger';
+import { TunnelManager, TunnelOptions } from './tunnel';
+import { CloudflareProvider } from './tunnel/cloudflare-provider';
+import { NgrokProvider } from './tunnel/ngrok-provider';
 
 interface ProjectState {
   project: DiscoveredProject;
@@ -37,6 +40,9 @@ interface ActiveTask {
 export interface MultiDashboardOptions {
   port: number;
   autoOpen?: boolean;
+  tunnel?: boolean;
+  tunnelPassword?: string;
+  tunnelProvider?: string;
 }
 
 export class MultiProjectDashboardServer {
@@ -46,6 +52,7 @@ export class MultiProjectDashboardServer {
   private projects: Map<string, ProjectState> = new Map();
   private discovery: ProjectDiscovery;
   private rescanInterval?: ReturnType<typeof setInterval>;
+  private tunnelManager?: TunnelManager;
 
   constructor(options: MultiDashboardOptions) {
     this.options = options;
@@ -211,13 +218,21 @@ export class MultiProjectDashboardServer {
     // Update the port in options for URL generation
     this.options.port = actualPort;
 
+    // Initialize tunnel if requested
+    if (this.options.tunnel) {
+      await this.initializeTunnel();
+    }
+
     // Start periodic rescan for new active projects
     // Disabled: We now use file watching instead of polling
     // this.startPeriodicRescan();
 
     // Open browser if requested
     if (this.options.autoOpen) {
-      await open(`http://localhost:${this.options.port}`);
+      const url = this.tunnelManager ? 
+        (await this.tunnelManager.getStatus()).info?.url : 
+        `http://localhost:${this.options.port}`;
+      await open(url || `http://localhost:${this.options.port}`);
     }
   }
 
@@ -532,6 +547,11 @@ export class MultiProjectDashboardServer {
       await state.watcher.stop();
     }
 
+    // Stop the tunnel if active
+    if (this.tunnelManager) {
+      await this.tunnelManager.stopTunnel();
+    }
+
     // Close all WebSocket connections
     this.clients.forEach((client) => {
       if (client.readyState === 1) {
@@ -542,6 +562,50 @@ export class MultiProjectDashboardServer {
 
     // Close the server
     await this.app.close();
+  }
+
+  private async initializeTunnel() {
+    // Initialize tunnel manager
+    this.tunnelManager = new TunnelManager(this.app);
+    
+    // Register providers
+    this.tunnelManager.registerProvider(new CloudflareProvider());
+    this.tunnelManager.registerProvider(new NgrokProvider());
+    
+    // Start tunnel with options
+    const tunnelOptions: TunnelOptions = {
+      provider: this.options.tunnelProvider,
+      password: this.options.tunnelPassword,
+      analytics: true
+    };
+    
+    try {
+      const tunnelInfo = await this.tunnelManager.startTunnel(tunnelOptions);
+      debug('Tunnel created:', tunnelInfo);
+      
+      // Broadcast tunnel status to all connected clients
+      this.broadcast({
+        type: 'tunnel:started',
+        data: tunnelInfo
+      });
+    } catch (error) {
+      console.error('Failed to create tunnel:', error);
+      throw error;
+    }
+  }
+
+  getTunnelStatus() {
+    return this.tunnelManager?.getStatus() || { active: false };
+  }
+
+  private broadcast(message: { type: string; data: unknown }) {
+    const jsonMessage = JSON.stringify(message);
+    this.clients.forEach((client) => {
+      if (client.readyState === 1) {
+        // WebSocket.OPEN
+        client.send(jsonMessage);
+      }
+    });
   }
 
   private getUsername(): string {
