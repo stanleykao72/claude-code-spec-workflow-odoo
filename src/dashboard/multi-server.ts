@@ -11,7 +11,7 @@ import { WebSocket } from 'ws';
 import { userInfo } from 'os';
 import { isPortAvailable, findAvailablePort } from '../utils';
 import { debug } from './logger';
-import { TunnelManager, TunnelOptions } from './tunnel';
+import { TunnelManager, TunnelOptions, TunnelProviderError } from './tunnel';
 import { CloudflareProvider } from './tunnel/cloudflare-provider';
 import { NgrokProvider } from './tunnel/ngrok-provider';
 
@@ -589,7 +589,11 @@ export class MultiProjectDashboardServer {
         data: tunnelInfo
       });
     } catch (error) {
-      console.error('Failed to create tunnel:', error);
+      if (error instanceof TunnelProviderError) {
+        console.error('Tunnel setup failed:', error.getUserFriendlyMessage());
+      } else {
+        console.error('Failed to create tunnel:', error);
+      }
       throw error;
     }
   }

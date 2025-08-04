@@ -26,8 +26,8 @@ export interface TunnelProvider {
   isAvailable(): Promise<boolean>;
   
   createTunnel(
-    port: number, 
-    options: ProviderOptions
+    _port: number, 
+    _options: ProviderOptions
   ): Promise<TunnelInstance>;
   
   validateConfig(): Promise<void>;
@@ -79,11 +79,43 @@ export interface TunnelConfig {
 
 export class TunnelProviderError extends Error {
   constructor(
-    public provider: string,
-    public code: string,
-    message: string
+    public readonly provider: string,
+    public readonly code: string,
+    message: string,
+    public readonly userMessage?: string,
+    public readonly troubleshooting?: string[]
   ) {
     super(message);
     this.name = 'TunnelProviderError';
   }
+  
+  /**
+   * Get user-friendly error message with troubleshooting steps
+   */
+  getUserFriendlyMessage(): string {
+    let message = this.userMessage || this.message;
+    
+    if (this.troubleshooting && this.troubleshooting.length > 0) {
+      message += '\n\nTroubleshooting steps:';
+      this.troubleshooting.forEach((step, index) => {
+        message += `\n${index + 1}. ${step}`;
+      });
+    }
+    
+    return message;
+  }
+}
+
+export interface TunnelRecoveryOptions {
+  maxRetries?: number;
+  retryDelay?: number; // milliseconds
+  healthCheckInterval?: number; // milliseconds
+  enableAutoReconnect?: boolean;
+}
+
+export interface TunnelHealth {
+  status: 'healthy' | 'degraded' | 'unhealthy';
+  lastCheck: Date;
+  consecutiveFailures: number;
+  uptime: number; // milliseconds
 }

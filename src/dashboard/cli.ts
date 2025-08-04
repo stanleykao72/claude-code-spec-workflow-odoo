@@ -5,6 +5,7 @@ import chalk from 'chalk';
 import ora from 'ora';
 import { DashboardServer } from './server';
 import { MultiProjectDashboardServer } from './multi-server';
+import { TunnelProviderError } from './tunnel';
 import { existsSync } from 'fs';
 import { join } from 'path';
 
@@ -98,7 +99,16 @@ program
         });
       } catch (error) {
         spinner.fail('Failed to start multi-project dashboard');
-        console.error(chalk.red('Error:'), error instanceof Error ? error.message : error);
+        
+        // Enhanced error handling for tunnel errors
+        if (error instanceof TunnelProviderError) {
+          console.log();
+          console.error(chalk.red.bold('❌ Tunnel Error'));
+          console.log(chalk.red(error.getUserFriendlyMessage()));
+        } else {
+          console.error(chalk.red('Error:'), error instanceof Error ? error.message : error);
+        }
+        
         process.exit(1);
       }
     } else {
@@ -186,7 +196,16 @@ program
         });
       } catch (error) {
         spinner.fail('Failed to start dashboard');
-        console.error(chalk.red('Error:'), error instanceof Error ? error.message : error);
+        
+        // Enhanced error handling for tunnel errors
+        if (error instanceof TunnelProviderError) {
+          console.log();
+          console.error(chalk.red.bold('❌ Tunnel Error'));
+          console.log(chalk.red(error.getUserFriendlyMessage()));
+        } else {
+          console.error(chalk.red('Error:'), error instanceof Error ? error.message : error);
+        }
+        
         process.exit(1);
       }
     }
