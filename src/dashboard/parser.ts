@@ -430,9 +430,10 @@ export class SpecParser {
                                 this.hasContentAfterSection(content, 'Regression Checks') ||
                                 this.hasContentAfterSection(content, 'Side Effects Check');
       
-      // Only set to verifying if fix is complete and there's verification content
-      // Don't override "fixing" status if fix is still in progress
-      if ((hasTestResults || hasRegressionChecks) && bug.status !== 'fixing') {
+      // Only set to verifying if:
+      // 1. Fix has been implemented (status is 'fixed')
+      // 2. There's actual verification content (not just template)
+      if ((hasTestResults || hasRegressionChecks) && bug.status === 'fixed') {
         bug.status = 'verifying';
         
         // Check if verification is complete
