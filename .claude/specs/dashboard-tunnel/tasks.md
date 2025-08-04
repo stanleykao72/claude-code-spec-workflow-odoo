@@ -106,15 +106,15 @@ Tasks follow structure.md conventions with new tunnel module in `src/dashboard/t
     - _Leverage: src/cli.ts output patterns, chalk_
     - _Requirements: 1.2, 1.4_
 
-- [ ] 9. Integrate tunnel status into dashboard UI
-  - [ ] 9.1 Create tunnel status component
+- [x] 9. Integrate tunnel status into dashboard UI
+  - [x] 9.1 Create tunnel status component
     - Display active tunnel URL and provider
     - Show real-time viewer count
     - Add stop tunnel button
     - _Leverage: src/dashboard/public/index.html components_
     - _Requirements: 1.4, 3.1_
   
-  - [ ] 9.2 Add WebSocket updates for tunnel events
+  - [x] 9.2 Add WebSocket updates for tunnel events
     - Broadcast tunnel start/stop events
     - Update viewer count in real-time
     - Show connection status changes
