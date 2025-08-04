@@ -35,7 +35,7 @@ export interface SteeringStatus {
 export interface Bug {
   name: string;
   displayName: string;
-  status: 'reported' | 'analyzing' | 'fixing' | 'verifying' | 'resolved';
+  status: 'reported' | 'analyzing' | 'fixing' | 'fixed' | 'verifying' | 'resolved';
   report?: {
     exists: boolean;
     severity?: 'critical' | 'high' | 'medium' | 'low';
@@ -49,6 +49,11 @@ export interface Bug {
     rootCause?: string;
     proposedFix?: string;
     filesAffected?: string[];
+  };
+  fix?: {
+    exists: boolean;
+    summary?: string;
+    implemented?: boolean;
   };
   verification?: {
     exists: boolean;
@@ -354,12 +359,50 @@ export class SpecParser {
         proposedFix: this.extractSection(content, 'Proposed Fix'),
         filesAffected: this.extractFilesAffected(content),
       };
-      // If analysis exists, we're at least analyzing
-      bug.status = 'analyzing';
+      // Only set to analyzing if there's actual analysis content
+      // Check for content in the actual analysis sections (not just headers)
+      const hasRootCauseContent = this.hasContentAfterSection(content, 'Root Cause Analysis') ||
+                                this.hasContentAfterSection(content, 'Investigation Summary') ||
+                                this.hasContentAfterSection(content, 'Root Cause');
+      const hasImplementationPlan = this.hasContentAfterSection(content, 'Implementation Plan') ||
+                                  this.hasContentAfterSection(content, 'Changes Required');
       
-      // If root cause and proposed fix are identified, we're ready to fix
-      if (bug.analysis.rootCause && bug.analysis.proposedFix) {
-        bug.status = 'fixing';
+      if (hasRootCauseContent || hasImplementationPlan) {
+        bug.status = 'analyzing';
+        
+        // If analysis is complete (all required sections have content), we're ready to fix
+        const hasAllAnalysisContent = hasRootCauseContent && hasImplementationPlan;
+        const analysisApproved = content.includes('✅ APPROVED') || 
+                               content.includes('**Approved:** ✓') ||
+                               content.includes('## Next Phase') ||
+                               content.includes('proceed to');
+        
+        if (hasAllAnalysisContent && analysisApproved) {
+          bug.status = 'fixing';
+        }
+      }
+    }
+
+    // Check if fix has been implemented
+    const fixPath = join(bugPath, 'fix.md');
+    if (await this.fileExists(fixPath)) {
+      const content = await readFile(fixPath, 'utf-8');
+      
+      // Check if fix has actual content (not just template)
+      const hasFixContent = this.hasContentAfterSection(content, 'Fix Summary') ||
+                           this.hasContentAfterSection(content, 'Implementation Details') ||
+                           this.hasContentAfterSection(content, 'Changes Made') ||
+                           this.hasContentAfterSection(content, 'Code Changes');
+      
+      if (hasFixContent) {
+        bug.status = 'fixed';
+        
+        // Add fix information to bug object
+        bug.fix = {
+          exists: true,
+          summary: this.extractSection(content, 'Fix Summary'),
+          implemented: content.includes('✅') || content.includes('implemented') || content.includes('complete'),
+        };
       }
     }
 
@@ -378,12 +421,24 @@ export class SpecParser {
         regressionChecks: this.extractRegressionChecks(content),
       };
       
-      if (bug.verification.exists) {
-        bug.status = 'verifying';
-      }
+      // Only set to verifying if there's actual verification content AND we're past the fixing phase
+      const hasTestResults = this.hasContentAfterSection(content, 'Test Results') ||
+                           this.hasContentAfterSection(content, 'Verification Steps') ||
+                           this.hasContentAfterSection(content, 'Fix Verification');
+      const hasRegressionChecks = this.hasContentAfterSection(content, 'Regression Testing') ||
+                                this.hasContentAfterSection(content, 'Regression Checks') ||
+                                this.hasContentAfterSection(content, 'Side Effects Check');
       
-      if (bug.verification.verified) {
-        bug.status = 'resolved';
+      // Only set to verifying if:
+      // 1. There's actual verification content (not just template)
+      // 2. Bug is in 'fixed' status (fix has been implemented)
+      if ((hasTestResults || hasRegressionChecks) && bug.status === 'fixed') {
+        bug.status = 'verifying';
+        
+        // Check if verification is complete
+        if (bug.verification.verified) {
+          bug.status = 'resolved';
+        }
       }
     }
 
@@ -945,6 +1000,39 @@ export class SpecParser {
     }
 
     return sectionContent.trim() || undefined;
+  }
+
+  private hasContentAfterSection(content: string, sectionName: string): boolean {
+    const lines = content.split('\n');
+    let inSection = false;
+    let hasContent = false;
+
+    for (const line of lines) {
+      if (line.includes(`## ${sectionName}`) || line.includes(`### ${sectionName}`)) {
+        inSection = true;
+        continue;
+      }
+
+      if (inSection) {
+        // Stop at next section
+        if (line.startsWith('## ') || line.startsWith('### ')) {
+          break;
+        }
+
+        // Check if line has meaningful content (not just whitespace or template placeholders)
+        const trimmed = line.trim();
+        if (trimmed && 
+            !trimmed.startsWith('[') && // Skip template placeholders like [Description]
+            !trimmed.match(/^\[.*\]$/) && // Skip full line placeholders
+            !trimmed.match(/^<.*>$/) && // Skip placeholder tags
+            !trimmed.match(/^\{.*\}$/)) { // Skip template variables
+          hasContent = true;
+          break;
+        }
+      }
+    }
+
+    return hasContent;
   }
 
   private extractFilesAffected(content: string): string[] {
