@@ -128,8 +128,27 @@ export class SpecParser {
       );
       const validBugs = bugs.filter((bug) => bug !== null) as Bug[];
       debug('Parsed bugs:', validBugs.length);
-      // Sort by last modified date, newest first
+      // Sort by status priority first, then by last modified date within each status group
       validBugs.sort((a, b) => {
+        // Define bug status priority order (lower number = higher priority)
+        const statusPriority: Record<string, number> = {
+          'reported': 1,    // New bugs need immediate attention
+          'analyzing': 2,   // Being investigated
+          'fixing': 3,      // Being worked on
+          'fixed': 4,       // Fixed but not verified
+          'verifying': 5,   // Being tested
+          'resolved': 6     // Completed bugs at bottom
+        };
+        
+        const priorityA = statusPriority[a.status] || 99;
+        const priorityB = statusPriority[b.status] || 99;
+        
+        // Primary sort: by status priority
+        if (priorityA !== priorityB) {
+          return priorityA - priorityB;
+        }
+        
+        // Secondary sort: by last modified date within same status group (newest first)
         const dateA = a.lastModified ? new Date(a.lastModified).getTime() : 0;
         const dateB = b.lastModified ? new Date(b.lastModified).getTime() : 0;
         return dateB - dateA;
@@ -159,8 +178,27 @@ export class SpecParser {
       );
       const validSpecs = specs.filter((spec) => spec !== null) as Spec[];
       debug('Parsed specs:', validSpecs.length);
-      // Sort by last modified date, newest first
+      // Sort by status priority first, then by last modified date within each status group
       validSpecs.sort((a, b) => {
+        // Define status priority order (lower number = higher priority)
+        const statusPriority: Record<string, number> = {
+          'in-progress': 1,
+          'tasks': 2,
+          'design': 3,
+          'requirements': 4,
+          'not-started': 5,
+          'completed': 6  // Completed specs always at bottom
+        };
+        
+        const priorityA = statusPriority[a.status] || 99;
+        const priorityB = statusPriority[b.status] || 99;
+        
+        // Primary sort: by status priority
+        if (priorityA !== priorityB) {
+          return priorityA - priorityB;
+        }
+        
+        // Secondary sort: by last modified date within same status group (newest first)
         const dateA = a.lastModified ? new Date(a.lastModified).getTime() : 0;
         const dateB = b.lastModified ? new Date(b.lastModified).getTime() : 0;
         return dateB - dateA;
