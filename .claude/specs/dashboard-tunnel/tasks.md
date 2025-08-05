@@ -137,7 +137,7 @@ Tasks follow structure.md conventions with new tunnel module in `src/dashboard/t
   - _Leverage: tests/ integration patterns_
   - _Requirements: All_
 
-- [ ] 12. Create documentation and examples
+- [x] 12. Create documentation and examples
   - Write tunnel feature documentation
   - Add examples to README
   - Create troubleshooting guide

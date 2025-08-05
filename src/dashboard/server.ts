@@ -11,8 +11,8 @@ import { isPortAvailable, findAvailablePort } from '../utils';
 import { GitUtils } from '../git';
 import { debug } from './logger';
 import { TunnelManager, TunnelOptions, TunnelProviderError } from './tunnel';
-import { CloudflareProvider } from './tunnel/cloudflare-provider';
-import { NgrokProvider } from './tunnel/ngrok-provider';
+import { CloudflareProvider } from './tunnel/cloudflare-provider-native';
+import { NgrokProvider } from './tunnel/ngrok-provider-native';
 
 interface WebSocketConnection {
   socket: WebSocket;

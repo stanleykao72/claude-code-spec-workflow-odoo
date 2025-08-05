@@ -9,8 +9,9 @@
     "claude-spec-dashboard": "dist/dashboard/cli.js"
   },
   "scripts": {
-    "build": "tsc && npm run copy-static",
+    "build": "tsc && npm run copy-static && npm run fix-permissions",
     "copy-static": "cpy 'src/dashboard/public/**' 'dist/dashboard/public/'",
+    "fix-permissions": "node scripts/fix-permissions.js",
     "prepare": "npm run build",
     "dev": "ts-node src/cli.ts",
     "dev:dashboard": "ts-node src/dashboard/cli.ts",
@@ -46,7 +47,9 @@
     "dist",
     "README.md",
     "LICENSE",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "docs",
+    "examples"
   ],
   "engines": {
     "node": ">=16.0.0"
@@ -54,8 +57,10 @@
   "dependencies": {
     "@fastify/static": "^7.0.4",
     "@fastify/websocket": "^8.2.1",
+    "@ngrok/ngrok": "^1.4.1",
     "chalk": "^4.1.2",
     "chokidar": "^3.5.3",
+    "cloudflared-tunnel": "^1.0.3",
     "commander": "^12.1.0",
     "fastify": "^4.24.3",
     "inquirer": "^8.2.6",
