@@ -1,6 +1,6 @@
 # Design: UI Improvements
 
-✅ **APPROVED**
+✅ APPROVED
 
 ## Overview
 

@@ -1,6 +1,6 @@
 # Requirements: UI Improvements
 
-✅ **APPROVED**
+✅ APPROVED
 
 ## Introduction
 
