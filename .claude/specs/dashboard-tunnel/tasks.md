@@ -129,7 +129,7 @@ Tasks follow structure.md conventions with new tunnel module in `src/dashboard/t
   - _Leverage: src/utils.ts error patterns_
   - _Requirements: 1.3, 3.3, 5.2_
 
-- [ ] 11. Write integration tests
+- [x] 11. Write integration tests
   - Test end-to-end tunnel creation
   - Verify read-only access enforcement
   - Test password authentication flow
