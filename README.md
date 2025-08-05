@@ -234,8 +234,33 @@ claude-spec-dashboard
 - **Lightweight** - No heavy frameworks, just fast tools
 - **WebSocket powered** - Instant updates when files change
 
+### 🔗 Dashboard Tunnel (NEW!)
+
+Share your dashboard securely with external stakeholders through temporary HTTPS URLs:
+
+```bash
+# Start dashboard with tunnel
+npx -p @pimzino/claude-code-spec-workflow claude-spec-dashboard --tunnel
+
+# With password protection
+npx -p @pimzino/claude-code-spec-workflow claude-spec-dashboard --tunnel --tunnel-password mySecret123
+
+# Choose specific provider
+npx -p @pimzino/claude-code-spec-workflow claude-spec-dashboard --tunnel --tunnel-provider cloudflare
+```
+
+**Tunnel Features:**
+- **🔒 Secure HTTPS URLs** - Share dashboard with managers, clients, or remote team members
+- **👁️ Read-Only Access** - External viewers cannot modify any project data
+- **🔑 Optional Password** - Protect access with password authentication
+- **🌐 Multiple Providers** - Automatic fallback between Cloudflare and ngrok
+- **📊 Usage Analytics** - Track who accessed your dashboard and when
+- **⏰ Auto-Expiration** - Tunnels close when you stop the dashboard
+- **🚀 Zero Configuration** - Works out of the box with built-in providers
+
 ## 📊 Command Line Options
 
+### Setup Commands
 ```bash
 # Setup in current directory
 npx @pimzino/claude-code-spec-workflow
@@ -251,6 +276,23 @@ npx @pimzino/claude-code-spec-workflow --yes
 
 # Test the setup
 npx @pimzino/claude-code-spec-workflow test
+```
+
+### Dashboard Commands
+```bash
+# Basic dashboard
+npx -p @pimzino/claude-code-spec-workflow claude-spec-dashboard
+
+# Dashboard with tunnel (share externally)
+npx -p @pimzino/claude-code-spec-workflow claude-spec-dashboard --tunnel
+
+# Full tunnel configuration
+npx -p @pimzino/claude-code-spec-workflow claude-spec-dashboard \
+  --tunnel \
+  --tunnel-password mySecret123 \
+  --tunnel-provider cloudflare \
+  --port 3000 \
+  --open
 ```
 
 ## 🎯 Steering Documents (NEW!)
@@ -401,6 +443,8 @@ done
 ## 📚 Documentation
 
 - **[Full Documentation](https://github.com/pimzino/claude-code-spec-workflow#readme)**
+- **[Tunnel Feature Guide](./docs/tunnel-feature.md)** - Comprehensive tunnel documentation
+- **[Tunnel Examples](./examples/tunnel/)** - Ready-to-use tunnel scripts
 - **[Claude Code Docs](https://docs.anthropic.com/claude-code)**
 
 ## 🤝 Contributing

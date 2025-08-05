@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2025-08-05
+
+### Added
+- **Dashboard Tunnel Feature**: Secure, temporary sharing of dashboard with external stakeholders
+  - New `--tunnel` flag for `claude-spec-dashboard` command creates HTTPS URLs
+  - Optional password protection with `--tunnel-password` for access control
+  - Multiple tunnel providers (Cloudflare, ngrok) with automatic fallback
+  - Read-only access enforcement for all external viewers
+  - Real-time usage analytics tracking visitor count and access times
+  - Visual tunnel status display in dashboard UI
+  - Comprehensive error handling and provider failover
+  - Zero configuration required - works out of the box
+
+### Enhanced
+- **Security Architecture**: Implemented multi-layer security for tunnel access
+  - All tunnel traffic encrypted via HTTPS/WSS
+  - Read-only middleware blocks all write operations
+  - WebSocket message filtering for read-only mode
+  - Rate limiting on password authentication attempts
+  - Session management for authenticated users
+
+### Technical Implementation
+- Created modular tunnel system in `src/dashboard/tunnel/`
+  - `TunnelManager` orchestrates tunnel lifecycle
+  - Provider abstraction supports multiple tunnel services
+  - `AccessController` enforces read-only access
+  - `UsageTracker` collects privacy-preserving analytics
+  - Comprehensive test coverage for all tunnel components
+
 ## [1.4.2] - 2025-07-30
 
 ### Updated

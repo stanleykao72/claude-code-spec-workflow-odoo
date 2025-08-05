@@ -10,6 +10,9 @@ import { WebSocket } from 'ws';
 import { isPortAvailable, findAvailablePort } from '../utils';
 import { GitUtils } from '../git';
 import { debug } from './logger';
+import { TunnelManager, TunnelOptions, TunnelProviderError } from './tunnel';
+import { CloudflareProvider } from './tunnel/cloudflare-provider-native';
+import { NgrokProvider } from './tunnel/ngrok-provider-native';
 
 interface WebSocketConnection {
   socket: WebSocket;
@@ -19,6 +22,9 @@ export interface DashboardOptions {
   port: number;
   projectPath: string;
   autoOpen?: boolean;
+  tunnel?: boolean;
+  tunnelPassword?: string;
+  tunnelProvider?: string;
 }
 
 export class DashboardServer {
@@ -27,6 +33,7 @@ export class DashboardServer {
   private parser: SpecParser;
   private options: DashboardOptions;
   private clients: Set<WebSocket> = new Set();
+  private tunnelManager?: TunnelManager;
 
   constructor(options: DashboardOptions) {
     this.options = options;
@@ -61,10 +68,11 @@ export class DashboardServer {
           self.parser.getAllBugs()
         ])
           .then(([specs, bugs]) => {
+            const tunnelStatus = self.getTunnelStatus();
             socket.send(
               JSON.stringify({
                 type: 'initial',
-                data: { specs, bugs },
+                data: { specs, bugs, tunnelStatus },
               })
             );
           })
@@ -173,6 +181,34 @@ export class DashboardServer {
       }
     });
 
+    // Tunnel API endpoints
+    this.app.get('/api/tunnel/status', async () => {
+      const status = this.getTunnelStatus();
+      return status;
+    });
+
+    this.app.post('/api/tunnel/stop', async (request, reply) => {
+      if (!this.tunnelManager) {
+        reply.code(404).send({ error: 'No tunnel manager available' });
+        return;
+      }
+      
+      try {
+        await this.tunnelManager.stopTunnel();
+        
+        // Broadcast tunnel stopped event
+        this.broadcast({
+          type: 'tunnel:stopped',
+          data: {}
+        });
+        
+        return { success: true };
+      } catch (error) {
+        console.error('Error stopping tunnel:', error);
+        reply.code(500).send({ error: 'Failed to stop tunnel' });
+      }
+    });
+
     // Set up file watcher
     this.watcher.on('change', (event) => {
       // Broadcast to all connected clients
@@ -238,9 +274,17 @@ export class DashboardServer {
     // Update the port in options for URL generation
     this.options.port = actualPort;
 
+    // Initialize tunnel if requested
+    if (this.options.tunnel) {
+      await this.initializeTunnel();
+    }
+
     // Open browser if requested
     if (this.options.autoOpen) {
-      await open(`http://localhost:${this.options.port}`);
+      const url = this.tunnelManager ? 
+        (await this.tunnelManager.getStatus()).info?.url : 
+        `http://localhost:${this.options.port}`;
+      await open(url || `http://localhost:${this.options.port}`);
     }
   }
 
@@ -254,10 +298,90 @@ export class DashboardServer {
     });
     this.clients.clear();
 
+    // Stop the tunnel if active
+    if (this.tunnelManager) {
+      await this.tunnelManager.stopTunnel();
+    }
+
     // Stop the watcher
     await this.watcher.stop();
 
     // Close the Fastify server
     await this.app.close();
+  }
+
+  private async initializeTunnel() {
+    // Initialize tunnel manager
+    this.tunnelManager = new TunnelManager(this.app);
+    
+    // Register providers
+    this.tunnelManager.registerProvider(new CloudflareProvider());
+    this.tunnelManager.registerProvider(new NgrokProvider());
+    
+    // Listen for tunnel events
+    this.tunnelManager.on('tunnel:started', (tunnelInfo) => {
+      debug('Tunnel started event:', tunnelInfo);
+      this.broadcast({
+        type: 'tunnel:started',
+        data: tunnelInfo
+      });
+    });
+    
+    this.tunnelManager.on('tunnel:stopped', (data) => {
+      debug('Tunnel stopped event:', data);
+      this.broadcast({
+        type: 'tunnel:stopped',
+        data: data || {}
+      });
+    });
+    
+    this.tunnelManager.on('tunnel:metrics:updated', (metrics) => {
+      debug('Tunnel metrics updated:', metrics);
+      this.broadcast({
+        type: 'tunnel:metrics:updated',
+        data: metrics
+      });
+    });
+    
+    this.tunnelManager.on('tunnel:visitor:new', (visitor) => {
+      debug('New tunnel visitor:', visitor);
+      this.broadcast({
+        type: 'tunnel:visitor:new',
+        data: visitor
+      });
+    });
+    
+    // Start tunnel with options
+    const tunnelOptions: TunnelOptions = {
+      provider: this.options.tunnelProvider,
+      password: this.options.tunnelPassword,
+      analytics: true
+    };
+    
+    try {
+      const tunnelInfo = await this.tunnelManager.startTunnel(tunnelOptions);
+      debug('Tunnel created:', tunnelInfo);
+    } catch (error) {
+      if (error instanceof TunnelProviderError) {
+        console.error('Tunnel setup failed:', error.getUserFriendlyMessage());
+      } else {
+        console.error('Failed to create tunnel:', error);
+      }
+      throw error;
+    }
+  }
+
+  getTunnelStatus() {
+    return this.tunnelManager?.getStatus() || { active: false };
+  }
+
+  private broadcast(message: { type: string; data: unknown }) {
+    const jsonMessage = JSON.stringify(message);
+    this.clients.forEach((client) => {
+      if (client.readyState === 1) {
+        // WebSocket.OPEN
+        client.send(jsonMessage);
+      }
+    });
   }
 }

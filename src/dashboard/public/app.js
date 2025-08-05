@@ -14,6 +14,7 @@ PetiteVue.createApp({
   branch: null,
   githubUrl: null,
   steeringStatus: null,
+  tunnelStatus: null,
 
   // Computed properties
   get specsInProgress() {
@@ -51,6 +52,7 @@ PetiteVue.createApp({
     await this.fetchProjectInfo();
     await this.fetchSpecs();
     await this.fetchBugs();
+    await this.fetchTunnelStatus();
     this.connectWebSocket();
   },
 
@@ -137,14 +139,21 @@ PetiteVue.createApp({
   handleWebSocketMessage(message) {
     switch (message.type) {
       case 'initial':
-        // Handle initial data with both specs and bugs
+        // Handle initial data with specs, bugs, and tunnel status
         if (message.data.specs) {
           this.specs = message.data.specs;
         }
         if (message.data.bugs) {
           this.bugs = message.data.bugs;
         }
-        console.log('Initial data loaded:', { specs: this.specs.length, bugs: this.bugs.length });
+        if (message.data.tunnelStatus) {
+          this.tunnelStatus = message.data.tunnelStatus;
+        }
+        console.log('Initial data loaded:', { 
+          specs: this.specs.length, 
+          bugs: this.bugs.length,
+          tunnelActive: this.tunnelStatus?.active || false
+        });
         break;
       case 'spec-update':
         this.updateSpec(message.data);
@@ -164,6 +173,32 @@ PetiteVue.createApp({
       case 'steering-update':
         this.steeringStatus = message.data;
         console.log('Steering status updated:', this.steeringStatus);
+        break;
+      case 'tunnel:started':
+        this.tunnelStatus = {
+          active: true,
+          info: message.data,
+          viewers: 0
+        };
+        console.log('Tunnel started:', this.tunnelStatus);
+        break;
+      case 'tunnel:stopped':
+        this.tunnelStatus = {
+          active: false,
+          info: null,
+          viewers: 0
+        };
+        console.log('Tunnel stopped');
+        break;
+      case 'tunnel:metrics:updated':
+        if (this.tunnelStatus && this.tunnelStatus.active) {
+          this.tunnelStatus.viewers = message.data.activeViewers || 0;
+          console.log('Tunnel metrics updated:', message.data);
+        }
+        break;
+      case 'tunnel:visitor:new':
+        console.log('New tunnel visitor:', message.data);
+        // Could show a notification here if desired
         break;
       default:
         console.log('Unknown message type:', message.type);
@@ -239,5 +274,54 @@ PetiteVue.createApp({
     } finally {
       this.markdownPreview.loading = false;
     }
+  },
+
+  // Fetch tunnel status
+  async fetchTunnelStatus() {
+    try {
+      const response = await fetch('/api/tunnel/status');
+      if (response.ok) {
+        this.tunnelStatus = await response.json();
+        console.log('Tunnel status:', this.tunnelStatus);
+      } else {
+        // No tunnel or error - set inactive status
+        this.tunnelStatus = { active: false };
+      }
+    } catch (error) {
+      console.error('Error fetching tunnel status:', error);
+      this.tunnelStatus = { active: false };
+    }
+  },
+
+  // Stop tunnel
+  async stopTunnel() {
+    try {
+      const response = await fetch('/api/tunnel/stop', { method: 'POST' });
+      if (response.ok) {
+        this.tunnelStatus = { active: false };
+        console.log('Tunnel stopped successfully');
+      } else {
+        console.error('Failed to stop tunnel:', response.status);
+      }
+    } catch (error) {
+      console.error('Error stopping tunnel:', error);
+    }
+  },
+
+  // Format tunnel expiry date
+  formatTunnelExpiry(expiresAt) {
+    if (!expiresAt) return '';
+    const now = new Date();
+    const expiry = new Date(expiresAt);
+    const diffMinutes = Math.floor((expiry - now) / (1000 * 60));
+    
+    if (diffMinutes < 0) return 'expired';
+    if (diffMinutes < 60) return `in ${diffMinutes}m`;
+    
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) return `in ${diffHours}h`;
+    
+    const diffDays = Math.floor(diffHours / 24);
+    return `in ${diffDays}d`;
   }
 }).mount('#app');
