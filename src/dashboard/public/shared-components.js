@@ -134,6 +134,23 @@ function renderMarkdown(content) {
   // Create a custom renderer for code blocks
   const renderer = new marked.Renderer();
   
+  // Override list item rendering to preserve task numbers
+  renderer.listitem = function(text) {
+    // Check if this is a task list item with numbering
+    // Pattern: checkbox followed by number and dot
+    const taskPattern = /^(<input[^>]*>)\s*(\d+(?:\.\d+)*)\.\s*(.*)$/;
+    const match = text.match(taskPattern);
+    
+    if (match) {
+      // Reconstruct with the task number preserved
+      const [, checkbox, number, description] = match;
+      return `<li>${checkbox} ${number}. ${description}</li>\n`;
+    }
+    
+    // Default list item rendering
+    return `<li>${text}</li>\n`;
+  };
+  
   // Override the code block rendering
   renderer.code = function(code, language, isEscaped) {
     // Handle different input formats
