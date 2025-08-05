@@ -812,7 +812,7 @@
                 </div>
 
                 <!-- Progress bar (outside clickable area) -->
-                <div v-if="spec.tasks && spec.tasks.total > 0" class="px-6 pb-3">
+                <div v-if="spec.tasks && spec.tasks.total > 0 && spec.status !== 'completed'" class="px-6 pb-3">
                   <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                     <div
                       class="bg-indigo-600 dark:bg-indigo-500 h-2 rounded-full transition-all duration-300"
