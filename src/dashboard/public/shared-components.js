@@ -135,19 +135,25 @@ function renderMarkdown(content) {
   const renderer = new marked.Renderer();
   
   // Override list item rendering to preserve task numbers
-  renderer.listitem = function(text) {
-    // Check if this is a task list item with numbering
-    // Pattern: checkbox followed by number and dot
-    const taskPattern = /^(<input[^>]*>)\s*(\d+(?:\.\d+)*)\.\s*(.*)$/;
-    const match = text.match(taskPattern);
-    
-    if (match) {
-      // Reconstruct with the task number preserved
-      const [, checkbox, number, description] = match;
-      return `<li>${checkbox} ${number}. ${description}</li>\n`;
+  renderer.listitem = function(text, task, checked) {
+    // For task list items, marked passes additional parameters
+    if (task) {
+      // Extract the task number from the text
+      // The text should contain something like "1. Task description"
+      const numberMatch = text.match(/^(\d+(?:\.\d+)*)\.\s*(.*)$/);
+      
+      if (numberMatch) {
+        const [, number, description] = numberMatch;
+        const checkbox = `<input ${checked ? 'checked="" ' : ''}disabled="" type="checkbox">`;
+        return `<li>${checkbox} ${number}. ${description}</li>\n`;
+      }
+      
+      // Fallback for task items without numbers
+      const checkbox = `<input ${checked ? 'checked="" ' : ''}disabled="" type="checkbox">`;
+      return `<li>${checkbox} ${text}</li>\n`;
     }
     
-    // Default list item rendering
+    // Default list item rendering for non-task items
     return `<li>${text}</li>\n`;
   };
   
