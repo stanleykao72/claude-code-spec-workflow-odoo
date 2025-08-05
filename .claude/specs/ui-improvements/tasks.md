@@ -30,7 +30,7 @@ This implementation plan breaks down the UI improvements into atomic tasks focus
 
 ## Tasks
 
-- [ ] 1. Hide progress bar for completed specs in multi-dashboard HTML
+- [x] 1. Hide progress bar for completed specs in multi-dashboard HTML
   - File: src/dashboard/public/multi.html
   - Add `&& spec.status !== 'completed'` condition to progress bar v-if directive
   - Locate the progress bar div around line 815-823
