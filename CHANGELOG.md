@@ -5,13 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.5.6] - 2025-08-05
 
-### Fixed
-- CLI output / messaging when updating agents, commands, and templates is now much cleaner and more informative.
+### Changed
+- Removed all other sub agents due to overcomplication of workflow.
+  - Kept the following sub agents:
+    - spec-task-executor
+    - spec-requirements-validator
+    - spec-design-validator
+    - spec-task-validator
+- Added a few more tools for retrieving specific context documents with added in memory caching for 1 hour.
+- Removed spec-orchestrator command as it did not work as expected especially due to claude code's auto compacting of commands and sometimes the agent would just stop for no reason.
+- Overall workflow has been simplified and made more robust.
 
-### Added
-- .claude backup mechanism when running updates to avoid lost custom commands, agents and other claude code customizations. (This is precautionary and the package will attempt to ensure all is migrated correctly)
 
 ## [1.5.5] - 2025-08-02
 
@@ -30,7 +36,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.5.3] - 2025-08-02
 
 ### Added
-- Added a new agent spec-design-web-researcher.md that can be used to research current best practices and documentation for technologies that will be used in the design.
 
 ## [1.5.2] - 2025-08-02
 
@@ -46,7 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Minor tweaks to sub agent calls especially around script command calls.
-- Tweaks to CLI which should fix issues in Linux, WSL and MacOS with calling npx @pimzino/claude-code-spec-workflow@latest using-agents or other commands.
+- Tweaks to CLI which should fix issues in Linux, WSL and MacOS with calling npx @pimzino/claude-code-spec-workflow@latest commands.
 
 ## [1.4.9] - 2025-08-02
 
@@ -78,12 +83,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.4.4] - 2025-08-01
 
 ### Added
-- **Spec Orchestrator** (`/spec-orchestrate`) - NEW! Intelligent automation system that executes all tasks in a specification automatically
-  - Fully resumable across Claude Code session limits  
-  - Intelligent error handling and recovery
-  - Delegates to specialized agents for implementation
-  - Progress tracking and status updates
-  - Interactive mode for manual approval
   - Stateless design using tasks.md as single source of truth
 
 ### Fixed
@@ -92,17 +91,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.4.3] - 2025-07-31
 
 ### Added
-- **Post-Task Implementation Reviewer Agent** (`spec-task-implementation-reviewer`) - Reviews completed task implementations for correctness and compliance with requirements
-- **Spec Integration Tester Agent** (`spec-integration-tester`) - Automatically runs tests and validates integration points after task implementation
-- **Spec Completion Reviewer Agent** (`spec-completion-reviewer`) - Performs comprehensive end-to-end validation when all spec tasks are complete
-- **Bug Root Cause Analyzer Agent** (`bug-root-cause-analyzer`) - Enhanced root cause analysis using git history and pattern recognition for bug fixes
-- **Steering Document Updater Agent** (`steering-document-updater`) - Analyzes codebase evolution and suggests updates to steering documents
-- **Spec Dependency Analyzer Agent** (`spec-dependency-analyzer`) - Analyzes task dependencies and optimizes execution order with parallelization insights
-- **Test Generator Agent** (`spec-test-generator`) - Automatically generates comprehensive test cases from specifications and acceptance criteria
-- **Documentation Generator Agent** (`spec-documentation-generator`) - Maintains project documentation automatically including API docs and changelogs
-- **Performance Analyzer Agent** (`spec-performance-analyzer`) - Analyzes algorithmic complexity and identifies performance bottlenecks
-- **Code Duplication Detector Agent** (`spec-duplication-detector`) - Identifies code reuse opportunities and promotes DRY principles
-- **Breaking Change Detector Agent** (`spec-breaking-change-detector`) - Detects API compatibility issues and suggests migration strategies
 - Bug tracking to real time dashboard.
 
 ### Enhanced
@@ -592,7 +580,7 @@ This is a **game-changing update** that transforms spec-driven development with 
 ├── commands/           # 7 slash commands for spec workflow
 ├── templates/          # Document templates
 ├── specs/             # Generated spec files
-└── spec-config.json   # Configuration
+└── agents/            # AI agents (enabled by default)
 ```
 
 ### Installation Options

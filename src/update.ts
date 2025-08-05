@@ -102,15 +102,105 @@ export class SpecWorkflowUpdater {
     }
   }
 
+  /**
+   * Delete the entire .claude directory for a fresh start
+   */
+  async deleteClaudeDirectory(): Promise<void> {
+    try {
+      await fs.rm(this.claudeDir, { recursive: true });
+      console.log('Deleted existing .claude directory for fresh installation');
+    } catch (error) {
+      console.error('Failed to delete .claude directory:', error);
+      throw new Error('Failed to delete existing .claude directory. Update cancelled for safety.');
+    }
+  }
+
+  /**
+   * Restore user content (specs and task commands) from backup
+   */
+  async restoreUserContent(backupDir: string): Promise<void> {
+    // The backup directory IS the .claude directory (from createBackup method)
+    const backupSpecsDir = join(backupDir, 'specs');
+    const backupCommandsDir = join(backupDir, 'commands');
+
+    try {
+      // Restore specs directory if it exists in backup
+      try {
+        await fs.access(backupSpecsDir);
+        const specEntries = await fs.readdir(backupSpecsDir, { withFileTypes: true });
+        const specDirs = specEntries.filter(entry => entry.isDirectory());
+
+        if (specDirs.length > 0) {
+          console.log(`Restoring ${specDirs.length} spec(s) from backup...`);
+          
+          // Ensure specs directory exists
+          await fs.mkdir(this.specsDir, { recursive: true });
+          
+          // Copy each spec directory
+          for (const specDir of specDirs) {
+            const sourceSpecDir = join(backupSpecsDir, specDir.name);
+            const destSpecDir = join(this.specsDir, specDir.name);
+            await this.copyDirectory(sourceSpecDir, destSpecDir);
+            console.log(`  Restored spec: ${specDir.name}`);
+          }
+        }
+      } catch {
+        // No specs directory in backup, that's fine
+        console.log('No specs found in backup to restore');
+      }
+
+      // Restore task command directories if they exist in backup
+      try {
+        await fs.access(backupCommandsDir);
+        const commandEntries = await fs.readdir(backupCommandsDir, { withFileTypes: true });
+        const taskCommandDirs = commandEntries.filter(entry => entry.isDirectory());
+
+        if (taskCommandDirs.length > 0) {
+          console.log(`Restoring ${taskCommandDirs.length} task command folder(s) from backup...`);
+          
+          // Ensure commands directory exists
+          await fs.mkdir(this.commandsDir, { recursive: true });
+          
+          // Copy each task command directory (these are spec-specific)
+          for (const taskDir of taskCommandDirs) {
+            const sourceTaskDir = join(backupCommandsDir, taskDir.name);
+            const destTaskDir = join(this.commandsDir, taskDir.name);
+            await this.copyDirectory(sourceTaskDir, destTaskDir);
+            console.log(`  Restored task commands: ${taskDir.name}`);
+          }
+        }
+      } catch {
+        // No task command directories in backup, that's fine
+        console.log('No task command directories found in backup to restore');
+      }
+
+      // Restore settings.local.json if it exists in backup
+      try {
+        const backupSettingsFile = join(backupDir, 'settings.local.json');
+        await fs.access(backupSettingsFile);
+        
+        const destSettingsFile = join(this.claudeDir, 'settings.local.json');
+        await fs.copyFile(backupSettingsFile, destSettingsFile);
+        console.log('  Restored Claude Code settings (settings.local.json)');
+      } catch {
+        // No settings.local.json in backup, that's fine
+        console.log('No Claude Code settings found in backup to restore');
+      }
+
+      console.log('User content restoration complete');
+    } catch (error) {
+      console.error('Failed to restore user content from backup:', error);
+      throw new Error('Failed to restore user content from backup. Please manually recover from backup if needed.');
+    }
+  }
+
   async updateCommands(): Promise<void> {
     // List of default command files to update (exclude task command folders)
     const commandNames = [
       'spec-create',
       'spec-execute',
-      'spec-orchestrate',
       'spec-status',
       'spec-list',
-      'spec-completion-review',
       'spec-steering-setup',
       'bug-create',
       'bug-analyze',
@@ -186,28 +276,7 @@ export class SpecWorkflowUpdater {
   }
 
   async updateAgents(): Promise<void> {
-    // Check if agents are enabled in config
-    const configFile = join(this.claudeDir, 'spec-config.json');
-    let agentsEnabled = false;
-    
-    try {
-      const configContent = await fs.readFile(configFile, 'utf-8');
-      const config = JSON.parse(configContent);
-      agentsEnabled = config.spec_workflow?.agents_enabled || false;
-    } catch {
-      // Config might not exist or be malformed, skip agents update
-      return;
-    }
-
-    if (!agentsEnabled) {
-      // If agents are disabled, remove agents directory if it exists
-      try {
-        await fs.rm(this.agentsDir, { recursive: true });
-      } catch {
-        // Directory might not exist, ignore
-      }
-      return;
-    }
+    // Agents are now mandatory - always update them
 
     // List of available agent files
     const agentFiles = [
@@ -215,17 +284,6 @@ export class SpecWorkflowUpdater {
       'spec-design-validator.md', 
       'spec-task-validator.md',
       'spec-task-executor.md',
-      'spec-task-implementation-reviewer.md',
-      'spec-integration-tester.md',
-      'spec-completion-reviewer.md',
-      'bug-root-cause-analyzer.md',
-      'steering-document-updater.md',
-      'spec-dependency-analyzer.md',
-      'spec-test-generator.md',
-      'spec-documentation-generator.md',
-      'spec-performance-analyzer.md',
-      'spec-duplication-detector.md',
-      'spec-breaking-change-detector.md'
     ];
 
     // Only delete known default agent files (preserve custom agents)
@@ -328,5 +386,40 @@ export class SpecWorkflowUpdater {
     }
     
     console.log('Task command regeneration complete!');
+  }
+
+  /**
+   * Update with fresh install approach: backup -> delete -> fresh install -> restore user content
+   */
+  async updateWithFreshInstall(): Promise<void> {
+    console.log('Starting fresh installation update...');
+    
+    // 1. Create backup first
+    const backupDir = await this.createBackup();
+    
+    try {
+      // 2. Delete existing .claude directory
+      await this.deleteClaudeDirectory();
+      
+      // 3. Run fresh installation (agents are now mandatory)
+      const { SpecWorkflowSetup } = await import('./setup');
+      const setup = new SpecWorkflowSetup(this.projectRoot);
+      await setup.runSetup();
+      console.log('Fresh installation complete');
+      
+      // 4. Restore user content (specs and task commands)
+      await this.restoreUserContent(backupDir);
+
+      // 5. Auto-generate task commands for restored specs
+      await this.regenerateTaskCommands();
+
+      console.log('Fresh installation update complete!');
+      
+    } catch (error) {
+      console.error('Fresh installation update failed:', error);
+      console.log(`Your data is safely backed up in: ${backupDir}`);
+      console.log('You can manually restore your specs and task commands from the backup if needed.');
+      throw error;
+    }
   }
 }

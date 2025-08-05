@@ -16,31 +16,18 @@ This is Phase 3 of the bug fix workflow. Your goal is to implement the fix while
 
 You are working on the fix implementation phase of the bug fix workflow.
 
-1. **Prerequisites**
+1. **Prerequisites & Context Loading**
    - Ensure analysis.md exists and is approved
-   - Load complete context using get-content script:
-   
+
+   **Load ALL Context Once (Hierarchical Context Loading):**
    ```bash
-   # Load bug context documents
-   # Windows:
-   npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\bugs\{bug-name}\report.md"
-   npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\bugs\{bug-name}\analysis.md"
-   
-   # macOS/Linux:
-   npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/bugs/{bug-name}/report.md"
-   npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/bugs/{bug-name}/analysis.md"
+   # Load steering documents (if available)
+   claude-code-spec-workflow get-steering-context
    ```
-   
-   - **Load steering documents** using get-content script:
-   ```bash
-   # Windows:
-   npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\steering\tech.md"
-   npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\steering\structure.md"
-   
-   # macOS/Linux:
-   npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/tech.md"
-   npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/structure.md"
-   ```
+
+   **Bug documents to read directly:**
+   - `.claude/bugs/{bug-name}/report.md`
+   - `.claude/bugs/{bug-name}/analysis.md`
    - Understand the planned fix approach completely
 
 2. **Implementation Process**
@@ -119,50 +106,7 @@ You are working on the fix implementation phase of the bug fix workflow.
    - Present summary of changes made
    - Show test results confirming fix
 
-5. **Post-Implementation Review (if agents enabled)**
-   First check if agents are available:
-   ```bash
-   npx @pimzino/claude-code-spec-workflow@latest using-agents
-   ```
-   
-   If this returns `true`, use the implementation review agents for validation:
-   
-   **Code Quality Review:**
-   ```
-   Use the spec-task-implementation-reviewer agent to review the bug fix implementation for {bug-name}.
-   
-   The agent should:
-   1. Load bug context documents from .claude/bugs/{bug-name}/
-   2. Load steering documents from .claude/steering/ (if available)
-   3. Review the fix implementation for correctness and compliance
-   4. Verify the fix addresses the root cause identified in analysis.md
-   5. Check that no unintended side effects were introduced
-   6. Provide structured feedback on implementation quality
-   
-   This ensures the bug fix meets quality standards.
-   ```
-   
-   **Duplication Analysis:**
-   First check if agents are available:
-   ```bash
-   npx @pimzino/claude-code-spec-workflow@latest using-agents
-   ```
-   
-   If this returns `true`, use the duplication detector:
-   ```
-   Use the spec-duplication-detector agent to analyze the bug fix for code duplication.
-   
-   The agent should:
-   1. Scan the bug fix code changes
-   2. Identify any duplicated patterns
-   3. Suggest opportunities to reuse existing utilities
-   4. Recommend refactoring if appropriate
-   5. Help maintain DRY principles
-   
-   This ensures efficient and maintainable code.
-   ```
-
-6. **Final Confirmation**
+5. **Final Confirmation**
    - Ask: "The fix has been implemented and reviewed. Should we proceed to verification?"
    - **CRITICAL**: Wait for user approval before proceeding
 

@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
-import { readFileSync, existsSync, writeFileSync } from 'fs';
+import { writeFileSync } from 'fs';
 import * as path from 'path';
 import chalk from 'chalk';
+import { getCachedFileContent, cachedFileExists } from './file-cache';
 
 export interface TaskInfo {
   id: string;
@@ -125,14 +126,18 @@ export async function getTasks(
     // Path to tasks.md
     const tasksPath = path.join(workingDir, '.claude', 'specs', specName, 'tasks.md');
     
-    // Check if tasks file exists
-    if (!existsSync(tasksPath)) {
+    // Check if tasks file exists and get content with caching
+    if (!cachedFileExists(tasksPath)) {
       console.error(chalk.red(`Error: tasks.md not found at ${tasksPath}`));
       process.exit(1);
     }
-    
-    // Read and parse tasks file
-    const tasksContent = readFileSync(tasksPath, 'utf-8');
+
+    // Read and parse tasks file with caching
+    const tasksContent = getCachedFileContent(tasksPath);
+    if (!tasksContent) {
+      console.error(chalk.red(`Error: Could not read tasks.md at ${tasksPath}`));
+      process.exit(1);
+    }
     const tasks = parseAllTasksFromMarkdown(tasksContent);
     
     if (tasks.length === 0) {

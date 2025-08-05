@@ -1,24 +1,21 @@
 #!/usr/bin/env node
 
-import { readFileSync, existsSync } from 'fs';
 import * as path from 'path';
 import chalk from 'chalk';
+import { getCachedFileContent } from './file-cache';
 
 export async function getFileContent(filePath: string): Promise<void> {
   try {
-    // Normalize the path for cross-platform compatibility
-    const normalizedPath = path.resolve(filePath);
-    
-    // Check if file exists
-    if (!existsSync(normalizedPath)) {
-      console.error(chalk.red(`Error: File not found: ${normalizedPath}`));
+    // Use shared caching utility
+    const content = getCachedFileContent(filePath);
+
+    if (content === null) {
+      console.error(chalk.red(`Error: File not found: ${path.resolve(filePath)}`));
       process.exit(1);
     }
-    
-    // Read and print file contents
-    const content = readFileSync(normalizedPath, 'utf-8');
+
     console.log(content);
-    
+
   } catch (error) {
     console.error(chalk.red('Error reading file:'), error instanceof Error ? error.message : error);
     process.exit(1);

@@ -3,6 +3,9 @@
  * Parses tasks.md files and generates individual command files
  */
 
+import * as path from 'path';
+import { getCachedFileContent, cachedFileExists } from './file-cache';
+
 export interface ParsedTask {
   id: string;
   description: string;
@@ -106,17 +109,100 @@ export function parseTasksFromMarkdown(content: string): ParsedTask[] {
 }
 
 /**
+ * Load steering context content
+ */
+function loadSteeringContext(projectPath: string): string {
+  const steeringDir = path.join(projectPath, '.claude', 'steering');
+
+  if (!cachedFileExists(steeringDir)) {
+    return '## Steering Documents Context\n\nNo steering documents found.';
+  }
+
+  const steeringFiles = [
+    { name: 'product.md', title: 'Product Context' },
+    { name: 'tech.md', title: 'Technology Context' },
+    { name: 'structure.md', title: 'Structure Context' }
+  ];
+
+  const sections: string[] = [];
+  let hasContent = false;
+
+  for (const file of steeringFiles) {
+    const filePath = path.join(steeringDir, file.name);
+
+    if (cachedFileExists(filePath)) {
+      const content = getCachedFileContent(filePath);
+      if (content && content.trim()) {
+        sections.push(`### ${file.title}\n${content.trim()}`);
+        hasContent = true;
+      }
+    }
+  }
+
+  if (!hasContent) {
+    return '## Steering Documents Context\n\nNo steering documents found or all are empty.';
+  }
+
+  return `## Steering Documents Context (Pre-loaded)\n\n${sections.join('\n\n---\n\n')}\n\n**Note**: Steering documents have been pre-loaded. Do not use get-content to fetch them again.`;
+}
+
+/**
+ * Load spec context content (requirements and design only)
+ */
+function loadSpecContext(specName: string, projectPath: string): string {
+  const specDir = path.join(projectPath, '.claude', 'specs', specName);
+
+  if (!cachedFileExists(specDir)) {
+    return `## Specification Context\n\nNo specification found for: ${specName}`;
+  }
+
+  // Only load requirements and design, not tasks
+  const specFiles = [
+    { name: 'requirements.md', title: 'Requirements' },
+    { name: 'design.md', title: 'Design' }
+  ];
+
+  const sections: string[] = [];
+  let hasContent = false;
+
+  for (const file of specFiles) {
+    const filePath = path.join(specDir, file.name);
+
+    if (cachedFileExists(filePath)) {
+      const content = getCachedFileContent(filePath);
+      if (content && content.trim()) {
+        sections.push(`### ${file.title}\n${content.trim()}`);
+        hasContent = true;
+      }
+    }
+  }
+
+  if (!hasContent) {
+    return `## Specification Context\n\nNo specification documents found for: ${specName}`;
+  }
+
+  return `## Specification Context (Pre-loaded): ${specName}\n\n${sections.join('\n\n---\n\n')}\n\n**Note**: Specification documents have been pre-loaded. Do not use get-content to fetch them again.`;
+}
+
+/**
  * Generate a command file for a specific task
  */
 export async function generateTaskCommand(
-  commandsDir: string, 
-  specName: string, 
+  commandsDir: string,
+  specName: string,
   task: ParsedTask
 ): Promise<void> {
   const fs = await import('fs/promises');
-  const path = await import('path');
-  
-  const commandFile = path.join(commandsDir, `task-${task.id}.md`);
+  const pathModule = await import('path');
+
+  const commandFile = pathModule.join(commandsDir, `task-${task.id}.md`);
+
+  // Determine project path from commandsDir (commandsDir is typically .claude/commands/{specName})
+  const projectPath = pathModule.resolve(commandsDir, '../../..');
+
+  // Load actual content
+  const steeringContext = loadSteeringContext(projectPath);
+  const specContext = loadSpecContext(specName, projectPath);
   
   let content = `# ${specName} - Task ${task.id}
 
@@ -145,205 +231,45 @@ ${task.description}
 
   content += `## Usage
 \`\`\`
-/${specName}-task-${task.id}
+/Task:${task.id}-${specName}
 \`\`\`
 
 ## Instructions
 
-**Agent-Based Execution (Recommended)**: First check if agents are enabled by running:
-
-\`\`\`bash
-npx @pimzino/claude-code-spec-workflow@latest using-agents
-\`\`\`
-
-If this returns \`true\`, use the \`spec-task-executor\` agent for optimal task implementation:
+Execute with @spec-task-executor agent the following task: "${task.description}"
 
 \`\`\`
-Use the spec-task-executor agent to implement task ${task.id}: "${task.description}" for the ${specName} specification.
+Use the @spec-task-executor agent to implement task ${task.id}: "${task.description}" for the ${specName} specification and include all the below context.
 
-The agent should:
-1. Load all specification context from .claude/specs/${specName}/
-2. Load steering documents from .claude/steering/ (if available)
-3. Implement ONLY task ${task.id}: "${task.description}"
-4. Follow all project conventions and leverage existing code
-5. Mark the task as complete in tasks.md
-6. Provide a completion summary
+# Steering Context
+${steeringContext}
 
-Context files to load using get-content script:
+# Specification Context
+${specContext}
 
-**Load task-specific context:**
-\`\`\`bash
-# Get specific task details with all information
-npx @pimzino/claude-code-spec-workflow@latest get-tasks ${specName} ${task.id} --mode single
-
-# Load context documents
-# Windows:
-npx @pimzino/claude-code-spec-workflow@latest get-content "C:\\path\\to\\project\\.claude\\specs\\${specName}\\requirements.md"
-npx @pimzino/claude-code-spec-workflow@latest get-content "C:\\path\\to\\project\\.claude\\specs\\${specName}\\design.md"
-
-# macOS/Linux:
-npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/${specName}/requirements.md"
-npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/${specName}/design.md"
-
-# Steering documents (if they exist):
-npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/product.md"
-npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/tech.md"
-npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/structure.md"
-\`\`\`
-
-Task details:
-- ID: ${task.id}
+## Task Details
+- Task ID: ${task.id}
 - Description: ${task.description}${task.leverage ? `
 - Leverage: ${task.leverage}` : ''}${task.requirements ? `
 - Requirements: ${task.requirements}` : ''}
+
+## Instructions
+- Implement ONLY task ${task.id}: "${task.description}"
+- Follow all project conventions and leverage existing code
+- Mark the task as complete using: claude-code-spec-workflow get-tasks ${specName} ${task.id} --mode complete
+- Provide a completion summary
 \`\`\`
 
-**Fallback Execution**: If the agent is not available, you can execute:
-\`\`\`
-/spec-execute ${task.id} ${specName}
-\`\`\`
-
-**Context Loading**:
-Before executing the task, you MUST load all relevant context using the get-content script:
-
-**1. Specification Documents:**
+## Task Completion
+When the task is complete, mark it as done:
 \`\`\`bash
-# Requirements document:
-# Windows: npx @pimzino/claude-code-spec-workflow@latest get-content "C:\\path\\to\\project\\.claude\\specs\\${specName}\\requirements.md"
-# macOS/Linux: npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/${specName}/requirements.md"
-
-# Design document:
-# Windows: npx @pimzino/claude-code-spec-workflow@latest get-content "C:\\path\\to\\project\\.claude\\specs\\${specName}\\design.md"
-# macOS/Linux: npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/${specName}/design.md"
-
-# Task details:
-npx @pimzino/claude-code-spec-workflow@latest get-tasks ${specName} ${task.id} --mode single
-\`\`\`
-
-**2. Steering Documents (if available):**
-\`\`\`bash
-# Windows examples:
-npx @pimzino/claude-code-spec-workflow@latest get-content "C:\\path\\to\\project\\.claude\\steering\\product.md"
-npx @pimzino/claude-code-spec-workflow@latest get-content "C:\\path\\to\\project\\.claude\\steering\\tech.md"
-npx @pimzino/claude-code-spec-workflow@latest get-content "C:\\path\\to\\project\\.claude\\steering\\structure.md"
-
-# macOS/Linux examples:
-npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/product.md"
-npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/tech.md"
-npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/structure.md"
-\`\`\`
-
-**Process**:
-1. Load all context documents listed above
-2. Execute task ${task.id}: "${task.description}"
-3. **Prioritize code reuse**: Use existing components and utilities${task.leverage ? ` identified above` : ''}
-4. Follow all implementation guidelines from the main /spec-execute command
-5. **Follow steering documents**: Adhere to patterns in tech.md and conventions in structure.md
-6. **CRITICAL**: Mark the task as complete in tasks.md by changing [ ] to [x]
-7. Confirm task completion to user
-8. Stop and wait for user review
-
-**Important Rules**:
-- Execute ONLY this specific task
-- **Leverage existing code** whenever possible to avoid rebuilding functionality
-- **Follow project conventions** from steering documents
-- Mark task as complete by changing [ ] to [x] in tasks.md
-- Stop after completion and wait for user approval
-- Do not automatically proceed to the next task
-- Validate implementation against referenced requirements
-
-## Task Completion Protocol
-When completing this task:
-1. **Mark task complete**: Use the get-tasks script to mark completion:
-   \`\`\`bash
-   npx @pimzino/claude-code-spec-workflow@latest get-tasks ${specName} ${task.id} --mode complete
-   \`\`\`
-2. **Confirm to user**: State clearly "Task ${task.id} has been marked as complete"
-3. **Stop execution**: Do not proceed to next task automatically
-4. **Wait for instruction**: Let user decide next steps
-
-## Post-Implementation Review (if agents enabled)
-First check if agents are enabled:
-\`\`\`bash
-npx @pimzino/claude-code-spec-workflow@latest using-agents
-\`\`\`
-
-If this returns \`true\`, automatically use the \`spec-task-implementation-reviewer\` agent:
-
-\`\`\`
-Use the spec-task-implementation-reviewer agent to review the implementation of task ${task.id} for the ${specName} specification.
-
-The agent automatically loads complete context using helper scripts:
-- Specification documents (requirements.md, design.md, tasks.md) via get-content
-- Steering documents (product.md, tech.md, structure.md) via get-content (if available)
-- Specific task ${task.id} details via get-tasks
-- All implementation changes for task ${task.id}
-
-The reviewer provides comprehensive quality validation:
-- Requirements compliance verification
-- Design adherence assessment
-- Code quality standards validation
-- Integration point verification
-- Structured feedback on implementation quality
-- Identification of any issues requiring attention
-
-This ensures all implementations meet quality standards before proceeding.
-\`\`\`
-
-## Code Duplication Analysis (if agents enabled)
-First check if agents are enabled:
-\`\`\`bash
-npx @pimzino/claude-code-spec-workflow@latest using-agents
-\`\`\`
-
-If this returns \`true\`, use the \`spec-duplication-detector\` agent:
-
-\`\`\`
-Use the spec-duplication-detector agent to analyze code duplication for task ${task.id} of the ${specName} specification.
-
-The agent should:
-1. Scan the newly implemented code
-2. Identify any duplicated patterns
-3. Suggest refactoring opportunities
-4. Recommend existing utilities to reuse
-5. Help maintain DRY principles
-
-This ensures code quality and maintainability.
-\`\`\`
-
-## Integration Testing (if agents enabled)
-First check if agents are enabled:
-\`\`\`bash
-npx @pimzino/claude-code-spec-workflow@latest using-agents
-\`\`\`
-
-If this returns \`true\`, use the \`spec-integration-tester\` agent:
-
-\`\`\`
-Use the spec-integration-tester agent to test the implementation of task ${task.id} for the ${specName} specification.
-
-The agent should:
-1. Load all specification documents and understand the changes made
-2. Run relevant test suites for the implemented functionality
-3. Validate integration points and API contracts
-4. Check for regressions using git history analysis
-5. Provide comprehensive test feedback
-
-Test context:
-- Changes made in task ${task.id}
-- Related test suites to execute
-- Integration points to validate
-- Git history for regression analysis
+claude-code-spec-workflow get-tasks ${specName} ${task.id} --mode complete
 \`\`\`
 
 ## Next Steps
 After task completion, you can:
-- Review the implementation (automated if spec-task-implementation-reviewer agent is available)
-- Run integration tests (automated if spec-integration-tester agent is available)
-- Address any issues identified in reviews or tests
 - Execute the next task using /${specName}-task-[next-id]
 - Check overall progress with /spec-status ${specName}
-- If all tasks complete, run /spec-completion-review ${specName}
 `;
 
   await fs.writeFile(commandFile, content, 'utf8');

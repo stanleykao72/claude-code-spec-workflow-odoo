@@ -1,5 +1,6 @@
 import { promises as fs } from 'fs';
 import { join } from 'path';
+import { parseTasksFromMarkdown, generateTaskCommand } from './task-generator';
 // CLAUDE.md generation removed - all workflow instructions now in individual commands
 // Script imports removed in v1.2.5 - task command generation now uses NPX command
 
@@ -13,8 +14,6 @@ export class SpecWorkflowSetup {
   private steeringDir: string;
   private bugsDir: string;
   private agentsDir: string;
-  private createAgents: boolean;
-  public _updateChoices?: { updateItems: string[] };
   
   // Source markdown directories
   private markdownDir: string;
@@ -22,7 +21,7 @@ export class SpecWorkflowSetup {
   private markdownTemplatesDir: string;
   private markdownAgentsDir: string;
 
-  constructor(projectRoot: string = process.cwd(), enableAgents: boolean = false) {
+  constructor(projectRoot: string = process.cwd()) {
     this.projectRoot = projectRoot;
     this.claudeDir = join(projectRoot, '.claude');
     this.commandsDir = join(this.claudeDir, 'commands');
@@ -32,7 +31,7 @@ export class SpecWorkflowSetup {
     this.steeringDir = join(this.claudeDir, 'steering');
     this.bugsDir = join(this.claudeDir, 'bugs');
     this.agentsDir = join(this.claudeDir, 'agents');
-    this.createAgents = enableAgents;
+    // Agents are now mandatory - no longer configurable
     
     // Initialize source markdown directories
     this.markdownDir = join(__dirname, 'markdown');
@@ -70,10 +69,8 @@ export class SpecWorkflowSetup {
         this.bugsDir
       ];
 
-      // Only check agents directory if agents are enabled
-      if (this.createAgents) {
-        requiredDirectories.push(this.agentsDir);
-      }
+      // Agents are now mandatory
+      requiredDirectories.push(this.agentsDir);
 
       for (const dir of requiredDirectories) {
         try {
@@ -87,10 +84,8 @@ export class SpecWorkflowSetup {
       const requiredCommands = [
         'spec-create.md',
         'spec-execute.md',
-        'spec-orchestrate.md',
         'spec-status.md',
         'spec-list.md',
-        'spec-completion-review.md',
         'spec-steering-setup.md',
         'bug-create.md',
         'bug-analyze.md',
@@ -128,41 +123,20 @@ export class SpecWorkflowSetup {
         }
       }
 
-      // Check required agent files if agents are enabled
-      if (this.createAgents) {
-        const requiredAgents = [
-          'spec-requirements-validator.md',
-          'spec-design-validator.md',
-          'spec-design-web-researcher.md',
-          'spec-task-validator.md',
-          'spec-task-executor.md',
-          'spec-task-implementation-reviewer.md',
-          'spec-integration-tester.md',
-          'spec-completion-reviewer.md',
-          'bug-root-cause-analyzer.md',
-          'steering-document-updater.md',
-          'spec-dependency-analyzer.md',
-          'spec-test-generator.md',
-          'spec-documentation-generator.md',
-          'spec-performance-analyzer.md',
-          'spec-duplication-detector.md',
-          'spec-breaking-change-detector.md'
-        ];
+      // Check required agent files (agents are now mandatory)
+      const requiredAgents = [
+        'spec-requirements-validator.md',
+        'spec-design-validator.md',
+        'spec-task-validator.md',
+        'spec-task-executor.md',
+      ];
 
-        for (const agentFile of requiredAgents) {
-          try {
-            await fs.access(join(this.agentsDir, agentFile));
-          } catch {
-            return false;
-          }
+      for (const agentFile of requiredAgents) {
+        try {
+          await fs.access(join(this.agentsDir, agentFile));
+        } catch {
+          return false;
         }
-      }
-
-      // Check config file
-      try {
-        await fs.access(join(this.claudeDir, 'spec-config.json'));
-      } catch {
-        return false;
       }
 
       return true;
@@ -182,10 +156,8 @@ export class SpecWorkflowSetup {
       this.bugsDir
     ];
 
-    // Only create agents directory if agents are enabled
-    if (this.createAgents) {
-      directories.push(this.agentsDir);
-    }
+    // Agents are now mandatory
+    directories.push(this.agentsDir);
 
     for (const dir of directories) {
       await fs.mkdir(dir, { recursive: true });
@@ -195,11 +167,9 @@ export class SpecWorkflowSetup {
   async createSlashCommands(): Promise<void> {
     const commandNames = [
       'spec-create',
-      'spec-execute', 
-      'spec-orchestrate',
+      'spec-execute',
       'spec-status',
       'spec-list',
-      'spec-completion-review',
       'spec-steering-setup',
       'bug-create',
       'bug-analyze',
@@ -211,8 +181,15 @@ export class SpecWorkflowSetup {
     for (const commandName of commandNames) {
       const sourceFile = join(this.markdownCommandsDir, `${commandName}.md`);
       const destFile = join(this.commandsDir, `${commandName}.md`);
-      
+
       try {
+        // Delete existing file if it exists to ensure clean replacement
+        try {
+          await fs.unlink(destFile);
+        } catch {
+          // File might not exist, which is fine
+        }
+
         const commandContent = await fs.readFile(sourceFile, 'utf-8');
         await fs.writeFile(destFile, commandContent, 'utf-8');
       } catch (error) {
@@ -238,8 +215,15 @@ export class SpecWorkflowSetup {
     for (const templateName of templateNames) {
       const sourceFile = join(this.markdownTemplatesDir, templateName);
       const destFile = join(this.templatesDir, templateName);
-      
+
       try {
+        // Delete existing file if it exists to ensure clean replacement
+        try {
+          await fs.unlink(destFile);
+        } catch {
+          // File might not exist, which is fine
+        }
+
         const templateContent = await fs.readFile(sourceFile, 'utf-8');
         await fs.writeFile(destFile, templateContent, 'utf-8');
       } catch (error) {
@@ -252,36 +236,26 @@ export class SpecWorkflowSetup {
   // NOTE: Script creation removed in v1.2.5 - task command generation now uses NPX command
 
   async setupAgents(): Promise<void> {
-    // Only create agents if enabled
-    if (!this.createAgents) {
-      return;
-    }
-
-    // List of available agent files (all 16 agents now extracted to markdown)
+    // Agents are now mandatory - always create them
     const agentFiles = [
       'spec-requirements-validator.md',
-      'spec-design-validator.md', 
-      'spec-design-web-researcher.md',
+      'spec-design-validator.md',
       'spec-task-validator.md',
       'spec-task-executor.md',
-      'spec-task-implementation-reviewer.md',
-      'spec-integration-tester.md',
-      'spec-completion-reviewer.md',
-      'bug-root-cause-analyzer.md',
-      'steering-document-updater.md',
-      'spec-dependency-analyzer.md',
-      'spec-test-generator.md',
-      'spec-documentation-generator.md',
-      'spec-performance-analyzer.md',
-      'spec-duplication-detector.md',
-      'spec-breaking-change-detector.md'
     ];
 
     for (const agentFile of agentFiles) {
       const sourceFile = join(this.markdownAgentsDir, agentFile);
       const destFile = join(this.agentsDir, agentFile);
-      
+
       try {
+        // Delete existing file if it exists to ensure clean replacement
+        try {
+          await fs.unlink(destFile);
+        } catch {
+          // File might not exist, which is fine
+        }
+
         const agentContent = await fs.readFile(sourceFile, 'utf-8');
         await fs.writeFile(destFile, agentContent, 'utf-8');
       } catch (error) {
@@ -291,24 +265,79 @@ export class SpecWorkflowSetup {
     }
   }
 
-  async createConfigFile(): Promise<void> {
-    const config = {
-      spec_workflow: {
-        version: '1.0.0',
-        auto_create_directories: true,
-        auto_reference_requirements: true,
-        enforce_approval_workflow: true,
-        default_feature_prefix: 'feature-',
-        supported_formats: ['markdown', 'mermaid'],
-        agents_enabled: this.createAgents
-      }
-    };
 
-    const configFile = join(this.claudeDir, 'spec-config.json');
-    await fs.writeFile(configFile, JSON.stringify(config, null, 2), 'utf-8');
-  }
 
   // CLAUDE.md creation removed - all workflow instructions now in individual commands
+
+  /**
+   * Auto-generate task commands for all existing specs
+   */
+  async autoGenerateTaskCommands(): Promise<void> {
+    try {
+      // Check if specs directory exists
+      await fs.access(this.specsDir);
+    } catch {
+      // No specs directory, nothing to generate
+      return;
+    }
+
+    try {
+      const specsEntries = await fs.readdir(this.specsDir, { withFileTypes: true });
+      const specDirs = specsEntries
+        .filter(entry => entry.isDirectory())
+        .map(entry => entry.name);
+
+      if (specDirs.length === 0) {
+        return;
+      }
+
+      console.log(`Auto-generating task commands for ${specDirs.length} existing spec(s)...`);
+
+      for (const specName of specDirs) {
+        const tasksFile = join(this.specsDir, specName, 'tasks.md');
+        const commandsSpecDir = join(this.commandsDir, specName);
+
+        try {
+          // Check if tasks.md exists
+          await fs.access(tasksFile);
+
+          // Read tasks.md
+          const tasksContent = await fs.readFile(tasksFile, 'utf8');
+
+          // Parse tasks and generate commands
+          const tasks = parseTasksFromMarkdown(tasksContent);
+
+          if (tasks.length === 0) {
+            continue;
+          }
+
+          // Delete existing task commands for this spec
+          try {
+            await fs.rm(commandsSpecDir, { recursive: true });
+          } catch {
+            // Directory might not exist
+          }
+
+          // Create spec commands directory
+          await fs.mkdir(commandsSpecDir, { recursive: true });
+
+          // Generate commands
+          for (const task of tasks) {
+            await generateTaskCommand(commandsSpecDir, specName, task);
+          }
+
+          console.log(`  Generated ${tasks.length} task commands for spec: ${specName}`);
+
+        } catch {
+          // tasks.md doesn't exist for this spec, skip
+          continue;
+        }
+      }
+    } catch {
+      // Error reading specs directory, skip
+      return;
+    }
+  }
 
   async runSetup(): Promise<void> {
     await this.setupDirectories();
@@ -316,7 +345,10 @@ export class SpecWorkflowSetup {
     await this.createTemplates();
     await this.setupAgents();
     // Script creation removed in v1.2.5 - using NPX command instead
-    await this.createConfigFile();
+    // spec-config.json creation removed - not required
     // CLAUDE.md creation removed - all workflow instructions now in individual commands
+
+    // Auto-generate task commands for existing specs
+    await this.autoGenerateTaskCommands();
   }
 }

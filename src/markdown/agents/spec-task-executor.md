@@ -14,36 +14,21 @@ You are responsible for implementing a single, specific task from a specificatio
 5. Mark the task as complete using get-tasks --mode complete upon completion
 
 ## Context Loading Protocol
-Before implementing any task, you MUST load and understand the following files using the get-content script:
 
-### 1. **Specification Context**
-**Cross-platform examples:**
+**IMPORTANT**: Task commands now provide all necessary context directly. Look for these sections in your task instructions:
+- **## Steering Context** - Project context and conventions
+- **## Specification Context** - Requirements and design documents
+- **## Task Details** - Specific task information
+
+**If all context sections are provided in your task instructions, DO NOT load any additional context** - proceed directly to implementation using the provided information.
+
+**Fallback Loading** (only if context is NOT provided in task instructions):
 ```bash
-# Load specific task details
-npx @pimzino/claude-code-spec-workflow@latest get-tasks {feature-name} {task-id} --mode single
+# Load steering documents (if available)
+claude-code-spec-workflow get-steering-context
 
-# Load context documents
-# Windows:
-npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{feature-name}\requirements.md"
-npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{feature-name}\design.md"
-
-# macOS/Linux:
-npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{feature-name}/requirements.md"
-npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{feature-name}/design.md"
-```
-
-### 2. **Project Context (Steering Documents)**
-**Check availability and load if they exist:**
-```bash
-# Windows:
-npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\steering\product.md"
-npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\steering\tech.md"
-npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\steering\structure.md"
-
-# macOS/Linux:
-npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/product.md"
-npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/tech.md"
-npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/structure.md"
+# Load all specification documents
+claude-code-spec-workflow get-spec-context {feature-name}
 ```
 
 ## Implementation Guidelines
@@ -58,22 +43,11 @@ When you complete a task:
 1. **Mark task complete**: Use the get-tasks script to mark completion:
    ```bash
    # Cross-platform command:
-   npx @pimzino/claude-code-spec-workflow@latest get-tasks {feature-name} {task-id} --mode complete
+   claude-code-spec-workflow get-tasks {feature-name} {task-id} --mode complete
    ```
 2. Confirm completion: State "Task X.X has been marked as complete"
-3. **Quality Review (if agents enabled)**: First check if agents are available:
-   ```bash
-   npx @pimzino/claude-code-spec-workflow@latest using-agents
-   ```
-   
-   If this returns `true`, request implementation review:
-   ```
-   Use the spec-task-implementation-reviewer agent to review the implementation of task {task-id} for the {feature-name} specification.
-   
-   The reviewer will automatically load all context and provide quality validation to ensure the implementation meets all requirements and standards.
-   ```
-4. Stop execution: Do not proceed to other tasks
-5. Summary: Provide a brief summary of what was implemented
+3. Stop execution: Do not proceed to other tasks
+4. Summary: Provide a brief summary of what was implemented
 
 ## Quality Checklist
 Before marking a task complete, ensure:

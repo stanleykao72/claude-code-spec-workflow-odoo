@@ -15,10 +15,10 @@ You validate requirements documents to ensure they meet quality standards before
 
 ```bash
 # Windows:
-npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\templates\requirements-template.md"
+claude-code-spec-workflow get-content "C:\path\to\project\.claude\templates\requirements-template.md"
 
 # macOS/Linux:
-npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/templates/requirements-template.md"
+claude-code-spec-workflow get-content "/path/to/project/.claude/templates/requirements-template.md"
 ```
 - **Section validation**: Ensure all required template sections are present and non-empty
 - **Format compliance**: Verify document follows exact template structure and formatting
@@ -55,16 +55,28 @@ npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.cla
 - Fits within established project architecture
 
 ## Validation Process
-1. **Load template**: Use get-content script to load the requirements template for comparison (as shown above)
-2. **Load requirements document**: Use get-content script to read the requirements document:
+1. **Context Priority Handling**:
 
-```bash
-# Windows:
-npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{feature-name}\requirements.md"
+   **PRIORITY 1: Use Provided Context (Hierarchical Context Management)**
+   - **Check for "## Specification Context"** in your task instructions - if present, use that content directly
+   - **Check for "## Template Context"** in your task instructions - if present, use that content directly
+   - **If context sections are provided above, DO NOT load any context** - proceed directly to validation
 
-# macOS/Linux:
-npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{feature-name}/requirements.md"
-```
+   **PRIORITY 2: Fallback Loading (Only if context NOT provided above)**
+   ```bash
+   # Load template for comparison
+   claude-code-spec-workflow get-template-context spec
+
+   # Load specification documents
+   claude-code-spec-workflow get-spec-context {feature-name}
+
+   # Alternative individual loading (last resort):
+   # Windows:
+   claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\requirements.md"
+
+   # macOS/Linux:
+   claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/requirements.md"
+   ```
 3. **Compare structure**: Validate document structure against template requirements
 4. **Check against each validation criteria**
 5. **Identify specific issues with line numbers/sections**

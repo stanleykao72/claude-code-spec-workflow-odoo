@@ -9,7 +9,7 @@ describe('SpecWorkflowSetup', () => {
 
   beforeEach(async () => {
     tempDir = await fs.mkdtemp(join(tmpdir(), 'claude-spec-test-'));
-    setup = new SpecWorkflowSetup(tempDir);
+    setup = new SpecWorkflowSetup(tempDir); // Agents are now mandatory by default
   });
 
   afterEach(async () => {

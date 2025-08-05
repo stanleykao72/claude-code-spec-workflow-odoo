@@ -25,19 +25,15 @@ You are helping create a new bug fix workflow. This is designed for smaller fixe
    - Create `.claude/bugs/{bug-name}/` directory
    - Initialize report.md, analysis.md, and verification.md files
 
-2. **Load Context** (if available)
-   - Load steering documents using get-content script for project context:
-   
+2. **Load ALL Context Once (Hierarchical Context Loading)**
+   Load complete context at the beginning for the bug creation process:
+
    ```bash
-   # Windows:
-   npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\steering\tech.md"
-   npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\steering\structure.md"
-   npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\steering\product.md"
-   
-   # macOS/Linux:
-   npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/tech.md"
-   npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/structure.md"
-   npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/product.md"
+   # Load steering documents (if available)
+   claude-code-spec-workflow get-steering-context
+
+   # Load bug templates
+   claude-code-spec-workflow get-template-context bug
    ```
 
 3. **Gather Bug Information**
@@ -46,16 +42,8 @@ You are helping create a new bug fix workflow. This is designed for smaller fixe
    - Use structured format for consistency
 
 4. **Generate Bug Report**
-   - **Template to Follow**: Load the bug report template using get-content script:
-   
-   ```bash
-   # Windows:
-   npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\templates\bug-report-template.md"
-   
-   # macOS/Linux:
-   npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/templates/bug-report-template.md"
-   ```
-   - Create detailed bug description following the loaded template structure
+   - **Template to Follow**: Use the bug report template from the pre-loaded context above (do not reload)
+   - Create detailed bug description following the bug report template structure
 
 ## Template Usage
 - **Follow exact structure**: Use loaded bug report template precisely

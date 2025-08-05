@@ -14,102 +14,41 @@ This is Phase 4 of the spec workflow. Your goal is to implement individual tasks
 
 ## Instructions
 
-**Agent-Based Execution (Recommended)**: First check if agents are enabled by running:
+**Execution Steps**:
 
+**Step 1: Load Context**
 ```bash
-npx @pimzino/claude-code-spec-workflow@latest using-agents
-```
+# Load steering documents (if available)
+claude-code-spec-workflow get-steering-context
 
-If this returns `true`, use the `spec-task-executor` agent for optimal task implementation:
+# Load specification context
+claude-code-spec-workflow get-spec-context {feature-name}
 
-```
-Use the spec-task-executor agent to implement the specified task for the {feature-name} specification.
-
-The agent should:
-1. Load all specification context from .claude/specs/{feature-name}/
-2. Load steering documents from .claude/steering/ (if available)  
-3. Implement ONLY the specified task
-4. Follow all project conventions and leverage existing code
-5. Mark the task as complete using get-tasks --mode complete
-6. Provide a completion summary
-
-Context files to load using get-content script:
-
-**Cross-platform examples:**
-```bash
 # Load specific task details
-npx @pimzino/claude-code-spec-workflow@latest get-tasks {feature-name} {task-id} --mode single
-
-# Load context documents
-# Windows
-npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{feature-name}\requirements.md"
-npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{feature-name}\design.md"
-
-# macOS/Linux
-npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{feature-name}/requirements.md"
-npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{feature-name}/design.md"
-
-# Steering documents (if they exist)
-npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/product.md"
-npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/tech.md"
-npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/structure.md"
+claude-code-spec-workflow get-tasks {feature-name} {task-id} --mode single
 ```
 
-Task to implement: {task-id}
+**Step 2: Execute with Agent**
+Use the `spec-task-executor` agent:
+```
+Use the spec-task-executor agent to implement task {task-id} for the {feature-name} specification.
+
+## Steering Context
+[PASTE THE COMPLETE OUTPUT FROM get-steering-context COMMAND HERE]
+
+## Specification Context
+[PASTE THE REQUIREMENTS AND DESIGN SECTIONS FROM get-spec-context COMMAND HERE]
+
+## Task Details
+[PASTE THE OUTPUT FROM get-tasks SINGLE COMMAND HERE]
+
+## Instructions
+- Implement ONLY the specified task: {task-id}
+- Follow all project conventions and leverage existing code
+- Mark the task as complete using: claude-code-spec-workflow get-tasks {feature-name} {task-id} --mode complete
+- Provide a completion summary
 ```
 
-**Manual Execution (Fallback)**: If agents are not enabled, follow this process:
-
-1. **Prerequisites**
-   - Ensure tasks.md exists and is approved
-   - Load the spec documents using the get-content script:
-     
-     **Requirements document:**
-     ```bash
-     # Windows: npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{feature-name}\requirements.md"
-     # macOS/Linux: npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{feature-name}/requirements.md"
-     ```
-     
-     **Design document:**
-     ```bash
-     # Windows: npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{feature-name}\design.md"
-     # macOS/Linux: npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{feature-name}/design.md"
-     ```
-     
-     **Task details:**
-     ```bash
-     # Get specific task details
-     npx @pimzino/claude-code-spec-workflow@latest get-tasks {feature-name} {task-id} --mode single
-     ```
-     
-   - **Load all steering documents** (if available):
-     ```bash
-     # Windows examples:
-     npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\steering\product.md"
-     npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\steering\tech.md"
-     npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\steering\structure.md"
-     
-     # macOS/Linux examples:
-     npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/product.md"
-     npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/tech.md"
-     npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/structure.md"
-     ```
-   - Identify the specific task to execute
-
-2. **Process**
-   1. Load spec documents from `.claude/specs/{feature-name}/` directory:
-      - Load requirements.md, design.md, and tasks.md for complete context
-   2. Execute ONLY the specified task (never multiple tasks)
-   3. Implement following existing code patterns and conventions
-   4. Validate implementation against referenced requirements
-   5. Run tests and checks if applicable
-   6. **CRITICAL**: Mark task as complete using the get-tasks script:
-      ```bash
-      # Cross-platform command:
-      npx @pimzino/claude-code-spec-workflow@latest get-tasks {feature-name} {task-id} --mode complete
-      ```
-   7. Confirm task completion status to user
-   8. **CRITICAL**: Stop and wait for user review before proceeding
 
 3. **Task Execution**
    - Focus on ONE task at a time
@@ -136,85 +75,14 @@ When completing any task during `/spec-execute`:
    1. **Mark task complete**: Use the get-tasks script to mark completion:
       ```bash
       # Cross-platform command:
-      npx @pimzino/claude-code-spec-workflow@latest get-tasks {feature-name} {task-id} --mode complete
+      claude-code-spec-workflow get-tasks {feature-name} {task-id} --mode complete
       ```
    2. **Confirm to user**: State clearly "Task X has been marked as complete"
    3. **Stop execution**: Do not proceed to next task automatically
    4. **Wait for instruction**: Let user decide next steps
 
-7. **Test Generation (if agents enabled)**
-First check if agents are available:
-```bash
-npx @pimzino/claude-code-spec-workflow@latest using-agents
-```
 
-If this returns `true`, use the `spec-test-generator` agent:
 
-```
-Use the spec-test-generator agent to generate tests for task {task-id} of the {feature-name} specification.
-
-The agent should:
-1. Load requirements.md for acceptance criteria
-2. Load design.md for technical details
-3. Analyze existing test patterns in the codebase
-4. Generate comprehensive test cases
-5. Provide test implementations following project conventions
-
-The generated tests ensure comprehensive coverage of the implemented functionality.
-```
-
-8. **Post-Implementation Review (if agents enabled)**
-First check if agents are available:
-```bash
-npx @pimzino/claude-code-spec-workflow@latest using-agents
-```
-
-If this returns `true`, automatically use the `spec-task-implementation-reviewer` agent:
-
-```
-Use the spec-task-implementation-reviewer agent to review the implementation of task {task-id} for the {feature-name} specification.
-
-The agent automatically loads context using helper scripts:
-- Requirements, design, and tasks documents via get-content
-- Steering documents via get-content (if available)
-- Specific task details via get-tasks
-- All implementation changes for task {task-id}
-
-The reviewer provides:
-- Requirements compliance validation
-- Design adherence verification  
-- Code quality assessment
-- Integration validation
-- Structured feedback on implementation quality
-- Identification of any issues requiring attention
-
-This review ensures quality standards before proceeding to the next task.
-```
-
-9. **Integration Testing (if agents enabled)**
-First check if agents are available:
-```bash
-npx @pimzino/claude-code-spec-workflow@latest using-agents
-```
-
-If this returns `true`, use the `spec-integration-tester` agent:
-
-```
-Use the spec-integration-tester agent to test the implementation of task {task-id} for the {feature-name} specification.
-
-The agent should:
-1. Load all specification documents and understand the changes made
-2. Run relevant test suites for the implemented functionality
-3. Validate integration points and API contracts
-4. Check for regressions using git history analysis
-5. Provide comprehensive test feedback
-
-Test context:
-- Changes made in task {task-id}
-- Related test suites to execute
-- Integration points to validate
-- Git history for regression analysis
-```
 
 ## Critical Workflow Rules
 
@@ -259,7 +127,6 @@ If no feature-name specified:
 
 ## Next Steps
 After task completion, you can:
-- Review the implementation (automated if spec-task-implementation-reviewer agent is available)
 - Address any issues identified in the review
 - Run tests if applicable
 - Execute the next task using `/spec-execute [next-task-id]`
