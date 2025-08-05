@@ -131,31 +131,15 @@ function renderMarkdown(content) {
     return content;
   }
   
+  // Preprocess the content to preserve task numbers
+  // Convert "- [ ] 1. Task" to "- [ ] **1.** Task" to make the number stand out
+  const preprocessedContent = content.replace(
+    /^(\s*)-\s*\[([ x])\]\s*(\d+(?:\.\d+)*)\.\s*(.*)$/gm,
+    '$1- [$2] **$3.** $4'
+  );
+  
   // Create a custom renderer for code blocks
   const renderer = new marked.Renderer();
-  
-  // Override list item rendering to preserve task numbers
-  renderer.listitem = function(text, task, checked) {
-    // For task list items, marked passes additional parameters
-    if (task) {
-      // Extract the task number from the text
-      // The text should contain something like "1. Task description"
-      const numberMatch = text.match(/^(\d+(?:\.\d+)*)\.\s*(.*)$/);
-      
-      if (numberMatch) {
-        const [, number, description] = numberMatch;
-        const checkbox = `<input ${checked ? 'checked="" ' : ''}disabled="" type="checkbox">`;
-        return `<li>${checkbox} ${number}. ${description}</li>\n`;
-      }
-      
-      // Fallback for task items without numbers
-      const checkbox = `<input ${checked ? 'checked="" ' : ''}disabled="" type="checkbox">`;
-      return `<li>${checkbox} ${text}</li>\n`;
-    }
-    
-    // Default list item rendering for non-task items
-    return `<li>${text}</li>\n`;
-  };
   
   // Override the code block rendering
   renderer.code = function(code, language, isEscaped) {
@@ -199,8 +183,8 @@ function renderMarkdown(content) {
     </div>`;
   };
   
-  // Use the custom renderer
-  return marked.parse(content, { renderer });
+  // Use the custom renderer with preprocessed content
+  return marked.parse(preprocessedContent, { renderer });
 }
 
 /**
