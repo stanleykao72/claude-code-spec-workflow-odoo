@@ -16,7 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - spec-task-validator
 - Added a few more tools for retrieving specific context documents with added in memory caching for 1 hour.
 - Removed spec-orchestrator command as it did not work as expected especially due to claude code's auto compacting of commands and sometimes the agent would just stop for no reason.
+- On .claude folder detection, the folder will be backuped and a fresh install will be performed, you will need to manually move any custom commands / sub agents you have created to the new .claude folder. The setup script will attempt to migrate all other files such as specs, steering documents, bugs and task commands.
 - Overall workflow has been simplified and made more robust.
+
+### Fixed
+- Improved bug status determination to prevent premature 'verifying' state
 
 
 ## [1.5.5] - 2025-08-02
