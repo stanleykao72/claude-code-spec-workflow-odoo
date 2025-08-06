@@ -326,16 +326,38 @@ const BaseAppState = {
       return spec.tasks.taskList.filter(task => !task.completed);
     }
     
-    // Sort tasks: incomplete first (in original order), then completed (in original order)
-    const incompleteTasks = spec.tasks.taskList.filter(task => !task.completed);
-    const completedTasks = spec.tasks.taskList.filter(task => task.completed);
-    
-    return [...incompleteTasks, ...completedTasks];
+    // Return tasks in their original order
+    return spec.tasks.taskList;
   },
   
   copyTaskCommand(specName, taskId, event) {
     const command = `/spec-execute ${specName} ${taskId}`;
     this.copyCommand.call(this, command, event);
+  },
+  
+  getTaskTooltip(task) {
+    const parts = [];
+    
+    if (task.description) {
+      parts.push(`Task ${task.id}: ${task.description}`);
+    }
+    
+    if (task.details && task.details.length > 0) {
+      parts.push('\nSteps:');
+      task.details.forEach(detail => {
+        parts.push(`• ${detail}`);
+      });
+    }
+    
+    if (task.requirements && task.requirements.length > 0) {
+      parts.push(`\nRequirements: ${task.requirements.join(', ')}`);
+    }
+    
+    if (task.leverage) {
+      parts.push(`\nLeverages: ${task.leverage}`);
+    }
+    
+    return parts.join('\n');
   },
   
   // Markdown preview methods

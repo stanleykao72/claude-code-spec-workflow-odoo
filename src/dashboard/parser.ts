@@ -1,6 +1,7 @@
 import { readFile, readdir, access } from 'fs/promises';
 import { join, resolve, normalize } from 'path';
 import { constants } from 'fs';
+import { simpleGit, SimpleGit } from 'simple-git';
 import { debug } from './logger';
 import { SteeringLoader } from '../steering';
 
@@ -10,6 +11,7 @@ export interface Task {
   completed: boolean;
   requirements: string[];
   leverage?: string;
+  details?: string[];
   subtasks?: Task[];
 }
 
@@ -96,6 +98,7 @@ export class SpecParser {
   private specsPath: string;
   private bugsPath: string;
   private steeringLoader: SteeringLoader;
+  private git: SimpleGit;
 
   constructor(projectPath: string) {
     // Normalize path to handle Windows/Unix separators before resolving
@@ -104,6 +107,7 @@ export class SpecParser {
     this.specsPath = join(this.projectPath, '.claude', 'specs');
     this.bugsPath = join(this.projectPath, '.claude', 'bugs');
     this.steeringLoader = new SteeringLoader(this.projectPath);
+    this.git = simpleGit(this.projectPath);
   }
 
   async getProjectSteeringStatus(): Promise<SteeringStatus> {
@@ -333,19 +337,8 @@ export class SpecParser {
       }
     }
 
-    // Get last modified time
-    const files = ['requirements.md', 'design.md', 'tasks.md'];
-    let lastModified = new Date(0);
-    for (const file of files) {
-      const filePath = join(specPath, file);
-      if (await this.fileExists(filePath)) {
-        const stats = await import('fs').then((fs) => fs.promises.stat(filePath));
-        if (stats.mtime > lastModified) {
-          lastModified = stats.mtime;
-        }
-      }
-    }
-    spec.lastModified = lastModified;
+    // Get last modified time from git
+    spec.lastModified = await this.getGitLastModified(specPath);
 
     return spec;
   }
@@ -481,19 +474,8 @@ export class SpecParser {
       }
     }
 
-    // Get last modified time
-    const files = ['report.md', 'analysis.md', 'verification.md'];
-    let lastModified = new Date(0);
-    for (const file of files) {
-      const filePath = join(bugPath, file);
-      if (await this.fileExists(filePath)) {
-        const stats = await import('fs').then((fs) => fs.promises.stat(filePath));
-        if (stats.mtime > lastModified) {
-          lastModified = stats.mtime;
-        }
-      }
-    }
-    bug.lastModified = lastModified;
+    // Get last modified time from git
+    bug.lastModified = await this.getGitLastModified(bugPath);
 
     return bug;
   }
@@ -519,18 +501,21 @@ export class SpecParser {
 
     let currentTask: Task | null = null;
     let parentStack: { level: number; task: Task }[] = [];
+    let currentTaskIndent = 0;
 
     for (const line of lines) {
       const match = line.match(taskRegex);
       if (match) {
         const [, indent, checked, id, description] = match;
         const level = indent.length / 2;
+        currentTaskIndent = indent.length;
 
         currentTask = {
           id,
           description: description.trim(),
           completed: checked === 'x',
           requirements: [],
+          details: [],
         };
 
         // Find parent based on level
@@ -558,6 +543,17 @@ export class SpecParser {
         const levMatch = line.match(leverageRegex);
         if (levMatch) {
           currentTask.leverage = levMatch[1].trim();
+        }
+
+        // Check for detail lines (bullet points under task)
+        const detailMatch = line.match(/^(\s*)- (.+)$/);
+        if (detailMatch && !line.includes('_Requirements:') && !line.includes('_Leverage:')) {
+          const [, detailIndent, detail] = detailMatch;
+          // Only capture details that are indented more than the task
+          if (detailIndent.length > currentTaskIndent) {
+            if (!currentTask.details) currentTask.details = [];
+            currentTask.details.push(detail.trim());
+          }
         }
 
         // Removed in-progress marker check - now using first uncompleted task automatically
@@ -608,6 +604,60 @@ export class SpecParser {
       .split('-')
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
+  }
+
+  private async getGitLastModified(path: string): Promise<Date> {
+    try {
+      // Check if it's a git repository
+      const isRepo = await this.git.checkIsRepo();
+      if (!isRepo) {
+        // Fallback to filesystem time
+        return await this.getFileSystemLastModified(path);
+      }
+
+      // Get the relative path from project root
+      const relativePath = path.replace(this.projectPath + '/', '').replace(this.projectPath + '\\', '');
+      
+      // Get the last commit that modified any file in this path
+      const log = await this.git.log({
+        file: relativePath,
+        n: 1,
+        '--': null
+      });
+
+      if (log.latest) {
+        return new Date(log.latest.date);
+      } else {
+        // No git history, fallback to filesystem
+        return await this.getFileSystemLastModified(path);
+      }
+    } catch (error) {
+      debug(`Error getting git last modified for ${path}: ${error}`);
+      // Fallback to filesystem time on any error
+      return await this.getFileSystemLastModified(path);
+    }
+  }
+
+  private async getFileSystemLastModified(path: string): Promise<Date> {
+    // Check if this is a spec or bug path
+    const isSpec = path.includes('/.claude/specs/');
+    const files = isSpec 
+      ? ['requirements.md', 'design.md', 'tasks.md']
+      : ['report.md', 'analysis.md', 'fix.md', 'verification.md'];
+    
+    let lastModified = new Date(0);
+    
+    for (const file of files) {
+      const filePath = join(path, file);
+      if (await this.fileExists(filePath)) {
+        const stats = await import('fs').then((fs) => fs.promises.stat(filePath));
+        if (stats.mtime > lastModified) {
+          lastModified = stats.mtime;
+        }
+      }
+    }
+    
+    return lastModified;
   }
 
   private extractRequirements(content: string): RequirementDetail[] {

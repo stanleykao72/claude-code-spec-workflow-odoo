@@ -37,6 +37,34 @@ interface ActiveTask {
   gitCommit?: string;
 }
 
+// Discriminated union for type-safe active sessions
+type ActiveSession = ActiveSpecSession | ActiveBugSession;
+
+interface BaseActiveSession {
+  projectPath: string;
+  projectName: string;
+  displayName: string;
+  lastModified: Date;
+  isCurrentlyActive: boolean;
+  hasActiveSession: boolean;
+  gitBranch?: string;
+  gitCommit?: string;
+}
+
+interface ActiveSpecSession extends BaseActiveSession {
+  type: 'spec';
+  specName: string;
+  task: Task;
+}
+
+interface ActiveBugSession extends BaseActiveSession {
+  type: 'bug';
+  bugName: string;
+  bugStatus: 'analyzing' | 'fixing' | 'verifying';
+  bugSeverity?: 'critical' | 'high' | 'medium' | 'low';
+  nextCommand: string;  // e.g., '/bug-fix bug-name'
+}
+
 export interface MultiDashboardOptions {
   port: number;
   autoOpen?: boolean;

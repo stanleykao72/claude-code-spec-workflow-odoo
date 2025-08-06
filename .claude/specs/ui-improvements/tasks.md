@@ -63,7 +63,7 @@ This implementation plan breaks down the UI improvements into atomic tasks focus
   - _Leverage: Existing bug status conditions_
   - _Requirements: 2.1, 2.2_
 
-- [ ] 5. Apply bug compact display to single-project dashboard
+- [x] 5. Apply bug compact display to single-project dashboard
   - File: src/dashboard/public/index.html
   - Wrap bug details in `v-if="bug.status !== 'resolved'"` (around lines 927-1017)
   - Keep bug name and status pill always visible
@@ -71,7 +71,7 @@ This implementation plan breaks down the UI improvements into atomic tasks focus
   - _Leverage: Same conditional pattern as multi.html_
   - _Requirements: 2.1, 2.2_
 
-- [ ] 6. Define ActiveSession TypeScript interface
+- [x] 6. Define ActiveSession TypeScript interface
   - File: src/dashboard/multi-server.ts
   - Add discriminated union types for ActiveSession after line 25
   - Define BaseActiveSession, ActiveSpecSession, and ActiveBugSession interfaces
