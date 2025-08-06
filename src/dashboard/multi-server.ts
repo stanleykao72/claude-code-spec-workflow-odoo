@@ -459,8 +459,8 @@ export class MultiProjectDashboardServer {
           // If no active task, create a placeholder representing the spec
           if (!activeTask) {
             activeTask = {
-              id: 'current',
-              description: `Working on ${spec.displayName || spec.name}`,
+              id: 'session',
+              description: `${spec.displayName || spec.name}`,
               completed: false,
               requirements: []
             };
@@ -526,8 +526,8 @@ export class MultiProjectDashboardServer {
           displayName: 'Active Session',
           specName: 'current-session',
           task: {
-            id: 'active',
-            description: 'Claude session active',
+            id: 'session',
+            description: 'Active Claude session',
             completed: false,
             requirements: []
           },
