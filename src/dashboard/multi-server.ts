@@ -406,49 +406,83 @@ export class MultiProjectDashboardServer {
     const allActiveSessions: ActiveSession[] = [];
 
     for (const [projectPath, state] of this.projects) {
-      const specs = await state.parser.getAllSpecs();
-      debug(`[collectActiveSessions] Project ${state.project.name}: ${specs.length} specs`);
-
-      let hasActiveTaskInProject = false;
-      const projectSessions: ActiveSession[] = [];
-      
-      for (const spec of specs) {
-        if (spec.tasks && spec.tasks.taskList.length > 0) {
-          debug(`[collectActiveSessions] Spec ${spec.name}: ${spec.tasks.taskList.length} tasks, inProgress: ${spec.tasks.inProgress}`);
-          if (spec.tasks.inProgress) {
-            // Only get the currently active task (marked as in progress)
-            const activeTask = this.findTaskById(spec.tasks.taskList, spec.tasks.inProgress);
-
-            if (activeTask) {
-              hasActiveTaskInProject = true;
-              projectSessions.push({
-              type: 'spec',
-              projectPath,
-              projectName: state.project.name,
-              displayName: spec.displayName || spec.name,
-              specName: spec.name,
-              task: activeTask,
-              lastModified: spec.lastModified || new Date(),
-              isCurrentlyActive: true,
-              hasActiveSession: true,
-              gitBranch: state.project.gitBranch,
-              gitCommit: state.project.gitCommit,
-            } as ActiveSpecSession);
-            }
-          }
-        }
+      // Only include projects where a Claude process is actually running
+      if (!state.project.hasActiveSession) {
+        debug(`[collectActiveSessions] Project ${state.project.name}: no active Claude process, skipping`);
+        continue;
       }
 
-      // Collect active bugs
+      debug(`[collectActiveSessions] Project ${state.project.name}: has active Claude process, finding most recent work item`);
+      
+      const specs = await state.parser.getAllSpecs();
       const bugs = await state.parser.getAllBugs();
-      debug(`[collectActiveSessions] Project ${state.project.name}: ${bugs.length} bugs`);
+      const allWorkItems: Array<{
+        type: 'spec' | 'bug';
+        item: any;
+        lastModified: Date;
+      }> = [];
 
+      // Collect all specs as potential session items
+      for (const spec of specs) {
+        allWorkItems.push({
+          type: 'spec',
+          item: spec,
+          lastModified: spec.lastModified || new Date(0)
+        });
+      }
+
+      // Collect all bugs as potential session items
       for (const bug of bugs) {
-        // Check if bug is in an active state
-        if (['analyzing', 'fixing', 'verifying'].includes(bug.status)) {
-          debug(`[collectActiveSessions] Bug ${bug.name}: status ${bug.status}`);
-          hasActiveTaskInProject = true;
+        allWorkItems.push({
+          type: 'bug',
+          item: bug,
+          lastModified: bug.lastModified || new Date(0)
+        });
+      }
 
+      // Sort by lastModified descending to get the most recent work item
+      allWorkItems.sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime());
+
+      let activeSession: ActiveSession | null = null;
+
+      if (allWorkItems.length > 0) {
+        const mostRecent = allWorkItems[0];
+        
+        if (mostRecent.type === 'spec') {
+          const spec = mostRecent.item;
+          // For specs, try to find an active task, otherwise use a placeholder
+          let activeTask = null;
+          if (spec.tasks && spec.tasks.inProgress) {
+            activeTask = this.findTaskById(spec.tasks.taskList, spec.tasks.inProgress);
+          }
+          
+          // If no active task, create a placeholder representing the spec
+          if (!activeTask) {
+            activeTask = {
+              id: 'current',
+              description: `Working on ${spec.displayName || spec.name}`,
+              completed: false,
+              requirements: []
+            };
+          }
+
+          activeSession = {
+            type: 'spec',
+            projectPath,
+            projectName: state.project.name,
+            displayName: spec.displayName || spec.name,
+            specName: spec.name,
+            task: activeTask,
+            lastModified: mostRecent.lastModified,
+            isCurrentlyActive: true,
+            hasActiveSession: true,
+            gitBranch: state.project.gitBranch,
+            gitCommit: state.project.gitCommit,
+          } as ActiveSpecSession;
+
+        } else if (mostRecent.type === 'bug') {
+          const bug = mostRecent.item;
+          
           // Determine the next command based on bug status
           let nextCommand = '';
           switch (bug.status) {
@@ -461,62 +495,53 @@ export class MultiProjectDashboardServer {
             case 'verifying':
               nextCommand = `/bug-verify ${bug.name}`;
               break;
+            default:
+              nextCommand = `/bug-report ${bug.name}`;
           }
 
-          projectSessions.push({
+          activeSession = {
             type: 'bug',
             projectPath,
             projectName: state.project.name,
             displayName: bug.displayName || bug.name,
             bugName: bug.name,
-            bugStatus: bug.status as 'analyzing' | 'fixing' | 'verifying',
+            bugStatus: ['analyzing', 'fixing', 'verifying'].includes(bug.status) 
+              ? bug.status as 'analyzing' | 'fixing' | 'verifying'
+              : 'analyzing', // Default fallback
             bugSeverity: bug.report?.severity,
             nextCommand,
-            lastModified: bug.lastModified || new Date(),
+            lastModified: mostRecent.lastModified,
             isCurrentlyActive: true,
             hasActiveSession: true,
             gitBranch: state.project.gitBranch,
             gitCommit: state.project.gitCommit,
-          } as ActiveBugSession);
+          } as ActiveBugSession;
         }
+      } else {
+        // No work items found, create a generic session for the active Claude process
+        activeSession = {
+          type: 'spec',
+          projectPath,
+          projectName: state.project.name,
+          displayName: 'Active Session',
+          specName: 'current-session',
+          task: {
+            id: 'active',
+            description: 'Claude session active',
+            completed: false,
+            requirements: []
+          },
+          lastModified: new Date(),
+          isCurrentlyActive: true,
+          hasActiveSession: true,
+          gitBranch: state.project.gitBranch,
+          gitCommit: state.project.gitCommit,
+        } as ActiveSpecSession;
       }
 
-      // Filter to only the most recent session per project
-      if (projectSessions.length > 0) {
-        // Sort by lastModified descending to get the most recent first
-        projectSessions.sort((a, b) => {
-          return new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime();
-        });
-        
-        // Take only the first (most recent) session for this project
-        const mostRecentSession = projectSessions[0];
-        debug(`[collectActiveSessions] Project ${state.project.name}: selected most recent ${mostRecentSession.type} session (${mostRecentSession.type === 'spec' ? mostRecentSession.specName : mostRecentSession.bugName}) with lastModified: ${mostRecentSession.lastModified}`);
-        allActiveSessions.push(mostRecentSession);
-      }
-      
-      // Update the project's active session status based on whether it has active tasks
-      if (state.project.hasActiveSession !== hasActiveTaskInProject) {
-        state.project.hasActiveSession = hasActiveTaskInProject;
-        
-        // Send status update to clients
-        const statusUpdate = {
-          type: 'project-update',
-          projectPath,
-          data: {
-            type: 'status-update',
-            data: {
-              hasActiveSession: hasActiveTaskInProject,
-              lastActivity: new Date(),
-              isClaudeActive: hasActiveTaskInProject
-            }
-          }
-        };
-        
-        this.clients.forEach((client) => {
-          if (client.readyState === 1) {
-            client.send(JSON.stringify(statusUpdate));
-          }
-        });
+      if (activeSession) {
+        debug(`[collectActiveSessions] Project ${state.project.name}: selected ${activeSession.type} session (${activeSession.type === 'spec' ? activeSession.specName : activeSession.bugName})`);
+        allActiveSessions.push(activeSession);
       }
     }
 
