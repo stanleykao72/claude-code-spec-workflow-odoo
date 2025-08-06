@@ -54,7 +54,7 @@ This implementation plan breaks down the UI improvements into atomic tasks focus
   - _Leverage: Same v-if patterns as multi.html_
   - _Requirements: 1.1, 1.2_
 
-- [ ] 4. Create conditional rendering for resolved bugs in multi-dashboard
+- [x] 4. Create conditional rendering for resolved bugs in multi-dashboard
   - File: src/dashboard/public/multi.html
   - Wrap bug severity, documents, and next action sections in `v-if="bug.status !== 'resolved'"`
   - Add this condition around lines 1105-1195
