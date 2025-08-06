@@ -133,6 +133,8 @@ PetiteVue.createApp({
                 } else {
                   project.specs.push(event.data);
                 }
+                // Re-sort specs after update
+                this.sortSpecs(project.specs);
               }
               break;
               
@@ -182,6 +184,8 @@ PetiteVue.createApp({
             } else {
               project.bugs.push(bugEvent.data);
             }
+            // Re-sort bugs after update
+            this.sortBugs(project.bugs);
           } else if (bugEvent.type === 'removed') {
             // Remove bug
             project.bugs = project.bugs.filter((b) => b.name !== bugEvent.bug);
@@ -594,5 +598,65 @@ PetiteVue.createApp({
         }, 100);
       }
     }
+  },
+
+  // Sort specs by status priority and last modified date
+  sortSpecs(specs) {
+    if (!specs || !Array.isArray(specs)) return;
+    
+    specs.sort((a, b) => {
+      // Define status priority order (lower number = higher priority)
+      const statusPriority = {
+        'in-progress': 1,
+        'tasks': 2,
+        'design': 3,
+        'requirements': 4,
+        'not-started': 5,
+        'completed': 6  // Completed specs always at bottom
+      };
+      
+      const priorityA = statusPriority[a.status] || 99;
+      const priorityB = statusPriority[b.status] || 99;
+      
+      // Primary sort: by status priority
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+      
+      // Secondary sort: by last modified date within same status group (newest first)
+      const dateA = a.lastModified ? new Date(a.lastModified).getTime() : 0;
+      const dateB = b.lastModified ? new Date(b.lastModified).getTime() : 0;
+      return dateB - dateA;
+    });
+  },
+
+  // Sort bugs by status priority and last modified date
+  sortBugs(bugs) {
+    if (!bugs || !Array.isArray(bugs)) return;
+    
+    bugs.sort((a, b) => {
+      // Define bug status priority order (lower number = higher priority)
+      const statusPriority = {
+        'reported': 1,    // New bugs need immediate attention
+        'analyzing': 2,   // Being investigated
+        'fixing': 3,      // Being worked on
+        'fixed': 4,       // Fixed but not verified
+        'verifying': 5,   // Being tested
+        'resolved': 6     // Completed bugs at bottom
+      };
+      
+      const priorityA = statusPriority[a.status] || 99;
+      const priorityB = statusPriority[b.status] || 99;
+      
+      // Primary sort: by status priority
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+      
+      // Secondary sort: by last modified date within same status group (newest first)
+      const dateA = a.lastModified ? new Date(a.lastModified).getTime() : 0;
+      const dateB = b.lastModified ? new Date(b.lastModified).getTime() : 0;
+      return dateB - dateA;
+    });
   }
 }).mount('#app');
