@@ -125,7 +125,7 @@ This implementation plan breaks down the UI improvements into atomic tasks focus
   - _Leverage: Existing Vue reactive state_
   - _Requirements: 3.3, 3.4_
 
-- [ ] 12. Create bug session display in Active Sessions view
+- [x] 12. Create bug session display in Active Sessions view
   - File: src/dashboard/public/multi.html
   - In active sessions template (around line 518), add v-if branches for session type
   - For type === 'bug', show bug name, status, and next command

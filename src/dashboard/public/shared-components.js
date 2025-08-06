@@ -335,6 +335,10 @@ const BaseAppState = {
     this.copyCommand.call(this, command, event);
   },
   
+  copyBugCommand(command, event) {
+    this.copyCommand.call(this, command, event);
+  },
+  
   getTaskTooltip(task) {
     const parts = [];
     

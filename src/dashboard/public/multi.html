@@ -504,7 +504,7 @@
       <main class="flex-1 overflow-y-auto">
         <!-- Active Tasks View -->
         <div v-if="activeTab === 'active'" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div v-if="activeTasks.length === 0" class="text-center py-12">
+          <div v-if="activeSessions.length === 0" class="text-center py-12">
             <i class="fas fa-bolt text-4xl text-gray-400 dark:text-gray-600 mb-4"></i>
             <p class="text-gray-500 dark:text-gray-400">
               No tasks currently being worked on in active Claude sessions
@@ -516,11 +516,11 @@
 
           <div v-else class="space-y-6">
             <div
-              v-for="activeTask in activeTasks"
-              :key="`${activeTask.projectPath}-${activeTask.specName}-${activeTask.task.id}`"
+              v-for="session in activeSessions"
+              :key="session.type === 'spec' ? `${session.projectPath}-${session.specName}-${session.task.id}` : `${session.projectPath}-${session.bugName}`"
               class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
-              :class="{'ring-2 ring-yellow-500 dark:ring-yellow-400': activeTask.isCurrentlyActive}"
-              @click="selectProjectFromTask(activeTask.projectPath, activeTask.specName)"
+              :class="{'ring-2 ring-yellow-500 dark:ring-yellow-400': session.isCurrentlyActive}"
+              @click="selectProjectFromTask(session.projectPath, session.type === 'spec' ? session.specName : session.bugName)"
             >
               <div class="flex items-start justify-between">
                 <div class="flex-1">
@@ -528,65 +528,65 @@
                   <div class="mb-4">
                     <div class="flex items-center gap-2 mb-2">
                       <span
-                        v-if="activeTask.isCurrentlyActive"
+                        v-if="session.isCurrentlyActive"
                         class="w-3 h-3 bg-yellow-500 rounded-full animate-pulse"
                         title="Currently active"
                       ></span>
                       <h2 class="text-xl font-bold text-gray-900 dark:text-white">
                         <a
-                          @click="selectProjectFromTask(activeTask.projectPath, activeTask.specName)"
+                          @click="selectProjectFromTask(session.projectPath, session.type === 'spec' ? session.specName : session.bugName)"
                           class="hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer"
                         >
-                          {{ activeTask.projectName }}: {{ activeTask.specDisplayName }}
+                          {{ session.projectName }}: {{ session.displayName }}
                         </a>
                       </h2>
                     </div>
                     <!-- Git info pills -->
                     <div class="flex items-center gap-2 mt-2">
                       <span
-                        v-if="activeTask.gitBranch"
+                        v-if="session.gitBranch"
                         class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
                       >
                         <i class="fas fa-code-branch mr-1"></i>
-                        {{ activeTask.gitBranch }}
+                        {{ session.gitBranch }}
                       </span>
                       <span
-                        v-if="activeTask.gitCommit"
+                        v-if="session.gitCommit"
                         class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
                       >
                         <i class="fas fa-code-commit mr-1"></i>
-                        {{ activeTask.gitCommit }}
+                        {{ session.gitCommit }}
                       </span>
                     </div>
                   </div>
 
-                  <!-- Current Task -->
-                  <div class="mb-4">
+                  <!-- Current Task/Bug -->
+                  <div class="mb-4" v-if="session.type === 'spec'">
                     <div class="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1">
                       Current Task
                     </div>
                     <div class="flex items-center flex-wrap gap-2">
                       <h4 class="text-lg font-medium text-gray-900 dark:text-white"
-                          :title="getTaskTooltip(activeTask.task)">
-                        Task {{ activeTask.task.id }}: {{ activeTask.task.description }}
+                          :title="getTaskTooltip(session.task)">
+                        Task {{ session.task.id }}: {{ session.task.description }}
                       </h4>
                       <button
-                        @click.stop="copyTaskCommand(activeTask.specName, activeTask.task.id, $event)"
+                        @click.stop="copyTaskCommand(session.specName, session.task.id, $event)"
                         class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
-                        :title="`Copy command: /spec-execute ${activeTask.specName} ${activeTask.task.id}`"
+                        :title="`Copy command: /spec-execute ${session.specName} ${session.task.id}`"
                       >
                         <i class="fas fa-copy"></i>
                         <span>/spec-execute</span>
                       </button>
                     </div>
                     <!-- Task Details -->
-                    <div v-if="activeTask.task.details && activeTask.task.details.length > 0 || activeTask.task.requirements && activeTask.task.requirements.length > 0 || activeTask.task.leverage" class="mt-2 pl-0">
+                    <div v-if="session.task.details && session.task.details.length > 0 || session.task.requirements && session.task.requirements.length > 0 || session.task.leverage" class="mt-2 pl-0">
                       <div class="space-y-1">
                         <!-- Task Steps -->
-                        <div v-if="activeTask.task.details && activeTask.task.details.length > 0" class="text-xs text-gray-600 dark:text-gray-400">
+                        <div v-if="session.task.details && session.task.details.length > 0" class="text-xs text-gray-600 dark:text-gray-400">
                           <span class="font-semibold">Steps:</span>
                           <ul class="mt-1 ml-4 space-y-0.5">
-                            <li v-for="(detail, idx) in activeTask.task.details" :key="idx" class="flex items-start">
+                            <li v-for="(detail, idx) in session.task.details" :key="idx" class="flex items-start">
                               <span class="mr-1">•</span>
                               <span>{{ detail }}</span>
                             </li>
@@ -595,56 +595,111 @@
                         <!-- Requirements and Leverage -->
                         <div class="flex flex-wrap gap-3 text-xs">
                           <span
-                            v-if="activeTask.task.requirements && activeTask.task.requirements.length > 0"
+                            v-if="session.task.requirements && session.task.requirements.length > 0"
                             class="text-gray-600 dark:text-gray-400"
                           >
                             <i class="fas fa-list-check mr-1"></i>
-                            Requirements: {{ activeTask.task.requirements.join(', ') }}
+                            Requirements: {{ session.task.requirements.join(', ') }}
                           </span>
                           <span
-                            v-if="activeTask.task.leverage"
+                            v-if="session.task.leverage"
                             class="text-gray-600 dark:text-gray-400"
                           >
                             <i class="fas fa-screwdriver mr-1"></i>
-                            Leverage: {{ activeTask.task.leverage }}
+                            Leverage: {{ session.task.leverage }}
                           </span>
                         </div>
                       </div>
                     </div>
                   </div>
+                  
+                  <!-- Bug Session Display -->
+                  <div class="mb-4" v-else-if="session.type === 'bug'">
+                    <div class="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1">
+                      Active Bug
+                    </div>
+                    <div class="flex items-center flex-wrap gap-2">
+                      <h4 class="text-lg font-medium text-gray-900 dark:text-white">
+                        {{ session.bugName }}
+                      </h4>
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                        :class="{
+                          'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200': session.bugStatus === 'analyzing',
+                          'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200': session.bugStatus === 'fixing',
+                          'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200': session.bugStatus === 'verifying'
+                        }"
+                      >
+                        <i class="fas mr-1"
+                          :class="{
+                            'fa-magnifying-glass': session.bugStatus === 'analyzing',
+                            'fa-wrench': session.bugStatus === 'fixing',
+                            'fa-check-circle': session.bugStatus === 'verifying'
+                          }"
+                        ></i>
+                        {{ session.bugStatus }}
+                      </span>
+                      <span v-if="session.bugSeverity"
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                        :class="{
+                          'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200': session.bugSeverity === 'critical',
+                          'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200': session.bugSeverity === 'high',
+                          'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200': session.bugSeverity === 'medium',
+                          'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200': session.bugSeverity === 'low'
+                        }"
+                      >
+                        <i class="fas fa-flag mr-1"></i>
+                        {{ session.bugSeverity }}
+                      </span>
+                    </div>
+                    <!-- Next Command -->
+                    <div v-if="session.nextCommand" class="mt-2">
+                      <div class="flex items-center gap-2">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Next:</span>
+                        <button
+                          @click.stop="copyBugCommand(session.nextCommand, $event)"
+                          class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
+                          :title="`Copy command: ${session.nextCommand}`"
+                        >
+                          <i class="fas fa-copy"></i>
+                          <span>{{ session.nextCommand }}</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
 
-                  <!-- Task Progress -->
-                  <div class="mb-3">
+                  <!-- Task Progress (Spec Only) -->
+                  <div v-if="session.type === 'spec'" class="mb-3">
                     <div class="flex items-center justify-between mb-2">
                       <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Task {{ getTaskNumber(activeTask) }} of {{ getSpecTaskCount(activeTask) }}
+                        Task {{ getTaskNumber(session) }} of {{ getSpecTaskCount(session) }}
                       </span>
                       <span class="text-sm text-gray-500 dark:text-gray-400">
-                        {{ Math.round(getSpecProgress(activeTask)) }}% complete
+                        {{ Math.round(getSpecProgress(session)) }}% complete
                       </span>
                     </div>
                     <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
                       <div
                         class="bg-indigo-600 dark:bg-indigo-500 h-2.5 rounded-full transition-all duration-300"
-                        :style="`width: ${getSpecProgress(activeTask)}%`"
+                        :style="`width: ${getSpecProgress(session)}%`"
                       ></div>
                     </div>
                   </div>
 
-                  <!-- Next Task -->
-                  <div v-if="getNextTask(activeTask)" class="mb-3">
+                  <!-- Next Task (Spec Only) -->
+                  <div v-if="session.type === 'spec' && getNextTask(session)" class="mb-3">
                     <div class="flex items-center flex-wrap gap-2">
                       <span class="text-sm font-medium text-gray-700 dark:text-gray-300"
                         >Next Up:</span
                       >
                       <span class="text-sm text-gray-600 dark:text-gray-400">
-                        Task {{ getNextTask(activeTask).id }}: {{ getNextTask(activeTask).description
+                        Task {{ getNextTask(session).id }}: {{ getNextTask(session).description
                         }}
                       </span>
                       <button
-                        @click.stop="copyTaskCommand(activeTask.specName, getNextTask(activeTask).id, $event)"
+                        @click.stop="copyTaskCommand(session.specName, getNextTask(session).id, $event)"
                         class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
-                        :title="`Copy command: /spec-execute ${activeTask.specName} ${getNextTask(activeTask).id}`"
+                        :title="`Copy command: /spec-execute ${session.specName} ${getNextTask(session).id}`"
                       >
                         <i class="fas fa-copy"></i>
                         <span>/spec-execute</span>
@@ -652,18 +707,18 @@
                     </div>
                   </div>
 
-                  <!-- Task Details - Flattened on one line -->
-                  <div class="flex flex-wrap gap-4 text-sm">
+                  <!-- Task Details - Flattened on one line (Spec Only) -->
+                  <div v-if="session.type === 'spec'" class="flex flex-wrap gap-4 text-sm">
                     <span
-                      v-if="activeTask.task.requirements && activeTask.task.requirements.length > 0"
+                      v-if="session.task.requirements && session.task.requirements.length > 0"
                       class="text-gray-600 dark:text-gray-400"
                     >
                       <i class="fas fa-clipboard-check mr-1"></i>
-                      Req: {{ activeTask.task.requirements.join(', ') }}
+                      Req: {{ session.task.requirements.join(', ') }}
                     </span>
-                    <span v-if="activeTask.task.leverage" class="text-gray-600 dark:text-gray-400">
+                    <span v-if="session.task.leverage" class="text-gray-600 dark:text-gray-400">
                       <i class="fas fa-screwdriver mr-1"></i>
-                      Leverage: {{ activeTask.task.leverage }}
+                      Leverage: {{ session.task.leverage }}
                     </span>
                   </div>
                 </div>
