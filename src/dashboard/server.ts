@@ -279,12 +279,9 @@ export class DashboardServer {
       await this.initializeTunnel();
     }
 
-    // Open browser if requested
+    // Open browser if requested (always use localhost for local user)
     if (this.options.autoOpen) {
-      const url = this.tunnelManager ? 
-        (await this.tunnelManager.getStatus()).info?.url : 
-        `http://localhost:${this.options.port}`;
-      await open(url || `http://localhost:${this.options.port}`);
+      await open(`http://localhost:${this.options.port}`);
     }
   }
 
