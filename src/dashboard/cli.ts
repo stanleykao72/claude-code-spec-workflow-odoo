@@ -17,7 +17,7 @@ program
   .version('1.3.0');
 
 program
-  .option('-p, --port <port>', 'Port to run the dashboard on', '3000')
+  .option('-p, --port <port>', 'Port to run the dashboard on', '8247')
   .option('-d, --dir <path>', 'Project directory containing .claude', process.cwd())
   .option('-o, --open', 'Open dashboard in browser automatically')
   .option('-m, --multi', 'Launch multi-project dashboard')
