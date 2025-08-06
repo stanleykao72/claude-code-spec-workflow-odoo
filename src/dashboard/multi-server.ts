@@ -412,41 +412,76 @@ export class MultiProjectDashboardServer {
         continue;
       }
 
-      debug(`[collectActiveSessions] Project ${state.project.name}: has active Claude process, finding most recent work item`);
+      debug(`[collectActiveSessions] Project ${state.project.name}: has active Claude process, finding active work item`);
       
       const specs = await state.parser.getAllSpecs();
       const bugs = await state.parser.getAllBugs();
-      const allWorkItems: Array<{
+      const activeWorkItems: Array<{
         type: 'spec' | 'bug';
         item: any;
         lastModified: Date;
+        priority: number; // Higher priority = more active
       }> = [];
 
-      // Collect all specs as potential session items
+      // Collect specs with active tasks (highest priority)
       for (const spec of specs) {
-        allWorkItems.push({
-          type: 'spec',
-          item: spec,
-          lastModified: spec.lastModified || new Date(0)
-        });
+        if (spec.tasks && spec.tasks.inProgress) {
+          activeWorkItems.push({
+            type: 'spec',
+            item: spec,
+            lastModified: spec.lastModified || new Date(0),
+            priority: 100 // Highest priority - active task
+          });
+        }
       }
 
-      // Collect all bugs as potential session items
+      // Collect active bugs (high priority)
       for (const bug of bugs) {
-        allWorkItems.push({
-          type: 'bug',
-          item: bug,
-          lastModified: bug.lastModified || new Date(0)
-        });
+        if (['analyzing', 'fixing', 'verifying'].includes(bug.status)) {
+          activeWorkItems.push({
+            type: 'bug',
+            item: bug,
+            lastModified: bug.lastModified || new Date(0),
+            priority: 90 // High priority - active bug
+          });
+        }
       }
 
-      // Sort by lastModified descending to get the most recent work item
-      allWorkItems.sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime());
+      // If no active work, collect recent completed work as fallback (lower priority)
+      if (activeWorkItems.length === 0) {
+        // Add most recently modified specs
+        for (const spec of specs) {
+          activeWorkItems.push({
+            type: 'spec',
+            item: spec,
+            lastModified: spec.lastModified || new Date(0),
+            priority: 10 // Low priority - completed work
+          });
+        }
+
+        // Add most recently modified bugs
+        for (const bug of bugs) {
+          activeWorkItems.push({
+            type: 'bug',
+            item: bug,
+            lastModified: bug.lastModified || new Date(0),
+            priority: 10 // Low priority - completed work
+          });
+        }
+      }
+
+      // Sort by priority first, then by lastModified descending
+      activeWorkItems.sort((a, b) => {
+        if (a.priority !== b.priority) {
+          return b.priority - a.priority; // Higher priority first
+        }
+        return b.lastModified.getTime() - a.lastModified.getTime(); // Most recent first
+      });
 
       let activeSession: ActiveSession | null = null;
 
-      if (allWorkItems.length > 0) {
-        const mostRecent = allWorkItems[0];
+      if (activeWorkItems.length > 0) {
+        const mostRecent = activeWorkItems[0];
         
         if (mostRecent.type === 'spec') {
           const spec = mostRecent.item;
