@@ -297,7 +297,7 @@ export class MultiProjectDashboardServer {
       });
 
       // Also send updated active tasks
-      const activeTasks = await this.collectActiveTasks();
+      const activeTasks = await this.collectActiveSessions();
       debug(`[Multi-server] Collected ${activeTasks.length} active tasks after spec update`);
       const activeTasksMessage = JSON.stringify({
         type: 'active-tasks-update',
@@ -401,7 +401,7 @@ export class MultiProjectDashboardServer {
     );
 
     // Collect all active tasks across projects
-    const activeTasks = await this.collectActiveTasks();
+    const activeTasks = await this.collectActiveSessions();
 
     socket.send(
       JSON.stringify({
@@ -413,35 +413,37 @@ export class MultiProjectDashboardServer {
     );
   }
 
-  private async collectActiveTasks(): Promise<ActiveTask[]> {
-    const activeTasks: ActiveTask[] = [];
+  private async collectActiveSessions(): Promise<ActiveSession[]> {
+    const activeSessions: ActiveSession[] = [];
 
     for (const [projectPath, state] of this.projects) {
       const specs = await state.parser.getAllSpecs();
-      debug(`[collectActiveTasks] Project ${state.project.name}: ${specs.length} specs`);
+      debug(`[collectActiveSessions] Project ${state.project.name}: ${specs.length} specs`);
 
       let hasActiveTaskInProject = false;
       
       for (const spec of specs) {
         if (spec.tasks && spec.tasks.taskList.length > 0) {
-          debug(`[collectActiveTasks] Spec ${spec.name}: ${spec.tasks.taskList.length} tasks, inProgress: ${spec.tasks.inProgress}`);
+          debug(`[collectActiveSessions] Spec ${spec.name}: ${spec.tasks.taskList.length} tasks, inProgress: ${spec.tasks.inProgress}`);
           if (spec.tasks.inProgress) {
             // Only get the currently active task (marked as in progress)
             const activeTask = this.findTaskById(spec.tasks.taskList, spec.tasks.inProgress);
 
             if (activeTask) {
               hasActiveTaskInProject = true;
-              activeTasks.push({
+              activeSessions.push({
+              type: 'spec',
               projectPath,
               projectName: state.project.name,
+              displayName: spec.displayName || spec.name,
               specName: spec.name,
-              specDisplayName: spec.displayName,
               task: activeTask,
+              lastModified: spec.lastModified || new Date(),
               isCurrentlyActive: true,
               hasActiveSession: true,
               gitBranch: state.project.gitBranch,
               gitCommit: state.project.gitCommit,
-            });
+            } as ActiveSpecSession);
           }
         }
       }
@@ -474,14 +476,14 @@ export class MultiProjectDashboardServer {
     }
 
     // Sort by currently active first, then by project name
-    activeTasks.sort((a, b) => {
+    activeSessions.sort((a, b) => {
       if (a.isCurrentlyActive && !b.isCurrentlyActive) return -1;
       if (!a.isCurrentlyActive && b.isCurrentlyActive) return 1;
       return a.projectName.localeCompare(b.projectName);
     });
 
-    debug(`[collectActiveTasks] Total active tasks found: ${activeTasks.length}`);
-    return activeTasks;
+    debug(`[collectActiveSessions] Total active sessions found: ${activeSessions.length}`);
+    return activeSessions;
   }
 
   private findTaskById(tasks: Task[], taskId: string): Task | null {

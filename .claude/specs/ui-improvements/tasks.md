@@ -80,7 +80,7 @@ This implementation plan breaks down the UI improvements into atomic tasks focus
   - _Leverage: Existing Task interface pattern_
   - _Requirements: 3.2, 4.1_
 
-- [ ] 7. Rename and extend collectActiveTasks to collectActiveSessions
+- [x] 7. Rename and extend collectActiveTasks to collectActiveSessions
   - File: src/dashboard/multi-server.ts
   - Rename method from collectActiveTasks to collectActiveSessions (line 388)
   - Update return type to ActiveSession[]
