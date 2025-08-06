@@ -18,6 +18,8 @@ export interface DiscoveredProject {
   hasSteeringDocs?: boolean;
   gitBranch?: string;
   gitCommit?: string;
+  parentPath?: string; // Path to parent project if this is a nested project
+  children?: DiscoveredProject[]; // Child projects
 }
 
 export class ProjectDiscovery {
@@ -37,7 +39,7 @@ export class ProjectDiscovery {
   }
 
   async discoverProjects(): Promise<DiscoveredProject[]> {
-    const projects: DiscoveredProject[] = [];
+    const allProjects: DiscoveredProject[] = [];
     const activeClaudes = await this.getActiveClaudeSessions();
 
     // Search for .claude directories
@@ -45,20 +47,53 @@ export class ProjectDiscovery {
       try {
         await fs.access(searchPath);
         const found = await this.searchDirectory(searchPath, activeClaudes);
-        projects.push(...found);
+        allProjects.push(...found);
       } catch {
         // Directory doesn't exist, skip it
       }
     }
 
+    // Group related projects (parent/child relationships)
+    const groupedProjects = this.groupRelatedProjects(allProjects);
+
     // Sort by last activity
-    projects.sort((a, b) => {
+    groupedProjects.sort((a, b) => {
       const dateA = a.lastActivity?.getTime() || 0;
       const dateB = b.lastActivity?.getTime() || 0;
       return dateB - dateA;
     });
 
-    return projects;
+    return groupedProjects;
+  }
+
+  private groupRelatedProjects(projects: DiscoveredProject[]): DiscoveredProject[] {
+    // Create a map for quick lookup
+    const projectMap = new Map<string, DiscoveredProject>();
+    projects.forEach(p => projectMap.set(p.path, p));
+
+    // Find parent-child relationships
+    projects.forEach(project => {
+      // Check if this project is nested inside another project
+      const pathParts = project.path.split('/');
+      for (let i = pathParts.length - 1; i > 0; i--) {
+        const potentialParentPath = pathParts.slice(0, i).join('/');
+        const parentProject = projectMap.get(potentialParentPath);
+        
+        if (parentProject) {
+          // This is a child project
+          project.parentPath = parentProject.path;
+          if (!parentProject.children) {
+            parentProject.children = [];
+          }
+          parentProject.children.push(project);
+          break;
+        }
+      }
+    });
+
+    // Return only top-level projects (ones without parents)
+    // Child projects will be included in their parent's children array
+    return projects.filter(p => !p.parentPath);
   }
 
   private async searchDirectory(
@@ -83,18 +118,23 @@ export class ProjectDiscovery {
 
         // Check if this directory has a .claude folder
         const claudePath = join(fullPath, '.claude');
+        let hasClaudeDir = false;
         try {
           const claudeStat = await fs.stat(claudePath);
           if (claudeStat.isDirectory()) {
             const project = await this.analyzeProject(fullPath, claudePath, activeSessions);
             projects.push(project);
+            hasClaudeDir = true;
           }
         } catch {
-          // No .claude directory, check subdirectories
-          if (depth < 4) {
-            const subProjects = await this.searchDirectory(fullPath, activeSessions, depth + 1);
-            projects.push(...subProjects);
-          }
+          // No .claude directory
+        }
+
+        // Always check subdirectories if we haven't reached max depth
+        // This ensures we find nested projects like phenix/phenix/public-api
+        if (depth < 4) {
+          const subProjects = await this.searchDirectory(fullPath, activeSessions, depth + 1);
+          projects.push(...subProjects);
         }
       }
     } catch (error) {

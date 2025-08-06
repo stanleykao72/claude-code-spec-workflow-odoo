@@ -40,6 +40,19 @@ PetiteVue.createApp({
     return project.bugs.filter(b => b.status !== 'resolved');
   },
 
+  // Get all projects flattened (including children)
+  getAllProjectsFlat() {
+    const flat = [];
+    const addProject = (project, level = 0) => {
+      flat.push({ ...project, level });
+      if (project.children) {
+        project.children.forEach(child => addProject(child, level + 1));
+      }
+    };
+    this.projects.forEach(p => addProject(p));
+    return flat;
+  },
+
   // Initialize the dashboard
   async init() {
     console.log('Multi-project dashboard initializing...');
