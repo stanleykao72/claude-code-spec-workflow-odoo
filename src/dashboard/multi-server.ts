@@ -77,35 +77,17 @@ export class MultiProjectDashboardServer {
     this.app = fastify({ logger: false });
   }
 
-  private flattenProjects(projects: DiscoveredProject[]): DiscoveredProject[] {
-    const flat: DiscoveredProject[] = [];
-    const addProject = (project: DiscoveredProject) => {
-      flat.push(project);
-      if (project.children) {
-        project.children.forEach(child => addProject(child));
-      }
-    };
-    projects.forEach(p => addProject(p));
-    return flat;
-  }
-
   async start() {
     // Discover projects
     console.log('Starting project discovery...');
     const discoveredProjects = await this.discovery.discoverProjects();
 
-    // Flatten the project hierarchy to include all projects (parents and children)
-    const allProjects = this.flattenProjects(discoveredProjects);
-
-    // Filter to show projects with specs OR active Claude sessions
-    const activeProjects = allProjects.filter(
-      (p) => (p.specCount || 0) > 0 || p.hasActiveSession
-    );
-    console.log(`Found ${activeProjects.map(p => p.name).join(', ')}`);
+    // Projects are already filtered by discovery
+    console.log(`Found ${discoveredProjects.map(p => p.name).join(', ')}`);
 
     // Initialize watchers for each project
-    for (const project of activeProjects) {
-      debug(`Initializing project ${project.name}`);
+    for (const project of discoveredProjects) {
+      debug(`Initializing project ${project.name} at ${project.path}`);
       await this.initializeProject(project);
     }
 
@@ -636,11 +618,7 @@ export class MultiProjectDashboardServer {
   private startPeriodicRescan() {
     // Rescan every 30 seconds for new active projects
     this.rescanInterval = setInterval(async () => {
-      const currentProjects = await this.discovery.discoverProjects();
-      const allProjects = this.flattenProjects(currentProjects);
-      const activeProjects = allProjects.filter(
-        (p) => (p.specCount || 0) > 0 || p.hasActiveSession
-      );
+      const activeProjects = await this.discovery.discoverProjects();
 
       // Check for new projects
       for (const project of activeProjects) {

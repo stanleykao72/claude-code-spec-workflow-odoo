@@ -60,17 +60,14 @@ export class ProjectDiscovery {
       return hasContent || project.hasActiveSession;
     });
 
-    // Group related projects (parent/child relationships)
-    const groupedProjects = this.groupRelatedProjects(filteredProjects);
-
     // Sort by last activity
-    groupedProjects.sort((a, b) => {
+    filteredProjects.sort((a, b) => {
       const dateA = a.lastActivity?.getTime() || 0;
       const dateB = b.lastActivity?.getTime() || 0;
       return dateB - dateA;
     });
 
-    return groupedProjects;
+    return filteredProjects;
   }
 
   private groupRelatedProjects(projects: DiscoveredProject[]): DiscoveredProject[] {

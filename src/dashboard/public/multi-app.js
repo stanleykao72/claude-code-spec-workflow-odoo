@@ -40,17 +40,48 @@ PetiteVue.createApp({
     return project.bugs.filter(b => b.status !== 'resolved');
   },
 
-  // Get all projects flattened (including children)
-  getAllProjectsFlat() {
-    const flat = [];
-    const addProject = (project, level = 0) => {
-      flat.push({ ...project, level });
-      if (project.children) {
-        project.children.forEach(child => addProject(child, level + 1));
+  // Group projects by parent/child relationships for display
+  getGroupedProjects() {
+    // Create a map for quick lookup
+    const projectMap = new Map();
+    this.projects.forEach(p => projectMap.set(p.path, { ...p, level: 0 }));
+    
+    // Find parent-child relationships
+    const grouped = [];
+    const childPaths = new Set();
+    
+    this.projects.forEach(project => {
+      // Check if this project is nested inside another project
+      const pathParts = project.path.split('/');
+      let isChild = false;
+      
+      for (let i = pathParts.length - 1; i > 0; i--) {
+        const potentialParentPath = pathParts.slice(0, i).join('/');
+        const parentProject = projectMap.get(potentialParentPath);
+        
+        if (parentProject) {
+          // This is a child project
+          isChild = true;
+          childPaths.add(project.path);
+          break;
+        }
       }
-    };
-    this.projects.forEach(p => addProject(p));
-    return flat;
+      
+      if (!isChild) {
+        // This is a top-level project
+        grouped.push({ ...project, level: 0 });
+        
+        // Add its children right after it
+        this.projects.forEach(child => {
+          if (child.path.startsWith(project.path + '/') && !childPaths.has(child.path)) {
+            grouped.push({ ...child, level: 1 });
+            childPaths.add(child.path);
+          }
+        });
+      }
+    });
+    
+    return grouped;
   },
 
   // Initialize the dashboard

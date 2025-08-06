@@ -409,6 +409,14 @@
                   {{ showCompleted ? 'Hide' : 'Show' }} Completed
                 </span>
               </button>
+              <!-- Refresh button -->
+              <button
+                @click="location.reload()"
+                class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                title="Refresh dashboard"
+              >
+                <i class="fas fa-sync-alt text-gray-600 dark:text-gray-400"></i>
+              </button>
               <!-- Theme toggle -->
               <button
                 @click="cycleTheme"
@@ -492,7 +500,7 @@
           <!-- Project Tabs -->
           <div class="flex overflow-x-auto">
             <button
-              v-for="project in getAllProjectsFlat()"
+              v-for="project in getGroupedProjects()"
               :key="project.path"
               @click="selectProject(project)"
               class="py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap flex items-center gap-1"
