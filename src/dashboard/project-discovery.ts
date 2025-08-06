@@ -53,8 +53,15 @@ export class ProjectDiscovery {
       }
     }
 
+    // Filter out projects that have a .claude directory but no specs or bugs
+    // (unless they have an active session)
+    const filteredProjects = allProjects.filter(project => {
+      const hasContent = (project.specCount || 0) > 0 || (project.bugCount || 0) > 0;
+      return hasContent || project.hasActiveSession;
+    });
+
     // Group related projects (parent/child relationships)
-    const groupedProjects = this.groupRelatedProjects(allProjects);
+    const groupedProjects = this.groupRelatedProjects(filteredProjects);
 
     // Sort by last activity
     groupedProjects.sort((a, b) => {
@@ -150,9 +157,8 @@ export class ProjectDiscovery {
     activeSessions: string[]
   ): Promise<DiscoveredProject> {
     debug(`Analyzing project: ${projectPath}`);
-    // For nested projects, show more context in the name
-    const pathParts = projectPath.split('/');
-    const name = pathParts.slice(-2).join('/'); // Show last two parts for better context
+    // Just use the last segment of the path as the name
+    const name = projectPath.split('/').pop() || 'Unknown';
 
     // Check if any active Claude session is in this project directory
     const hasActiveSession = activeSessions.some((session) => {
@@ -197,6 +203,7 @@ export class ProjectDiscovery {
       }
       
       specCount = specDirs.filter((d) => !d.startsWith('.')).length;
+      debug(`Found ${specCount} specs in ${projectPath}`);
     } catch {
       // Error reading specs directory, but continue with git info
       debug(`Could not read specs for ${projectPath}, but continuing with git info`);
