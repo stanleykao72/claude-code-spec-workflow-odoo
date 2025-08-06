@@ -69,6 +69,7 @@
     "simple-git": "^3.28.0"
   },
   "devDependencies": {
+    "@tauri-apps/cli": "^2.7.1",
     "@types/inquirer": "^9.0.7",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.10.1",
