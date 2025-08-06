@@ -15,10 +15,29 @@ PetiteVue.createApp({
   expandedRequirements: {},
   expandedDesigns: {},
   pendingProjectRoute: null, // Store project route when projects haven't loaded yet
+  showCompleted: localStorage.getItem('showCompleted') !== 'false', // Default to true, stored in localStorage
 
   // Computed properties
   get activeSessionCount() {
     return this.projects.filter((p) => p.hasActiveSession).length;
+  },
+
+  // Get visible specs for a project (filtered by showCompleted)
+  getVisibleSpecs(project) {
+    if (!project || !project.specs) return [];
+    if (this.showCompleted) {
+      return project.specs;
+    }
+    return project.specs.filter(s => s.status !== 'completed');
+  },
+
+  // Get visible bugs for a project (filtered by showCompleted)
+  getVisibleBugs(project) {
+    if (!project || !project.bugs) return [];
+    if (this.showCompleted) {
+      return project.bugs;
+    }
+    return project.bugs.filter(b => b.status !== 'resolved');
   },
 
   // Initialize the dashboard
@@ -298,6 +317,10 @@ PetiteVue.createApp({
   getBugsResolved(project) {
     if (!project.bugs) return 0;
     return project.bugs.filter((b) => b.status === 'resolved').length;
+  },
+  getOpenBugsCount(project) {
+    if (!project.bugs) return 0;
+    return project.bugs.filter((b) => b.status !== 'resolved').length;
   },
 
   // Sort projects: active sessions first, then by last activity
@@ -658,5 +681,11 @@ PetiteVue.createApp({
       const dateB = b.lastModified ? new Date(b.lastModified).getTime() : 0;
       return dateB - dateA;
     });
+  },
+
+  // Toggle showing/hiding completed items
+  toggleShowCompleted() {
+    this.showCompleted = !this.showCompleted;
+    localStorage.setItem('showCompleted', this.showCompleted);
   }
 }).mount('#app');

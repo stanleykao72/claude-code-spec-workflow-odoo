@@ -15,6 +15,7 @@ PetiteVue.createApp({
   githubUrl: null,
   steeringStatus: null,
   tunnelStatus: null,
+  showCompleted: localStorage.getItem('showCompleted') !== 'false', // Default to true, stored in localStorage
 
   // Computed properties
   get specsInProgress() {
@@ -41,6 +42,25 @@ PetiteVue.createApp({
 
   get bugsInProgress() {
     return this.bugs.filter((b) => ['analyzing', 'fixing', 'verifying'].includes(b.status)).length;
+  },
+
+  get openBugsCount() {
+    return this.bugs.filter((b) => b.status !== 'resolved').length;
+  },
+
+  // Filtered specs and bugs based on showCompleted toggle
+  get visibleSpecs() {
+    if (this.showCompleted) {
+      return this.specs;
+    }
+    return this.specs.filter(s => s.status !== 'completed');
+  },
+
+  get visibleBugs() {
+    if (this.showCompleted) {
+      return this.bugs;
+    }
+    return this.bugs.filter(b => b.status !== 'resolved');
   },
 
   // Initialize the dashboard
@@ -87,6 +107,9 @@ PetiteVue.createApp({
           this.collapsedCompletedTasks[spec.name] = true;
         }
       });
+      
+      // Sort specs after fetching
+      this.sortSpecs();
     } catch (error) {
       console.error('Error fetching specs:', error);
     }
@@ -99,6 +122,9 @@ PetiteVue.createApp({
       const response = await fetch('/api/bugs');
       this.bugs = await response.json();
       console.log('Fetched bugs:', this.bugs);
+      
+      // Sort bugs after fetching
+      this.sortBugs();
     } catch (error) {
       console.error('Error fetching bugs:', error);
     }
@@ -383,5 +409,11 @@ PetiteVue.createApp({
       const dateB = b.lastModified ? new Date(b.lastModified).getTime() : 0;
       return dateB - dateA;
     });
+  },
+
+  // Toggle showing/hiding completed items
+  toggleShowCompleted() {
+    this.showCompleted = !this.showCompleted;
+    localStorage.setItem('showCompleted', this.showCompleted);
   }
 }).mount('#app');

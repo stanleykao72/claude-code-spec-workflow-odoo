@@ -432,7 +432,7 @@
                   <div class="flex items-center gap-1.5">
                     <i class="fas fa-spinner text-indigo-400 dark:text-indigo-500"></i>
                     <span class="hidden md:inline text-gray-600 dark:text-gray-400"
-                      >In Progress:</span
+                      >Active:</span
                     >
                     <span class="font-semibold text-indigo-600 dark:text-indigo-400"
                       >{{ specsInProgress }}</span
@@ -441,7 +441,7 @@
                   <div class="flex items-center gap-1.5">
                     <i class="fas fa-check-circle text-green-400 dark:text-green-500"></i>
                     <span class="hidden md:inline text-gray-600 dark:text-gray-400"
-                      >Completed:</span
+                      >Done:</span
                     >
                     <span class="font-semibold text-green-600 dark:text-green-400"
                       >{{ specsCompleted }}</span
@@ -454,11 +454,11 @@
                       >{{ totalTasks }}</span
                     >
                   </div>
-                  <div v-if="bugs.length > 0" class="flex items-center gap-1.5">
+                  <div v-if="openBugsCount > 0" class="flex items-center gap-1.5">
                     <i class="fas fa-bug text-gray-400 dark:text-gray-500"></i>
-                    <span class="hidden md:inline text-gray-600 dark:text-gray-400">Bugs:</span>
+                    <span class="hidden md:inline text-gray-600 dark:text-gray-400">Open:</span>
                     <span class="font-semibold text-gray-900 dark:text-white"
-                      >{{ bugs.length }}</span
+                      >{{ openBugsCount }}</span
                     >
                   </div>
                   <div v-if="bugsInProgress > 0" class="flex items-center gap-1.5">
@@ -471,7 +471,7 @@
                   </div>
                   <div v-if="bugsResolved > 0" class="flex items-center gap-1.5">
                     <span class="hidden md:inline text-gray-600 dark:text-gray-400"
-                      >Resolved:</span
+                      >Fixed:</span
                     >
                     <span class="font-semibold text-green-600 dark:text-green-400"
                       >{{ bugsResolved }}</span
@@ -480,6 +480,20 @@
                 </div>
               </div>
               <div class="flex items-center gap-3">
+                <!-- Show/Hide Completed toggle -->
+                <button
+                  @click="toggleShowCompleted"
+                  class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2 text-sm"
+                  :title="showCompleted ? 'Hide completed items' : 'Show completed items'"
+                >
+                  <i
+                    class="fas"
+                    :class="showCompleted ? 'fa-eye' : 'fa-eye-slash'"
+                  ></i>
+                  <span class="hidden sm:inline text-gray-600 dark:text-gray-400">
+                    {{ showCompleted ? 'Hide' : 'Show' }} Completed
+                  </span>
+                </button>
                 <!-- Theme toggle -->
                 <button
                   @click="cycleTheme"
@@ -636,7 +650,7 @@
           <div class="bg-white dark:bg-gray-800 shadow rounded-lg transition-colors">
             <div class="divide-y divide-gray-200 dark:divide-gray-700">
               <div
-                v-for="spec in specs"
+                v-for="spec in visibleSpecs"
                 :key="spec.name"
                 :data-spec-name="spec.name"
                 class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all"
@@ -923,7 +937,7 @@
             <div class="bg-white dark:bg-gray-800 shadow rounded-lg transition-colors">
               <div class="divide-y divide-gray-200 dark:divide-gray-700">
                 <div
-                  v-for="bug in bugs"
+                  v-for="bug in visibleBugs"
                   :key="bug.name"
                   :data-bug-name="bug.name"
                   class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all p-4"

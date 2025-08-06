@@ -66,7 +66,7 @@ export class ProjectDiscovery {
     activeSessions: string[],
     depth = 0
   ): Promise<DiscoveredProject[]> {
-    if (depth > 3) return []; // Don't go too deep
+    if (depth > 4) return []; // Search up to 4 directories deep
 
     const projects: DiscoveredProject[] = [];
 
@@ -91,7 +91,7 @@ export class ProjectDiscovery {
           }
         } catch {
           // No .claude directory, check subdirectories
-          if (depth < 3) {
+          if (depth < 4) {
             const subProjects = await this.searchDirectory(fullPath, activeSessions, depth + 1);
             projects.push(...subProjects);
           }
