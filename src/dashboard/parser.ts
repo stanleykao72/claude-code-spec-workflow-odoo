@@ -322,16 +322,8 @@ export class SpecParser {
       const total = this.countTotalTasks(taskList);
 
       debug('Parsed task counts - Total:', total, 'Completed:', completed);
-      console.debug(`[DEBUG] Task counting for spec '${name}':`);
-      console.debug(`  - taskList length: ${taskList.length}`);
-      console.debug(`  - completed count: ${completed}`);
-      console.debug(`  - total count: ${total}`);
-      console.debug(`  - task completion status:`, taskList.map(t => `${t.id}: ${t.completed ? 'DONE' : 'PENDING'}`));
 
       const isApproved = content.includes('✅ APPROVED');
-      console.debug(`[DEBUG] Tasks approval check for spec '${name}':`);
-      console.debug(`  - content includes '✅ APPROVED': ${isApproved}`);
-      console.debug(`  - content first 200 chars: "${content.substring(0, 200)}..."`);
       
       spec.tasks = {
         exists: true,
@@ -342,30 +334,16 @@ export class SpecParser {
       };
 
       if (spec.tasks.approved) {
-        console.debug(`[DEBUG] Status determination for spec '${name}':`);
-        console.debug(`  - tasks approved: ${spec.tasks.approved}`);
-        console.debug(`  - completed tasks: ${completed}`);
-        console.debug(`  - total tasks: ${total}`);
-        console.debug(`  - completed === total: ${completed === total}`);
-        
         if (completed === 0) {
           spec.status = 'tasks';
-          console.debug(`  - Setting status to 'tasks' (no completed tasks)`);
         } else if (completed < total) {
           spec.status = 'in-progress';
-          console.debug(`  - Setting status to 'in-progress' (${completed}/${total} completed)`);
           // Always use the first uncompleted task as in-progress
           const inProgressTask = this.findInProgressTask(taskList);
           spec.tasks.inProgress = inProgressTask;
-          console.debug(`  - Found in-progress task: ${inProgressTask}`);
         } else {
           spec.status = 'completed';
-          console.debug(`  - Setting status to 'completed' (all tasks done)`);
         }
-        
-        console.debug(`  - Final status: '${spec.status}'`);
-      } else {
-        console.debug(`[DEBUG] Tasks not approved for spec '${name}', keeping status as 'tasks'`);
       }
     }
 
@@ -602,38 +580,29 @@ export class SpecParser {
     for (const task of tasks) {
       if (task.completed) {
         count++;
-        console.debug(`[DEBUG] Counting completed task: ${task.id} - ${task.description.substring(0, 50)}...`);
       }
       if (task.subtasks) {
         const subtaskCount = this.countCompletedTasks(task.subtasks);
         count += subtaskCount;
-        console.debug(`[DEBUG] Added ${subtaskCount} completed subtasks from task ${task.id}`);
       }
     }
-    console.debug(`[DEBUG] countCompletedTasks returning: ${count}`);
     return count;
   }
 
   private countTotalTasks(tasks: Task[]): number {
     let count = tasks.length;
-    console.debug(`[DEBUG] countTotalTasks: Starting with ${count} top-level tasks`);
     for (const task of tasks) {
       if (task.subtasks) {
         const subtaskCount = this.countTotalTasks(task.subtasks);
         count += subtaskCount;
-        console.debug(`[DEBUG] Added ${subtaskCount} subtasks from task ${task.id}, running total: ${count}`);
       }
     }
-    console.debug(`[DEBUG] countTotalTasks returning: ${count}`);
     return count;
   }
 
   private findInProgressTask(tasks: Task[]): string | undefined {
-    console.debug(`[DEBUG] findInProgressTask called with ${tasks.length} tasks`);
     for (const task of tasks) {
-      console.debug(`[DEBUG] Checking task ${task.id}: completed=${task.completed}`);
       if (!task.completed) {
-        console.debug(`[DEBUG] Found in-progress task: ${task.id}`);
         return task.id;
       }
       if (task.subtasks) {
@@ -641,7 +610,6 @@ export class SpecParser {
         if (subTaskId) return subTaskId;
       }
     }
-    console.debug(`[DEBUG] No in-progress task found, returning undefined`);
     return undefined;
   }
 
