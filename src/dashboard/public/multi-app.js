@@ -14,6 +14,7 @@ PetiteVue.createApp({
   username: 'User',
   expandedRequirements: {},
   expandedDesigns: {},
+  pendingProjectRoute: null, // Store project route when projects haven't loaded yet
 
   // Computed properties
   get activeSessionCount() {
@@ -26,6 +27,7 @@ PetiteVue.createApp({
     this.initTheme();
     this.setupKeyboardHandlers();
     this.setupCodeBlockCopyHandlers();
+    this.initializeRouting();
     this.connectWebSocket();
   },
 
@@ -72,9 +74,25 @@ PetiteVue.createApp({
         // Sort projects: active first, then by activity
         this.sortProjects();
         
-        // Select first project if none selected
-        if (!this.selectedProject && this.projects.length > 0 && this.activeTab === 'projects') {
+        // Handle pending route if we were waiting for projects to load
+        if (this.pendingProjectRoute && this.projects.length > 0) {
+          const project = this.projects.find(p => this.getProjectSlug(p) === this.pendingProjectRoute);
+          if (project) {
+            this.selectedProject = project;
+            this.activeTab = 'projects';
+            this.updateURL();
+          } else {
+            // Project still not found, redirect to active
+            this.activeTab = 'active';
+            this.selectedProject = null;
+            this.updateURL();
+          }
+          this.pendingProjectRoute = null;
+        }
+        // Select first project if none selected and we're on projects tab
+        else if (!this.selectedProject && this.projects.length > 0 && this.activeTab === 'projects') {
           this.selectedProject = this.projects[0];
+          this.updateURL();
         }
         break;
 
@@ -179,6 +197,14 @@ PetiteVue.createApp({
   // Switch between tabs
   switchTab(tab) {
     this.activeTab = tab;
+    this.updateURL();
+  },
+
+  // Select a project and update URL
+  selectProject(project) {
+    this.selectedProject = project;
+    this.activeTab = 'projects';
+    this.updateURL();
   },
 
   // Select a project from active session
@@ -479,6 +505,94 @@ PetiteVue.createApp({
     const element = document.getElementById(`${specName}-req-${requirementId}`);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  },
+
+  // URL Routing Methods
+  initializeRouting() {
+    // Handle browser back/forward navigation
+    window.addEventListener('popstate', () => {
+      this.handleRouteChange();
+    });
+
+    // Set initial route based on URL
+    this.handleRouteChange();
+  },
+
+  handleRouteChange() {
+    const path = window.location.pathname;
+    
+    if (path === '/' || path === '/active') {
+      this.activeTab = 'active';
+      this.selectedProject = null;
+    } else {
+      // Extract project name from path (e.g., /my-project -> my-project)
+      const projectName = path.substring(1); // Remove leading slash
+      
+      // Find project by name
+      const project = this.projects.find(p => this.getProjectSlug(p) === projectName);
+      if (project) {
+        this.selectedProject = project;
+        this.activeTab = 'projects';
+      } else {
+        // Project not found, check if we have projects loaded yet
+        if (this.projects.length === 0) {
+          // Projects not loaded yet, store the desired project name for later
+          this.pendingProjectRoute = projectName;
+        } else {
+          // Projects are loaded but project not found, redirect to active
+          this.activeTab = 'active';
+          this.selectedProject = null;
+          this.updateURL();
+        }
+      }
+    }
+  },
+
+  updateURL() {
+    let newPath = '/active';
+    
+    if (this.activeTab === 'projects' && this.selectedProject) {
+      newPath = '/' + this.getProjectSlug(this.selectedProject);
+    }
+
+    // Only update if path has changed to avoid infinite loops
+    if (window.location.pathname !== newPath) {
+      window.history.pushState(null, '', newPath);
+    }
+  },
+
+  getProjectSlug(project) {
+    // Convert project name to URL-friendly slug
+    return project.name.toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')  // Replace non-alphanumeric with hyphens
+      .replace(/^-+|-+$/g, '');     // Remove leading/trailing hyphens
+  },
+
+  // Override selectProjectFromSession to update URL
+  selectProjectFromSession(session) {
+    const project = this.projects.find((p) => p.path === session.projectPath);
+    if (project) {
+      this.selectedProject = project;
+      this.activeTab = 'projects';
+      this.updateURL();
+      
+      // Handle based on session type
+      if (session.type === 'spec' && project.specs) {
+        // Find and expand the spec
+        const spec = project.specs.find((s) => s.name === session.specName);
+        if (spec) {
+          this.selectedSpec = spec;
+        }
+      } else if (session.type === 'bug') {
+        // Scroll to bug section if needed
+        setTimeout(() => {
+          const bugElement = document.getElementById(`bug-${session.bugName}`);
+          if (bugElement) {
+            bugElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
+      }
     }
   }
 }).mount('#app');

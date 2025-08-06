@@ -105,6 +105,15 @@ export class MultiProjectDashboardServer {
       return reply.sendFile('multi.html', join(__dirname, 'public'));
     });
 
+    // Catch-all route for client-side routing - serve multi.html for any non-API route
+    this.app.get('/*', async (request, reply) => {
+      // Skip API routes and static files
+      if (request.url.startsWith('/api/') || request.url.startsWith('/public/') || request.url.startsWith('/ws')) {
+        return reply.code(404).send({ error: 'Not found' });
+      }
+      return reply.sendFile('multi.html', join(__dirname, 'public'));
+    });
+
     await this.app.register(fastifyWebsocket);
 
     // WebSocket endpoint
