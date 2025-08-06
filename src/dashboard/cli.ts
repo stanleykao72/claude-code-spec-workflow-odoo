@@ -24,7 +24,18 @@ program
   .option('-t, --tunnel', 'Create a secure tunnel to share the dashboard')
   .option('--tunnel-password <password>', 'Password-protect the tunnel')
   .option('--tunnel-provider <provider>', 'Tunnel provider to use (cloudflare, ngrok, auto)', 'auto')
+  .option('--ngrok', 'Create a secure tunnel using Ngrok (alias for --tunnel --tunnel-provider ngrok)')
+  .option('--cloudflare', 'Create a secure tunnel using Cloudflare (alias for --tunnel --tunnel-provider cloudflare)')
   .action(async (options) => {
+    // Handle alias options
+    if (options.ngrok) {
+      options.tunnel = true;
+      options.tunnelProvider = 'ngrok';
+    }
+    if (options.cloudflare) {
+      options.tunnel = true;
+      options.tunnelProvider = 'cloudflare';
+    }
     if (options.multi) {
       console.log(chalk.cyan.bold('🚀 Claude Code Multi-Project Dashboard'));
       console.log(chalk.gray('Monitoring all Claude projects on your system'));
