@@ -38,7 +38,7 @@ This implementation plan breaks down the UI improvements into atomic tasks focus
   - _Leverage: Existing v-if directive pattern_
   - _Requirements: 1.1_
 
-- [ ] 2. Hide task count for completed specs in multi-dashboard HTML
+- [x] 2. Hide task count for completed specs in multi-dashboard HTML
   - File: src/dashboard/public/multi.html
   - Add `&& spec.status !== 'completed'` condition to task count span v-if
   - Locate the task count span around line 793-796
@@ -46,7 +46,7 @@ This implementation plan breaks down the UI improvements into atomic tasks focus
   - _Leverage: Existing v-if directive pattern_
   - _Requirements: 1.2_
 
-- [ ] 3. Apply same hiding logic to single-project dashboard
+- [x] 3. Apply same hiding logic to single-project dashboard
   - File: src/dashboard/public/index.html
   - Add `&& spec.status !== 'completed'` to progress bar v-if (around line 693)
   - Add `&& spec.status !== 'completed'` to task count span v-if (around line 661)
