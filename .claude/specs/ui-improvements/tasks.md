@@ -143,7 +143,7 @@ This implementation plan breaks down the UI improvements into atomic tasks focus
   - _Leverage: Existing selectProjectFromTask method_
   - _Requirements: 3.3_
 
-- [ ] 14. Add lastModified tracking for session ordering
+- [x] 14. Add lastModified tracking for session ordering
   - File: src/dashboard/parser.ts
   - Ensure parseSpec includes lastModified from file stats
   - Ensure parseBug includes lastModified from file stats
