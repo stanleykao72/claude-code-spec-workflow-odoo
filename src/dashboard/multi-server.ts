@@ -77,13 +77,28 @@ export class MultiProjectDashboardServer {
     this.app = fastify({ logger: false });
   }
 
+  private flattenProjects(projects: DiscoveredProject[]): DiscoveredProject[] {
+    const flat: DiscoveredProject[] = [];
+    const addProject = (project: DiscoveredProject) => {
+      flat.push(project);
+      if (project.children) {
+        project.children.forEach(child => addProject(child));
+      }
+    };
+    projects.forEach(p => addProject(p));
+    return flat;
+  }
+
   async start() {
     // Discover projects
     console.log('Starting project discovery...');
     const discoveredProjects = await this.discovery.discoverProjects();
 
+    // Flatten the project hierarchy to include all projects (parents and children)
+    const allProjects = this.flattenProjects(discoveredProjects);
+
     // Filter to show projects with specs OR active Claude sessions
-    const activeProjects = discoveredProjects.filter(
+    const activeProjects = allProjects.filter(
       (p) => (p.specCount || 0) > 0 || p.hasActiveSession
     );
     console.log(`Found ${activeProjects.map(p => p.name).join(', ')}`);
@@ -380,7 +395,7 @@ export class MultiProjectDashboardServer {
 
   private async sendInitialState(socket: WebSocket) {
     const projects = await Promise.all(
-      Array.from(this.projects.entries()).map(async ([, state]) => {
+      Array.from(this.projects.entries()).map(async ([path, state]) => {
         const specs = await state.parser.getAllSpecs();
         const bugs = await state.parser.getAllBugs();
         const steeringStatus = await state.parser.getProjectSteeringStatus();
@@ -390,7 +405,7 @@ export class MultiProjectDashboardServer {
           bugs,
           steering: steeringStatus,
         };
-        debug(`Sending project ${projectData.name}`);
+        debug(`Sending project ${projectData.name} (${path}) with ${specs.length} specs, ${bugs.length} bugs`);
         return projectData;
       })
     );
@@ -622,7 +637,8 @@ export class MultiProjectDashboardServer {
     // Rescan every 30 seconds for new active projects
     this.rescanInterval = setInterval(async () => {
       const currentProjects = await this.discovery.discoverProjects();
-      const activeProjects = currentProjects.filter(
+      const allProjects = this.flattenProjects(currentProjects);
+      const activeProjects = allProjects.filter(
         (p) => (p.specCount || 0) > 0 || p.hasActiveSession
       );
 
