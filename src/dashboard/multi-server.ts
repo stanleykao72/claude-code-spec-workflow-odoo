@@ -25,17 +25,6 @@ interface WebSocketConnection {
   socket: WebSocket;
 }
 
-interface ActiveTask {
-  projectPath: string;
-  projectName: string;
-  specName: string;
-  specDisplayName: string;
-  task: Task;
-  isCurrentlyActive: boolean;
-  hasActiveSession: boolean;
-  gitBranch?: string;
-  gitCommit?: string;
-}
 
 // Discriminated union for type-safe active sessions
 type ActiveSession = ActiveSpecSession | ActiveBugSession;
@@ -414,13 +403,14 @@ export class MultiProjectDashboardServer {
   }
 
   private async collectActiveSessions(): Promise<ActiveSession[]> {
-    const activeSessions: ActiveSession[] = [];
+    const allActiveSessions: ActiveSession[] = [];
 
     for (const [projectPath, state] of this.projects) {
       const specs = await state.parser.getAllSpecs();
       debug(`[collectActiveSessions] Project ${state.project.name}: ${specs.length} specs`);
 
       let hasActiveTaskInProject = false;
+      const projectSessions: ActiveSession[] = [];
       
       for (const spec of specs) {
         if (spec.tasks && spec.tasks.taskList.length > 0) {
@@ -431,7 +421,7 @@ export class MultiProjectDashboardServer {
 
             if (activeTask) {
               hasActiveTaskInProject = true;
-              activeSessions.push({
+              projectSessions.push({
               type: 'spec',
               projectPath,
               projectName: state.project.name,
@@ -473,7 +463,7 @@ export class MultiProjectDashboardServer {
               break;
           }
 
-          activeSessions.push({
+          projectSessions.push({
             type: 'bug',
             projectPath,
             projectName: state.project.name,
@@ -489,6 +479,19 @@ export class MultiProjectDashboardServer {
             gitCommit: state.project.gitCommit,
           } as ActiveBugSession);
         }
+      }
+
+      // Filter to only the most recent session per project
+      if (projectSessions.length > 0) {
+        // Sort by lastModified descending to get the most recent first
+        projectSessions.sort((a, b) => {
+          return new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime();
+        });
+        
+        // Take only the first (most recent) session for this project
+        const mostRecentSession = projectSessions[0];
+        debug(`[collectActiveSessions] Project ${state.project.name}: selected most recent ${mostRecentSession.type} session (${mostRecentSession.type === 'spec' ? mostRecentSession.specName : mostRecentSession.bugName}) with lastModified: ${mostRecentSession.lastModified}`);
+        allActiveSessions.push(mostRecentSession);
       }
       
       // Update the project's active session status based on whether it has active tasks
@@ -518,14 +521,14 @@ export class MultiProjectDashboardServer {
     }
 
     // Sort by currently active first, then by project name
-    activeSessions.sort((a, b) => {
+    allActiveSessions.sort((a, b) => {
       if (a.isCurrentlyActive && !b.isCurrentlyActive) return -1;
       if (!a.isCurrentlyActive && b.isCurrentlyActive) return 1;
       return a.projectName.localeCompare(b.projectName);
     });
 
-    debug(`[collectActiveSessions] Total active sessions found: ${activeSessions.length}`);
-    return activeSessions;
+    debug(`[collectActiveSessions] Total active sessions found: ${allActiveSessions.length} (filtered to single session per project)`);
+    return allActiveSessions;
   }
 
   private findTaskById(tasks: Task[], taskId: string): Task | null {
