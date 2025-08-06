@@ -453,26 +453,30 @@ export class MultiProjectDashboardServer {
         }
       }
 
-      // If no active work, collect recent completed work as fallback (lower priority)
+      // If no active work, collect recent incomplete work as fallback (lower priority)
       if (activeWorkItems.length === 0) {
-        // Add most recently modified specs
+        // Add most recently modified specs that are not completed
         for (const spec of specs) {
-          activeWorkItems.push({
-            type: 'spec',
-            item: spec,
-            lastModified: spec.lastModified || new Date(0),
-            priority: 10 // Low priority - completed work
-          });
+          if (spec.status !== 'completed') {
+            activeWorkItems.push({
+              type: 'spec',
+              item: spec,
+              lastModified: spec.lastModified || new Date(0),
+              priority: 10 // Low priority - incomplete work
+            });
+          }
         }
 
-        // Add most recently modified bugs
+        // Add most recently modified bugs that are not resolved
         for (const bug of bugs) {
-          activeWorkItems.push({
-            type: 'bug',
-            item: bug,
-            lastModified: bug.lastModified || new Date(0),
-            priority: 10 // Low priority - completed work
-          });
+          if (bug.status !== 'resolved') {
+            activeWorkItems.push({
+              type: 'bug',
+              item: bug,
+              lastModified: bug.lastModified || new Date(0),
+              priority: 10 // Low priority - incomplete work
+            });
+          }
         }
       }
 
