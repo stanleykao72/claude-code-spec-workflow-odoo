@@ -150,7 +150,9 @@ export class ProjectDiscovery {
     activeSessions: string[]
   ): Promise<DiscoveredProject> {
     debug(`Analyzing project: ${projectPath}`);
-    const name = projectPath.split('/').pop() || 'Unknown';
+    // For nested projects, show more context in the name
+    const pathParts = projectPath.split('/');
+    const name = pathParts.slice(-2).join('/'); // Show last two parts for better context
 
     // Check if any active Claude session is in this project directory
     const hasActiveSession = activeSessions.some((session) => {
@@ -235,6 +237,9 @@ export class ProjectDiscovery {
     };
     
     debug(`Returning project ${name} with result:`, {
+      path: projectPath,
+      specCount,
+      bugCount,
       hasGitInfo: !!(result.gitBranch || result.gitCommit),
       gitBranch: result.gitBranch,
       gitCommit: result.gitCommit
