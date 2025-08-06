@@ -1,7 +1,7 @@
 # Bug Analysis
 
 ## Status
-✅ Approved
+✅ APPROVED
 
 ## Root Cause Analysis
 

@@ -1,7 +1,7 @@
 # Bug Report
 
 ## Status
-✅ Approved
+✅ APPROVED
 
 ## Bug Summary
 When a spec completes while the dashboard is running, the spec list doesn't automatically re-sort to move the completed spec to the end of the list, requiring a manual refresh to see the correct order.
