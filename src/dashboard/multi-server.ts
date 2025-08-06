@@ -444,10 +444,52 @@ export class MultiProjectDashboardServer {
               gitBranch: state.project.gitBranch,
               gitCommit: state.project.gitCommit,
             } as ActiveSpecSession);
+            }
           }
         }
       }
-    }
+
+      // Collect active bugs
+      const bugs = await state.parser.getAllBugs();
+      debug(`[collectActiveSessions] Project ${state.project.name}: ${bugs.length} bugs`);
+
+      for (const bug of bugs) {
+        // Check if bug is in an active state
+        if (['analyzing', 'fixing', 'verifying'].includes(bug.status)) {
+          debug(`[collectActiveSessions] Bug ${bug.name}: status ${bug.status}`);
+          hasActiveTaskInProject = true;
+
+          // Determine the next command based on bug status
+          let nextCommand = '';
+          switch (bug.status) {
+            case 'analyzing':
+              nextCommand = `/bug-analyze ${bug.name}`;
+              break;
+            case 'fixing':
+              nextCommand = `/bug-fix ${bug.name}`;
+              break;
+            case 'verifying':
+              nextCommand = `/bug-verify ${bug.name}`;
+              break;
+          }
+
+          activeSessions.push({
+            type: 'bug',
+            projectPath,
+            projectName: state.project.name,
+            displayName: bug.displayName || bug.name,
+            bugName: bug.name,
+            bugStatus: bug.status as 'analyzing' | 'fixing' | 'verifying',
+            bugSeverity: bug.report?.severity,
+            nextCommand,
+            lastModified: bug.lastModified || new Date(),
+            isCurrentlyActive: true,
+            hasActiveSession: true,
+            gitBranch: state.project.gitBranch,
+            gitCommit: state.project.gitCommit,
+          } as ActiveBugSession);
+        }
+      }
       
       // Update the project's active session status based on whether it has active tasks
       if (state.project.hasActiveSession !== hasActiveTaskInProject) {

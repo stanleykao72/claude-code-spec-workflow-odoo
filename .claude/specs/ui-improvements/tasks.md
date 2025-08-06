@@ -89,7 +89,7 @@ This implementation plan breaks down the UI improvements into atomic tasks focus
   - _Leverage: Existing task collection logic_
   - _Requirements: 3.1, 4.1_
 
-- [ ] 8. Add bug collection to collectActiveSessions method
+- [x] 8. Add bug collection to collectActiveSessions method
   - File: src/dashboard/multi-server.ts
   - After spec collection loop, add bug collection loop
   - Filter bugs by status: analyzing, fixing, verifying
