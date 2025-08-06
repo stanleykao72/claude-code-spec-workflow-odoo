@@ -42,42 +42,60 @@ PetiteVue.createApp({
 
   // Group projects by parent/child relationships for display
   getGroupedProjects() {
+    // Sort projects by path first to ensure parents come before children
+    const sortedProjects = [...this.projects].sort((a, b) => a.path.localeCompare(b.path));
+    
     // Create a map for quick lookup
     const projectMap = new Map();
-    this.projects.forEach(p => projectMap.set(p.path, { ...p, level: 0 }));
+    sortedProjects.forEach(p => projectMap.set(p.path, p));
     
-    // Find parent-child relationships
     const grouped = [];
-    const childPaths = new Set();
+    const addedPaths = new Set();
     
-    this.projects.forEach(project => {
-      // Check if this project is nested inside another project
+    // Helper function to add a project and all its descendants
+    const addProjectWithDescendants = (project, level = 0) => {
+      if (addedPaths.has(project.path)) return;
+      
+      grouped.push({ ...project, level });
+      addedPaths.add(project.path);
+      
+      // Find all direct children and sort them
+      const children = sortedProjects.filter(child => {
+        if (addedPaths.has(child.path)) return false;
+        // Check if it's a direct child (parent path + one segment)
+        if (!child.path.startsWith(project.path + '/')) return false;
+        const relativePath = child.path.substring(project.path.length + 1);
+        return !relativePath.includes('/'); // No additional slashes means direct child
+      });
+      
+      // Sort children by name for consistent ordering
+      children.sort((a, b) => a.name.localeCompare(b.name));
+      
+      // Recursively add each child with its descendants
+      children.forEach(child => {
+        addProjectWithDescendants(child, level + 1);
+      });
+    };
+    
+    // Find and process all top-level projects (those without parents in our list)
+    sortedProjects.forEach(project => {
+      if (addedPaths.has(project.path)) return;
+      
+      // Check if this project has a parent in our list
       const pathParts = project.path.split('/');
-      let isChild = false;
+      let hasParent = false;
       
       for (let i = pathParts.length - 1; i > 0; i--) {
         const potentialParentPath = pathParts.slice(0, i).join('/');
-        const parentProject = projectMap.get(potentialParentPath);
-        
-        if (parentProject) {
-          // This is a child project
-          isChild = true;
-          childPaths.add(project.path);
+        if (projectMap.has(potentialParentPath)) {
+          hasParent = true;
           break;
         }
       }
       
-      if (!isChild) {
-        // This is a top-level project
-        grouped.push({ ...project, level: 0 });
-        
-        // Add its children right after it
-        this.projects.forEach(child => {
-          if (child.path.startsWith(project.path + '/') && !childPaths.has(child.path)) {
-            grouped.push({ ...child, level: 1 });
-            childPaths.add(child.path);
-          }
-        });
+      if (!hasParent) {
+        // This is a top-level project - add it with all its descendants
+        addProjectWithDescendants(project, 0);
       }
     });
     

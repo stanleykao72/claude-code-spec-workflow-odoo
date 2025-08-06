@@ -57,7 +57,11 @@ export class ProjectDiscovery {
     // (unless they have an active session)
     const filteredProjects = allProjects.filter(project => {
       const hasContent = (project.specCount || 0) > 0 || (project.bugCount || 0) > 0;
-      return hasContent || project.hasActiveSession;
+      const keep = hasContent || project.hasActiveSession;
+      if (!keep) {
+        debug(`Filtering out project ${project.name} at ${project.path} - no specs/bugs and no active session`);
+      }
+      return keep;
     });
 
     // Sort by last activity
@@ -122,13 +126,11 @@ export class ProjectDiscovery {
 
         // Check if this directory has a .claude folder
         const claudePath = join(fullPath, '.claude');
-        let hasClaudeDir = false;
         try {
           const claudeStat = await fs.stat(claudePath);
           if (claudeStat.isDirectory()) {
             const project = await this.analyzeProject(fullPath, claudePath, activeSessions);
             projects.push(project);
-            hasClaudeDir = true;
           }
         } catch {
           // No .claude directory
@@ -162,7 +164,10 @@ export class ProjectDiscovery {
       // Normalize paths for comparison
       const normalizedSession = session.replace(/\/$/, '');
       const normalizedProject = projectPath.replace(/\/$/, '');
-      const isMatch = normalizedSession === normalizedProject || normalizedSession.startsWith(normalizedProject + '/');
+      
+      // Only match if the session is exactly this project, not a subdirectory
+      // This prevents /Users/michael/Projects/phenix from matching /Users/michael/Projects/phenix/phenix/public-api
+      const isMatch = normalizedSession === normalizedProject;
       if (isMatch) {
         debug(`Found active session match: ${session} matches ${projectPath}`);
       }
@@ -201,9 +206,10 @@ export class ProjectDiscovery {
       
       specCount = specDirs.filter((d) => !d.startsWith('.')).length;
       debug(`Found ${specCount} specs in ${projectPath}`);
-    } catch {
+    } catch (error) {
       // Error reading specs directory, but continue with git info
-      debug(`Could not read specs for ${projectPath}, but continuing with git info`);
+      debug(`Could not read specs for ${projectPath}: ${error}`);
+      specCount = 0;
     }
 
     // Count bugs
@@ -225,9 +231,10 @@ export class ProjectDiscovery {
           // Error reading bug directory
         }
       }
-    } catch {
+    } catch (error) {
       // No bugs directory or error reading it
-      debug(`Could not read bugs for ${projectPath}`);
+      debug(`Could not read bugs for ${projectPath}: ${error}`);
+      bugCount = 0;
     }
 
     const result = {
