@@ -152,7 +152,7 @@ This implementation plan breaks down the UI improvements into atomic tasks focus
   - _Leverage: Existing file stat reading logic_
   - _Requirements: 4.2_
 
-- [ ] 15. Write tests for conditional rendering logic
+- [x] 15. Write tests for conditional rendering logic
   - File: src/dashboard/tests/ui-improvements.test.ts (new file)
   - Test that completed specs hide progress bars and task counts
   - Test that resolved bugs show compact display
