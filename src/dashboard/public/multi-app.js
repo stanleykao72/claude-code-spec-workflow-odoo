@@ -207,6 +207,31 @@ PetiteVue.createApp({
     }
   },
 
+  // Legacy method name for backward compatibility (used in HTML template)
+  selectProjectFromTask(projectPath, itemName, sessionType = 'spec') {
+    // Find the session or create a minimal one for navigation
+    const project = this.projects.find((p) => p.path === projectPath);
+    if (!project) return;
+
+    // Create a session-like object for navigation
+    let session;
+    if (sessionType === 'bug' || (project.bugs && project.bugs.find(b => b.name === itemName))) {
+      session = {
+        type: 'bug',
+        projectPath: projectPath,
+        bugName: itemName
+      };
+    } else {
+      session = {
+        type: 'spec',
+        projectPath: projectPath,
+        specName: itemName
+      };
+    }
+
+    this.selectProjectFromSession(session);
+  },
+
   // Project-specific methods
   getSpecsInProgress(project) {
     if (!project.specs) return 0;

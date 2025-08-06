@@ -520,7 +520,7 @@
               :key="session.type === 'spec' ? `${session.projectPath}-${session.specName}-${session.task.id}` : `${session.projectPath}-${session.bugName}`"
               class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
               :class="{'ring-2 ring-yellow-500 dark:ring-yellow-400': session.isCurrentlyActive}"
-              @click="selectProjectFromTask(session.projectPath, session.type === 'spec' ? session.specName : session.bugName)"
+              @click="selectProjectFromTask(session.projectPath, session.type === 'spec' ? session.specName : session.bugName, session.type)"
             >
               <div class="flex items-start justify-between">
                 <div class="flex-1">
@@ -534,7 +534,7 @@
                       ></span>
                       <h2 class="text-xl font-bold text-gray-900 dark:text-white">
                         <a
-                          @click="selectProjectFromTask(session.projectPath, session.type === 'spec' ? session.specName : session.bugName)"
+                          @click="selectProjectFromTask(session.projectPath, session.type === 'spec' ? session.specName : session.bugName, session.type)"
                           class="hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer"
                         >
                           {{ session.projectName }}: {{ session.displayName }}
