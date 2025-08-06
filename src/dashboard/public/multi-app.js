@@ -7,7 +7,7 @@ PetiteVue.createApp({
   projects: [],
   selectedProject: null,
   selectedSpec: null,
-  activeTasks: [],
+  activeSessions: [],
   activeTab: 'active', // 'active' or 'projects'
   connected: false,
   ws: null,
@@ -62,11 +62,11 @@ PetiteVue.createApp({
     switch (message.type) {
       case 'initial':
         this.projects = Array.isArray(message.data) ? this.normalizeProjects(message.data) : [];
-        this.activeTasks = Array.isArray(message.activeTasks) ? message.activeTasks : [];
+        this.activeSessions = Array.isArray(message.activeSessions) ? message.activeSessions : [];
         this.username = message.username || 'User';
 
         console.log(
-          `Received initial data: ${this.projects.length} projects, ${this.activeTasks.length} active tasks`
+          `Received initial data: ${this.projects.length} projects, ${this.activeSessions.length} active sessions`
         );
         
         // Sort projects: active first, then by activity
@@ -138,9 +138,9 @@ PetiteVue.createApp({
         }
         break;
 
-      case 'active-tasks-update':
-        this.activeTasks = Array.isArray(message.data) ? message.data : [];
-        console.log(`Active tasks updated: ${this.activeTasks.length} tasks`, this.activeTasks);
+      case 'active-sessions-update':
+        this.activeSessions = Array.isArray(message.data) ? message.data : [];
+        console.log(`Active sessions updated: ${this.activeSessions.length} sessions`, this.activeSessions);
         break;
 
       case 'bug-update':
@@ -181,19 +181,28 @@ PetiteVue.createApp({
     this.activeTab = tab;
   },
 
-  // Select a project from active task
-  selectProjectFromTask(projectPath, specName) {
-    const project = this.projects.find((p) => p.path === projectPath);
+  // Select a project from active session
+  selectProjectFromSession(session) {
+    const project = this.projects.find((p) => p.path === session.projectPath);
     if (project) {
       this.selectedProject = project;
       this.activeTab = 'projects';
       
-      // Find and expand the spec
-      if (project.specs) {
-        const spec = project.specs.find((s) => s.name === specName);
+      // Handle based on session type
+      if (session.type === 'spec' && project.specs) {
+        // Find and expand the spec
+        const spec = project.specs.find((s) => s.name === session.specName);
         if (spec) {
           this.selectedSpec = spec;
         }
+      } else if (session.type === 'bug') {
+        // Scroll to bug section if needed
+        setTimeout(() => {
+          const bugElement = document.getElementById(`bug-${session.bugName}`);
+          if (bugElement) {
+            bugElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
       }
     }
   },
@@ -250,49 +259,57 @@ PetiteVue.createApp({
     });
   },
 
-  // Active task helpers
-  getTaskNumber(activeTask) {
+  // Active session helpers
+  getTaskNumber(activeSession) {
+    if (activeSession.type !== 'spec') return 1;
+    
     const spec = this.projects
-      .find((p) => p.path === activeTask.projectPath)
-      ?.specs?.find((s) => s.name === activeTask.specName);
+      .find((p) => p.path === activeSession.projectPath)
+      ?.specs?.find((s) => s.name === activeSession.specName);
     
     if (!spec?.tasks?.taskList) return 1;
     
-    const taskIndex = spec.tasks.taskList.findIndex((t) => t.id === activeTask.task.id);
+    const taskIndex = spec.tasks.taskList.findIndex((t) => t.id === activeSession.task.id);
     return taskIndex >= 0 ? taskIndex + 1 : 1;
   },
 
-  getSpecTaskCount(activeTask) {
+  getSpecTaskCount(activeSession) {
+    if (activeSession.type !== 'spec') return 0;
+    
     const spec = this.projects
-      .find((p) => p.path === activeTask.projectPath)
-      ?.specs?.find((s) => s.name === activeTask.specName);
+      .find((p) => p.path === activeSession.projectPath)
+      ?.specs?.find((s) => s.name === activeSession.specName);
     
     return spec?.tasks?.total || 0;
   },
 
-  getSpecProgress(activeTask) {
+  getSpecProgress(activeSession) {
+    if (activeSession.type !== 'spec') return 0;
+    
     const spec = this.projects
-      .find((p) => p.path === activeTask.projectPath)
-      ?.specs?.find((s) => s.name === activeTask.specName);
+      .find((p) => p.path === activeSession.projectPath)
+      ?.specs?.find((s) => s.name === activeSession.specName);
     
     if (!spec?.tasks) return 0;
     return (spec.tasks.completed / spec.tasks.total) * 100;
   },
 
-  getNextTask(activeTask) {
+  getNextTask(activeSession) {
+    if (activeSession.type !== 'spec') return null;
+    
     const spec = this.projects
-      .find((p) => p.path === activeTask.projectPath)
-      ?.specs?.find((s) => s.name === activeTask.specName);
+      .find((p) => p.path === activeSession.projectPath)
+      ?.specs?.find((s) => s.name === activeSession.specName);
     
     if (!spec?.tasks?.taskList) return null;
     
-    const currentIndex = spec.tasks.taskList.findIndex((t) => t.id === activeTask.task.id);
+    const currentIndex = spec.tasks.taskList.findIndex((t) => t.id === activeSession.task.id);
     if (currentIndex >= 0 && currentIndex < spec.tasks.taskList.length - 1) {
       const nextTask = spec.tasks.taskList[currentIndex + 1];
       if (!nextTask.completed) return nextTask;
     }
     
-    return spec.tasks.taskList.find((t) => !t.completed && t.id !== activeTask.task.id);
+    return spec.tasks.taskList.find((t) => !t.completed && t.id !== activeSession.task.id);
   },
 
   // Requirements expand/collapse

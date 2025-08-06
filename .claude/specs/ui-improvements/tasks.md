@@ -98,7 +98,7 @@ This implementation plan breaks down the UI improvements into atomic tasks focus
   - _Leverage: state.parser.getAllBugs() method_
   - _Requirements: 3.1, 3.2_
 
-- [ ] 9. Implement single session per project filtering
+- [x] 9. Implement single session per project filtering
   - File: src/dashboard/multi-server.ts
   - In collectActiveSessions, group sessions by projectPath
   - Sort each group by lastModified descending
@@ -107,7 +107,7 @@ This implementation plan breaks down the UI improvements into atomic tasks focus
   - _Leverage: JavaScript array sorting and filtering_
   - _Requirements: 4.1, 4.2, 4.3_
 
-- [ ] 10. Update WebSocket message for active sessions
+- [x] 10. Update WebSocket message for active sessions
   - File: src/dashboard/multi-server.ts
   - Update all references from activeTasks to activeSessions
   - Change message type from 'active-tasks-update' to 'active-sessions-update'
@@ -116,7 +116,7 @@ This implementation plan breaks down the UI improvements into atomic tasks focus
   - _Leverage: Existing WebSocket message patterns_
   - _Requirements: 3.3_
 
-- [ ] 11. Update Vue app state for active sessions
+- [x] 11. Update Vue app state for active sessions
   - File: src/dashboard/public/multi-app.js
   - Rename activeTasks to activeSessions in state (line 10)
   - Update message handlers to use new field name

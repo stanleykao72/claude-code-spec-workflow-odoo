@@ -285,17 +285,17 @@ export class MultiProjectDashboardServer {
         }
       });
 
-      // Also send updated active tasks
-      const activeTasks = await this.collectActiveSessions();
-      debug(`[Multi-server] Collected ${activeTasks.length} active tasks after spec update`);
-      const activeTasksMessage = JSON.stringify({
-        type: 'active-tasks-update',
-        data: activeTasks,
+      // Also send updated active sessions
+      const activeSessions = await this.collectActiveSessions();
+      debug(`[Multi-server] Collected ${activeSessions.length} active sessions after spec update`);
+      const activeSessionsMessage = JSON.stringify({
+        type: 'active-sessions-update',
+        data: activeSessions,
       });
 
       this.clients.forEach((client) => {
         if (client.readyState === 1) {
-          client.send(activeTasksMessage);
+          client.send(activeSessionsMessage);
         }
       });
     });
@@ -389,14 +389,14 @@ export class MultiProjectDashboardServer {
       })
     );
 
-    // Collect all active tasks across projects
-    const activeTasks = await this.collectActiveSessions();
+    // Collect all active sessions across projects
+    const activeSessions = await this.collectActiveSessions();
 
     socket.send(
       JSON.stringify({
         type: 'initial',
         data: projects,
-        activeTasks,
+        activeSessions,
         username: this.getUsername(),
       })
     );
