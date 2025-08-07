@@ -48,7 +48,7 @@ PetiteVue.createApp({
   getProjectColor(projectPath) {
     if (!projectPath) return { primary: 'indigo-600', light: 'indigo-100', ring: 'indigo-500' };
     
-    // Create a simple hash from the project path
+    // Create a better hash that spreads similar strings further apart
     let hash = 0;
     for (let i = 0; i < projectPath.length; i++) {
       const char = projectPath.charCodeAt(i);
@@ -56,16 +56,28 @@ PetiteVue.createApp({
       hash = hash & hash; // Convert to 32bit integer
     }
     
-    // Define color palette (avoiding red to prevent confusion with errors)
+    // Add more variation by considering path structure
+    const pathParts = projectPath.split('/');
+    const depth = pathParts.length;
+    const lastPart = pathParts[pathParts.length - 1];
+    
+    // Mix in the depth and last part name for more variation
+    for (let i = 0; i < lastPart.length; i++) {
+      hash = hash ^ (lastPart.charCodeAt(i) * (i + 1) * depth);
+    }
+    
+    // Define color palette with more distinct colors
     const colors = [
       { primary: 'blue-600', light: 'blue-100', ring: 'blue-500', dark: { primary: 'blue-400', light: 'blue-900' } },
-      { primary: 'green-600', light: 'green-100', ring: 'green-500', dark: { primary: 'green-400', light: 'green-900' } },
-      { primary: 'purple-600', light: 'purple-100', ring: 'purple-500', dark: { primary: 'purple-400', light: 'purple-900' } },
-      { primary: 'indigo-600', light: 'indigo-100', ring: 'indigo-500', dark: { primary: 'indigo-400', light: 'indigo-900' } },
+      { primary: 'emerald-600', light: 'emerald-100', ring: 'emerald-500', dark: { primary: 'emerald-400', light: 'emerald-900' } },
+      { primary: 'violet-600', light: 'violet-100', ring: 'violet-500', dark: { primary: 'violet-400', light: 'violet-900' } },
+      { primary: 'amber-600', light: 'amber-100', ring: 'amber-500', dark: { primary: 'amber-400', light: 'amber-900' } },
       { primary: 'teal-600', light: 'teal-100', ring: 'teal-500', dark: { primary: 'teal-400', light: 'teal-900' } },
+      { primary: 'rose-600', light: 'rose-100', ring: 'rose-500', dark: { primary: 'rose-400', light: 'rose-900' } },
       { primary: 'cyan-600', light: 'cyan-100', ring: 'cyan-500', dark: { primary: 'cyan-400', light: 'cyan-900' } },
-      { primary: 'orange-600', light: 'orange-100', ring: 'orange-500', dark: { primary: 'orange-400', light: 'orange-900' } },
-      { primary: 'pink-600', light: 'pink-100', ring: 'pink-500', dark: { primary: 'pink-400', light: 'pink-900' } }
+      { primary: 'fuchsia-600', light: 'fuchsia-100', ring: 'fuchsia-500', dark: { primary: 'fuchsia-400', light: 'fuchsia-900' } },
+      { primary: 'indigo-600', light: 'indigo-100', ring: 'indigo-500', dark: { primary: 'indigo-400', light: 'indigo-900' } },
+      { primary: 'lime-600', light: 'lime-100', ring: 'lime-500', dark: { primary: 'lime-400', light: 'lime-900' } }
     ];
     
     // Select color based on hash
