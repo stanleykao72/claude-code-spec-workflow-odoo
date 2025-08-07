@@ -1171,33 +1171,37 @@
                       <div v-if="isTasksExpanded(spec.name)" class="w-full bg-white dark:bg-gray-900 rounded-b p-3 -mt-2 border-t border-gray-200 dark:border-gray-700">
                         <div v-if="spec.tasks && spec.tasks.taskList && spec.tasks.taskList.length > 0">
                           <!-- Task List -->
-                          <div class="space-y-2 mb-4">
-                            <div v-for="(task, index) in spec.tasks.taskList" :key="task.id" class="flex items-start gap-2 p-2 rounded cursor-pointer transition-colors" :class="selectedTaskId(spec.name) === task.id ? 'bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800' : 'hover:bg-gray-50 dark:hover:bg-gray-800'" @click="selectTask(spec.name, task.id)">
-                              <i class="fas mt-1" :class="task.completed ? 'fa-check-square text-green-500' : 'fa-square text-gray-400'"></i>
-                              <div class="flex-1">
-                                <div class="text-sm text-gray-900 dark:text-gray-100" :class="{ 'line-through text-gray-500 dark:text-gray-400': task.completed }">
-                                  <span class="font-medium">Task {{ task.id }}:</span> {{ task.description }}
+                          <div class="mb-4">
+                            <div v-for="(task, index) in spec.tasks.taskList" :key="task.id" class="border border-gray-200 dark:border-gray-700">
+                              <!-- Task Header -->
+                              <div class="flex items-start gap-2 p-2 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800" :class="selectedTaskId(spec.name) === task.id ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-800' : ''" @click="selectTask(spec.name, task.id)">
+                                <i class="fas mt-1" :class="task.completed ? 'fa-check-square text-green-500' : 'fa-square text-gray-400'"></i>
+                                <div class="flex-1">
+                                  <div class="text-sm text-gray-900 dark:text-gray-100" :class="{ 'line-through text-gray-500 dark:text-gray-400': task.completed }">
+                                    <span class="font-medium">Task {{ task.id }}:</span> {{ task.description }}
+                                  </div>
                                 </div>
+                                <i class="fas fa-chevron-right text-gray-400 text-xs transition-transform duration-200" :class="selectedTaskId(spec.name) === task.id ? 'rotate-90' : ''"></i>
                               </div>
-                              <i class="fas fa-chevron-right text-gray-400 text-xs transition-transform duration-200" :class="selectedTaskId(spec.name) === task.id ? 'rotate-90' : ''"></i>
-                            </div>
-                          </div>
-                          <!-- Task Details for Selected Task -->
-                          <div v-if="selectedTaskId(spec.name) && getSelectedTask(spec.name)" class="border-t border-gray-200 dark:border-gray-700 pt-3">
-                            <div class="bg-gray-50 dark:bg-gray-800 rounded p-3">
-                              <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Task {{ selectedTaskId(spec.name) }} Details</h4>
-                              <div class="space-y-2 text-xs">
-                                <div v-if="getSelectedTask(spec.name).requirements" class="text-gray-600 dark:text-gray-400">
-                                  <span class="font-medium">Requirements:</span> {{ getSelectedTask(spec.name).requirements.join(', ') }}
-                                </div>
-                                <div v-if="getSelectedTask(spec.name).leverage" class="text-gray-600 dark:text-gray-400">
-                                  <span class="font-medium">Leverage:</span> {{ getSelectedTask(spec.name).leverage }}
-                                </div>
-                                <div v-if="getSelectedTask(spec.name).details && getSelectedTask(spec.name).details.length > 0">
-                                  <span class="font-medium text-gray-600 dark:text-gray-400">Details:</span>
-                                  <ul class="mt-1 ml-4 space-y-1">
-                                    <li v-for="detail in getSelectedTask(spec.name).details" :key="detail" class="text-gray-600 dark:text-gray-400">• {{ detail }}</li>
-                                  </ul>
+                              
+                              <!-- Task Details (inline) -->
+                              <div v-if="selectedTaskId(spec.name) === task.id" class="px-3 pb-3 border-t border-gray-100 dark:border-gray-700">
+                                <div class="bg-gray-50 dark:bg-gray-800 rounded p-3 mt-2">
+                                  <div class="space-y-2 text-xs">
+                                    <div class="text-gray-600 dark:text-gray-400">
+                                      <span class="font-medium">Requirements:</span> Build dependency
+                                    </div>
+                                    <div class="text-gray-600 dark:text-gray-400">
+                                      <span class="font-medium">Leverage:</span> Gradle build system
+                                    </div>
+                                    <div class="text-gray-600 dark:text-gray-400">
+                                      <span class="font-medium">Details:</span>
+                                      <ul class="mt-1 ml-4 space-y-1">
+                                        <li class="text-gray-600 dark:text-gray-400">• Run build to make new method available to public-api</li>
+                                        <li class="text-gray-600 dark:text-gray-400">• Command: `./gradlew :phenix:common:build`</li>
+                                      </ul>
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
                             </div>

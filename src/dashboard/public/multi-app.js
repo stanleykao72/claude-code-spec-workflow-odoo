@@ -577,14 +577,11 @@ PetiteVue.createApp({
 
   // Task selection for detail view
   selectTask(specName, taskId) {
-    console.log('selectTask called:', specName, taskId);
     if (this.selectedTasks[specName] === taskId) {
       // Deselect if clicking the same task
       delete this.selectedTasks[specName];
-      console.log('Deselected task');
     } else {
       this.selectedTasks[specName] = taskId;
-      console.log('Selected task:', taskId, 'for spec:', specName);
     }
   },
 
@@ -600,29 +597,16 @@ PetiteVue.createApp({
   // Get selected task object for a spec
   getSelectedTask(specName) {
     const taskId = this.selectedTasks[specName];
-    console.log('getSelectedTask called for spec:', specName, 'taskId:', taskId);
-    
-    if (!taskId) {
-      console.log('No taskId selected for spec:', specName);
-      return null;
-    }
+    if (!taskId) return null;
     
     // Find the project and spec
     const project = this.selectedProject;
-    if (!project || !project.specs) {
-      console.log('No project or specs');
-      return null;
-    }
+    if (!project || !project.specs) return null;
     
     const spec = project.specs.find(s => s.name === specName);
-    if (!spec || !spec.tasks || !spec.tasks.taskList) {
-      console.log('No spec or tasks found for:', specName);
-      return null;
-    }
+    if (!spec || !spec.tasks || !spec.tasks.taskList) return null;
     
-    const task = spec.tasks.taskList.find(task => task.id === taskId);
-    console.log('Found task:', task);
-    return task;
+    return spec.tasks.taskList.find(task => task.id === taskId);
   },
 
   // Requirement accordion functionality (only one open at a time per spec)

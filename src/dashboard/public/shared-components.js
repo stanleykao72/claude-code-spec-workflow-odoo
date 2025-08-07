@@ -287,10 +287,9 @@ const BaseAppState = {
   formatAcceptanceCriteria,
   formatUserStory(story) {
     if (!story) return '';
-    console.log('formatUserStory called with:', story);
     let formatted = story;
     
-    // Simple test - highlight all instances of common keywords
+    // Highlight EARS keywords
     formatted = formatted.replace(/(As a|I want|So that|WHEN|IF|THEN|SHALL)/g, 
       '<span class="ears-keyword">$1</span>'
     );
@@ -298,7 +297,6 @@ const BaseAppState = {
     // Handle any bold text
     formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
     
-    console.log('formatUserStory result:', formatted);
     return formatted;
   },
   
@@ -577,10 +575,9 @@ window.DashboardShared = {
   formatAcceptanceCriteria,
   formatUserStory(story) {
     if (!story) return '';
-    console.log('formatUserStory called with:', story);
     let formatted = story;
     
-    // Simple test - highlight all instances of common keywords
+    // Highlight EARS keywords
     formatted = formatted.replace(/(As a|I want|So that|WHEN|IF|THEN|SHALL)/g, 
       '<span class="ears-keyword">$1</span>'
     );
@@ -588,7 +585,6 @@ window.DashboardShared = {
     // Handle any bold text
     formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
     
-    console.log('formatUserStory result:', formatted);
     return formatted;
   }
 };
