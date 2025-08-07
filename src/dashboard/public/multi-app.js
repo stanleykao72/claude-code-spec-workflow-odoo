@@ -315,6 +315,11 @@ PetiteVue.createApp({
           viewers: 0
         };
         console.log('Tunnel started:', this.tunnelStatus);
+        
+        // Automatically copy tunnel URL to clipboard
+        if (message.data && message.data.url) {
+          this.copyCommand(message.data.url);
+        }
         break;
 
       case 'tunnel:stopped':

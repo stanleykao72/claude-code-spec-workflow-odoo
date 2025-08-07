@@ -23,7 +23,7 @@ program
   .option('-m, --multi', 'Launch multi-project dashboard')
   .option('-t, --tunnel', 'Create a secure tunnel to share the dashboard')
   .option('--tunnel-password <password>', 'Password-protect the tunnel')
-  .option('--tunnel-provider <provider>', 'Tunnel provider to use (cloudflare, ngrok, auto)', 'auto')
+  .option('--tunnel-provider <provider>', 'Tunnel provider to use (cloudflare, ngrok, auto)', 'ngrok')
   .option('--ngrok', 'Create a secure tunnel using Ngrok (alias for --tunnel --tunnel-provider ngrok)')
   .option('--cloudflare', 'Create a secure tunnel using Cloudflare (alias for --tunnel --tunnel-provider cloudflare)')
   .action(async (options) => {

@@ -20,7 +20,7 @@ import { debug } from '../logger';
 const DEFAULT_CONFIG: TunnelConfig = {
   providers: {},
   defaults: {
-    provider: 'auto',
+    provider: 'ngrok',
     ttl: 60, // 1 hour
     maxViewers: 10
   },
