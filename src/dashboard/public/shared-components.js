@@ -497,17 +497,19 @@ const BaseAppState = {
     if (session.status) return session.status;
     
     // Otherwise try to determine from the documents
-    if (session.tasks?.inProgress || (session.task && !session.task.completed)) {
+    // Only show "in-progress" (implementing) if tasks are approved AND there's an active task
+    if (session.tasks?.approved && (session.tasks?.inProgress || (session.task && !session.task.completed))) {
       return 'in-progress';
-    } else if (session.tasks?.approved) {
+    } else if (session.tasks?.exists && !session.tasks?.approved) {
       return 'tasks';
-    } else if (session.design?.approved) {
+    } else if (session.design?.exists && !session.design?.approved) {
       return 'design';
-    } else if (session.requirements?.approved) {
+    } else if (session.requirements?.exists && !session.requirements?.approved) {
       return 'requirements';
     }
     
-    return 'requirements'; // Default
+    // If nothing exists yet, we're at requirements
+    return 'requirements';
   },
   
   getSpecStatusLabel(session) {
