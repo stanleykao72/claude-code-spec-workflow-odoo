@@ -969,8 +969,9 @@
                   v-if="selectedSpec?.name === spec.name"
                   class="px-6 pb-6 pt-4 border-t border-gray-200 dark:border-gray-700"
                 >
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-                    <div>
+                  <div :class="isRequirementsExpanded(spec.name) || isDesignExpanded(spec.name) ? 'grid grid-cols-1 gap-6 mb-4' : 'grid grid-cols-1 md:grid-cols-2 gap-6 mb-4'">
+                    <div v-show="!isDesignExpanded(spec.name)"
+                         :class="isRequirementsExpanded(spec.name) ? 'col-span-1' : ''">
                       <h4 class="font-medium text-gray-900 dark:text-white mb-2">
                         <i class="fas fa-clipboard-list mr-1"></i> Requirements
                         <button
@@ -1077,7 +1078,8 @@
                       </div>
                       <p v-else class="text-sm text-gray-400 dark:text-gray-500">Not created</p>
                     </div>
-                    <div>
+                    <div v-show="!isRequirementsExpanded(spec.name)"
+                         :class="isDesignExpanded(spec.name) ? 'col-span-1' : ''">
                       <h4 class="font-medium text-gray-900 dark:text-white mb-2">
                         <i class="fas fa-drafting-compass mr-1"></i> Design
                         <button

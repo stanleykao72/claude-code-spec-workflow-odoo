@@ -484,6 +484,8 @@ PetiteVue.createApp({
       delete this.expandedRequirements[specName];
     } else {
       this.expandedRequirements[specName] = true;
+      // Hide design details when requirements are expanded
+      delete this.expandedDesigns[specName];
     }
   },
 
@@ -505,6 +507,8 @@ PetiteVue.createApp({
       delete this.expandedDesigns[specName];
     } else {
       this.expandedDesigns[specName] = true;
+      // Hide requirements details when design is expanded
+      delete this.expandedRequirements[specName];
     }
   },
 
