@@ -230,6 +230,92 @@ export class MultiProjectDashboardServer {
       }
     });
 
+    // Tunnel API endpoints
+    this.app.get('/api/tunnel/status', async () => {
+      const status = this.getTunnelStatus();
+      return status;
+    });
+
+    this.app.post('/api/tunnel/start', async (request, reply) => {
+      if (this.tunnelManager) {
+        // Tunnel already initialized
+        const status = this.getTunnelStatus();
+        if (status.active) {
+          return { success: true, message: 'Tunnel already active', tunnelInfo: status.info };
+        }
+      }
+      
+      // Initialize tunnel if not already done
+      if (!this.tunnelManager) {
+        this.tunnelManager = new TunnelManager(this.app);
+        this.tunnelManager.registerProvider(new CloudflareProvider());
+        this.tunnelManager.registerProvider(new NgrokProvider());
+        
+        // Listen for tunnel events
+        this.tunnelManager.on('tunnel:started', (tunnelInfo) => {
+          debug('Tunnel started event:', tunnelInfo);
+          this.broadcast({
+            type: 'tunnel:started',
+            data: tunnelInfo
+          });
+        });
+        
+        this.tunnelManager.on('tunnel:stopped', (data) => {
+          debug('Tunnel stopped event:', data);
+          this.broadcast({
+            type: 'tunnel:stopped',
+            data: data || {}
+          });
+        });
+        
+        this.tunnelManager.on('tunnel:metrics:updated', (metrics) => {
+          debug('Tunnel metrics updated:', metrics);
+          this.broadcast({
+            type: 'tunnel:metrics:updated',
+            data: metrics
+          });
+        });
+      }
+      
+      try {
+        const tunnelOptions: TunnelOptions = {
+          provider: this.options.tunnelProvider,
+          password: this.options.tunnelPassword,
+          analytics: true
+        };
+        
+        const tunnelInfo = await this.tunnelManager.startTunnel(tunnelOptions);
+        debug('Tunnel started via API:', tunnelInfo);
+        
+        return { success: true, tunnelInfo };
+      } catch (error) {
+        console.error('Error starting tunnel:', error);
+        reply.code(500).send({ error: 'Failed to start tunnel', details: (error as any).message });
+      }
+    });
+
+    this.app.post('/api/tunnel/stop', async (request, reply) => {
+      if (!this.tunnelManager) {
+        reply.code(404).send({ error: 'No tunnel manager available' });
+        return;
+      }
+      
+      try {
+        await this.tunnelManager.stopTunnel();
+        
+        // Broadcast tunnel stopped event
+        this.broadcast({
+          type: 'tunnel:stopped',
+          data: {}
+        });
+        
+        return { success: true };
+      } catch (error) {
+        console.error('Error stopping tunnel:', error);
+        reply.code(500).send({ error: 'Failed to stop tunnel' });
+      }
+    });
+
     // Find available port if the requested port is busy
     let actualPort = this.options.port;
     if (!(await isPortAvailable(this.options.port))) {

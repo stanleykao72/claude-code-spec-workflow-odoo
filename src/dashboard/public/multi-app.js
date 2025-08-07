@@ -18,6 +18,7 @@ PetiteVue.createApp({
   selectedTasks: {}, // Track selected task per spec
   pendingProjectRoute: null, // Store project route when projects haven't loaded yet
   showCompleted: localStorage.getItem('showCompleted') !== 'false', // Default to true, stored in localStorage
+  tunnelStatus: null,
 
   // Computed properties
   get activeSessionCount() {
@@ -124,6 +125,7 @@ PetiteVue.createApp({
     this.setupCodeBlockCopyHandlers();
     this.initializeRouting();
     this.connectWebSocket();
+    this.fetchTunnelStatus();
   },
 
   // Connect to WebSocket for real-time updates
@@ -303,6 +305,30 @@ PetiteVue.createApp({
             // Remove bug
             project.bugs = project.bugs.filter((b) => b.name !== bugEvent.bug);
           }
+        }
+        break;
+
+      case 'tunnel:started':
+        this.tunnelStatus = {
+          active: true,
+          info: message.data,
+          viewers: 0
+        };
+        console.log('Tunnel started:', this.tunnelStatus);
+        break;
+
+      case 'tunnel:stopped':
+        this.tunnelStatus = {
+          active: false,
+          info: null,
+          viewers: 0
+        };
+        console.log('Tunnel stopped:', this.tunnelStatus);
+        break;
+
+      case 'tunnel:metrics:updated':
+        if (this.tunnelStatus) {
+          this.tunnelStatus.viewers = message.data.viewers || 0;
         }
         break;
 
@@ -486,8 +512,6 @@ PetiteVue.createApp({
       delete this.expandedRequirements[specName];
     } else {
       this.expandedRequirements[specName] = true;
-      // Hide design details when requirements are expanded
-      delete this.expandedDesigns[specName];
     }
   },
 
@@ -509,8 +533,6 @@ PetiteVue.createApp({
       delete this.expandedDesigns[specName];
     } else {
       this.expandedDesigns[specName] = true;
-      // Hide requirements details when design is expanded
-      delete this.expandedRequirements[specName];
     }
   },
 
@@ -856,5 +878,73 @@ PetiteVue.createApp({
   toggleShowCompleted() {
     this.showCompleted = !this.showCompleted;
     localStorage.setItem('showCompleted', this.showCompleted);
+  },
+
+  // Fetch tunnel status
+  async fetchTunnelStatus() {
+    try {
+      const response = await fetch('/api/tunnel/status');
+      if (response.ok) {
+        this.tunnelStatus = await response.json();
+        console.log('Tunnel status:', this.tunnelStatus);
+      } else {
+        // No tunnel or error - set inactive status
+        this.tunnelStatus = { active: false };
+      }
+    } catch (error) {
+      console.error('Error fetching tunnel status:', error);
+      this.tunnelStatus = { active: false };
+    }
+  },
+
+  // Start tunnel
+  async startTunnel() {
+    try {
+      const response = await fetch('/api/tunnel/start', { method: 'POST' });
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Tunnel started successfully:', data);
+      } else {
+        console.error('Failed to start tunnel:', response.status);
+        alert('Failed to start tunnel. Check the console for details.');
+      }
+    } catch (error) {
+      console.error('Error starting tunnel:', error);
+      alert('Error starting tunnel. Check the console for details.');
+    }
+  },
+
+  // Stop tunnel
+  async stopTunnel() {
+    try {
+      const response = await fetch('/api/tunnel/stop', { method: 'POST' });
+      if (response.ok) {
+        this.tunnelStatus = { active: false };
+        console.log('Tunnel stopped successfully');
+      } else {
+        console.error('Failed to stop tunnel:', response.status);
+      }
+    } catch (error) {
+      console.error('Error stopping tunnel:', error);
+    }
+  },
+
+
+  // Format tunnel expiry time
+  formatTunnelExpiry(expiresAt) {
+    if (!expiresAt) return '';
+    const expires = new Date(expiresAt);
+    const now = new Date();
+    const diffMs = expires - now;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    
+    if (diffHours > 0) {
+      return `in ${diffHours}h ${diffMins % 60}m`;
+    } else if (diffMins > 0) {
+      return `in ${diffMins}m`;
+    } else {
+      return 'soon';
+    }
   }
 }).mount('#app');

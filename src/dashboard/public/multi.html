@@ -385,11 +385,43 @@
       >
         <div class="max-w-full px-4 sm:px-6 lg:px-8">
           <div class="flex justify-between items-center py-3">
-            <div class="flex items-center">
-              <img src="/public/claude-icon.svg" alt="Claude" class="w-6 h-6 mr-2" />
-              <h1 class="text-xl font-bold text-gray-900 dark:text-white">
-                {{ username }}'s Dashboard
-              </h1>
+            <div class="flex items-center gap-4">
+              <div class="flex items-center">
+                <img src="/public/claude-icon.svg" alt="Claude" class="w-6 h-6 mr-2" />
+                <h1 class="text-xl font-bold text-gray-900 dark:text-white">
+                  {{ username }}'s Dashboard
+                </h1>
+              </div>
+              <!-- Tunnel Management Buttons -->
+              <div class="flex items-center gap-2">
+                <button
+                  v-if="!tunnelStatus?.active"
+                  @click="startTunnel()"
+                  class="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  title="Start public tunnel"
+                >
+                  <i class="fas fa-play-circle mr-2"></i>
+                  <span>Share</span>
+                </button>
+                <button
+                  v-if="tunnelStatus?.active"
+                  @click="copyCommand(tunnelStatus.info.url, $event)"
+                  class="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/50 hover:bg-indigo-100 dark:hover:bg-indigo-900/70 transition-colors"
+                  title="Copy tunnel URL"
+                >
+                  <i class="fas fa-globe mr-2"></i>
+                  <span>Share</span>
+                  <span v-if="tunnelStatus.viewers !== undefined" class="ml-1 text-xs opacity-75">({{ tunnelStatus.viewers }} viewers)</span>
+                </button>
+                <button
+                  v-if="tunnelStatus?.active"
+                  @click="stopTunnel()"
+                  class="inline-flex items-center px-2 py-1.5 border border-red-300 dark:border-red-600 text-sm font-medium rounded-md text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/50 hover:bg-red-100 dark:hover:bg-red-900/70 transition-colors"
+                  title="Stop tunnel"
+                >
+                  <i class="fas fa-stop"></i>
+                </button>
+              </div>
             </div>
             <div class="flex items-center gap-3">
               <span class="text-sm text-gray-600 dark:text-gray-400">
@@ -981,9 +1013,43 @@
                   v-if="selectedSpec?.name === spec.name"
                   class="px-6 pb-6 pt-4 border-t border-gray-200 dark:border-gray-700"
                 >
-                  <div :class="isRequirementsExpanded(spec.name) || isDesignExpanded(spec.name) ? 'grid grid-cols-1 gap-6 mb-4' : 'grid grid-cols-1 md:grid-cols-2 gap-6 mb-4'">
-                    <div v-show="!isDesignExpanded(spec.name)"
-                         :class="isRequirementsExpanded(spec.name) ? 'col-span-1' : ''">
+                  <!-- Status Section with Action Buttons -->
+                  <div class="mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center gap-4">
+                        <h4 class="font-medium text-gray-900 dark:text-white">
+                          <i class="fas fa-info-circle mr-1"></i> Status
+                        </h4>
+                        <span class="text-sm text-gray-600 dark:text-gray-400">
+                          Phase: {{ spec.status }}
+                        </span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <button
+                          v-if="spec.requirements?.approved && spec.design?.approved && spec.tasks?.approved"
+                          @click.stop="copyOrchestrateCommand(spec, $event)"
+                          class="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 flex items-center gap-1"
+                          title="Copy orchestrate command (all docs approved)"
+                        >
+                          <i class="fas fa-robot"></i>
+                          <span>/spec-orchestrate</span>
+                        </button>
+                        <button
+                          v-if="spec.tasks && spec.tasks.taskList && spec.tasks.taskList.length > 0 && spec.tasks.completed < spec.tasks.total"
+                          @click.stop="copyNextTaskCommand(spec, $event)"
+                          class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
+                          :title="`Copy command for next task`"
+                        >
+                          <i class="fas fa-copy"></i>
+                          <span>/spec-execute</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="space-y-6 mb-4">
+                    <div class="flex gap-6" :class="(isRequirementsExpanded(spec.name) || isDesignExpanded(spec.name)) ? 'flex-col' : 'flex-col lg:flex-row'">
+                      <div :class="(isRequirementsExpanded(spec.name) || isDesignExpanded(spec.name)) ? 'w-full' : 'flex-1'">
                       <h4 class="font-medium text-gray-900 dark:text-white mb-2">
                         <i class="fas fa-clipboard-list mr-1"></i> Requirements
                         <button
@@ -1090,8 +1156,8 @@
                       </div>
                       <p v-else class="text-sm text-gray-400 dark:text-gray-500">Not created</p>
                     </div>
-                    <div v-show="!isRequirementsExpanded(spec.name)"
-                         :class="isDesignExpanded(spec.name) ? 'col-span-1' : ''">
+                      </div>
+                      <div :class="(isRequirementsExpanded(spec.name) || isDesignExpanded(spec.name)) ? 'w-full' : 'flex-1'">
                       <h4 class="font-medium text-gray-900 dark:text-white mb-2">
                         <i class="fas fa-drafting-compass mr-1"></i> Design
                         <button
@@ -1156,6 +1222,8 @@
                       </div>
                       <p v-else class="text-sm text-gray-400 dark:text-gray-500">Not created</p>
                     </div>
+                      </div>
+                    </div>
                   </div>
 
                   <!-- Task list -->
@@ -1177,24 +1245,6 @@
                         </button>
                       </h4>
                       <div class="flex items-center gap-2">
-                        <button
-                          v-if="spec.requirements?.approved && spec.design?.approved && spec.tasks?.approved"
-                          @click.stop="copyOrchestrateCommand(spec, $event)"
-                          class="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 flex items-center gap-1"
-                          title="Copy orchestrate command (all docs approved)"
-                        >
-                          <i class="fas fa-robot"></i>
-                          <span>/spec-orchestrate</span>
-                        </button>
-                        <button
-                          v-if="spec.tasks.completed < spec.tasks.total"
-                          @click.stop="copyNextTaskCommand(spec, $event)"
-                          class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
-                          :title="`Copy command for next task`"
-                        >
-                          <i class="fas fa-copy"></i>
-                          <span>/spec-execute</span>
-                        </button>
                         <button
                           @click.stop="toggleTasksExpanded(spec.name)"
                           class="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex items-center gap-1"
