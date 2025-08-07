@@ -988,6 +988,10 @@
                       <span v-if="spec.tasks" class="text-xs" :title="spec.tasks.approved ? 'Tasks Approved' : 'Tasks Pending'">
                         <i class="fas fa-tasks" :class="spec.tasks.approved ? 'text-green-500' : 'text-yellow-500'"></i>
                       </span>
+                      <!-- Orchestration Indicator -->
+                      <span v-if="spec.requirements?.approved && spec.design?.approved && spec.tasks?.approved" class="text-xs" title="Orchestration Available - All docs approved">
+                        <i class="fas fa-robot text-purple-500"></i>
+                      </span>
                     </div>
                     <span v-if="spec.status === 'completed'" class="text-sm text-gray-500 dark:text-gray-400">
                       <i class="fas fa-clock mr-1"></i>
