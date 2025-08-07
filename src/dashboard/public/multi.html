@@ -539,7 +539,7 @@
               class="py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap flex items-center gap-1 relative"
               :class="[
                 activeTab === 'projects' && selectedProject?.path === project.path ? `tab-active border-${getProjectColor(project.path).primary}` : 'text-gray-600 dark:text-gray-400 border-transparent hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-gray-600',
-                project.level > 0 ? 'pl-8 pr-2' : 'px-3',
+                project.level > 0 ? 'pl-3 pr-2' : 'px-3',
                 // Visual grouping with lighter backgrounds (different from selected state)
                 project.level === 0 && index < getGroupedProjects().length - 1 && getGroupedProjects()[index + 1].level > 0 ? `bg-${getProjectColor(project.path).light} dark:bg-${getProjectColor(project.path).dark?.light || 'gray-800'}/20 rounded-tl-lg border-l-2 border-t-2 border-${getProjectColor(project.path).primary}/30` : '',
                 project.level > 0 ? `bg-${getProjectColor(project.path).light} dark:bg-${getProjectColor(project.path).dark?.light || 'gray-800'}/20 border-t-2 border-${getProjectColor(project.path).primary}/30` : '',
@@ -549,7 +549,7 @@
               ]"
             >
               <!-- Improved tree connector for nested projects -->
-              <span v-if="project.level > 0" class="absolute left-3 text-gray-400 text-xs">
+              <span v-if="project.level > 0" class="text-gray-400 text-xs mr-1">
                 <span v-if="project.level === 1">├─</span>
                 <span v-else-if="project.level === 2">&nbsp;&nbsp;└─</span>
                 <span v-else>&nbsp;&nbsp;&nbsp;&nbsp;└─</span>
@@ -557,7 +557,7 @@
               
               <span
                 v-if="project.hasActiveSession"
-                class="w-2 h-2 rounded-full animate-pulse"
+                class="w-2 h-2 rounded-full animate-pulse flex-shrink-0"
                 :class="`bg-${getProjectColor(project.path).primary}`"
                 title="Active Claude session"
               ></span>
