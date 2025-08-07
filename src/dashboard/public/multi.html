@@ -1033,7 +1033,7 @@
                             :id="`${spec.name}-req-${requirement.id}`"
                             class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 scroll-mt-20"
                           >
-                            <div>
+                            <div v-if="requirement && requirement.id">
                               <h5 class="text-sm font-medium text-gray-900 dark:text-white mb-2">
                                 <strong>{{ requirement.id }}:</strong> {{
                                 requirement.title || 'No title' }}
