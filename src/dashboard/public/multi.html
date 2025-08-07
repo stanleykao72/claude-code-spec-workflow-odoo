@@ -619,6 +619,33 @@
                         </a>
                       </h2>
                     </div>
+                    <!-- Approval indicators and orchestration -->
+                    <div class="flex items-center gap-3 mt-2">
+                      <div class="flex items-center gap-2">
+                        <span v-if="session.requirements" class="text-xs" :title="session.requirements.approved ? 'Requirements Approved' : 'Requirements Pending'">
+                          <i class="fas fa-clipboard-list" :class="session.requirements.approved ? 'text-green-500' : 'text-yellow-500'"></i>
+                        </span>
+                        <span v-if="session.design" class="text-xs" :title="session.design.approved ? 'Design Approved' : 'Design Pending'">
+                          <i class="fas fa-drafting-compass" :class="session.design.approved ? 'text-green-500' : 'text-yellow-500'"></i>
+                        </span>
+                        <span v-if="session.tasks" class="text-xs" :title="session.tasks.approved ? 'Tasks Approved' : 'Tasks Pending'">
+                          <i class="fas fa-tasks" :class="session.tasks.approved ? 'text-green-500' : 'text-yellow-500'"></i>
+                        </span>
+                        <!-- Orchestration Indicator and Button -->
+                        <span v-if="session.requirements?.approved && session.design?.approved && session.tasks?.approved" class="text-xs" title="Orchestration Available - All docs approved">
+                          <i class="fas fa-robot text-green-500"></i>
+                        </span>
+                      </div>
+                      <button
+                        v-if="session.requirements?.approved && session.design?.approved && session.tasks?.approved"
+                        @click.stop="copyCommand(`/spec-orchestrate ${session.specName}`, $event)"
+                        class="text-xs text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 flex items-center gap-1"
+                        :title="`Copy command: /spec-orchestrate ${session.specName}`"
+                      >
+                        <i class="fas fa-robot mr-1"></i>
+                        <span>/spec-orchestrate</span>
+                      </button>
+                    </div>
                     <!-- Git info pills -->
                     <div class="flex items-center gap-2 mt-2">
                       <span
