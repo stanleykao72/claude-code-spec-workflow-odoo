@@ -500,7 +500,7 @@ export class SpecParser {
 
     // Match the actual format: "- [x] 1. Create GraphQL queries..." or "- [ ] **1. Task description**" or "- [ ] **Task 1.1**: Description"
     const taskRegex = /^(\s*)- \[([ x])\] (?:\*\*)?(?:Task\s+)?(\d+(?:\.\d+)*)\.*:?\s*\*?\*?:?\s*(.+?)(?:\*\*)?$/;
-    const requirementsRegex = /_Requirements: ([\d., ]+)/;
+    const requirementsRegex = /_Requirements: (.+?)_?$/;
     const leverageRegex = /_Leverage: (.+?)_?$/;
     // Removed _In Progress: parsing - now automatically using first uncompleted task
 
