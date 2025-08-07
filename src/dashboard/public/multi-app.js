@@ -253,13 +253,19 @@ PetiteVue.createApp({
               project.gitBranch = event.data.branch;
               project.gitCommit = event.data.commit;
               break;
-              
-            case 'steering-update':
-              project.steering = event.data;
-              break;
           }
           
           this.sortProjects();
+        }
+        break;
+
+      case 'steering-update':
+        // Handle steering document updates
+        const steeringProjectPath = message.projectPath;
+        const steeringProject = this.projects.find((p) => p.path === steeringProjectPath);
+        if (steeringProject) {
+          steeringProject.steering = message.data;
+          console.log(`Steering documents updated for ${steeringProject.name}:`, message.data);
         }
         break;
 
