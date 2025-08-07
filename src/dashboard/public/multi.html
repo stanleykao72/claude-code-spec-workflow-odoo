@@ -19,7 +19,14 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
       [v-cloak] {
+        display: none !important;
+      }
+      /* Ensure markdown modal is hidden initially */
+      .markdown-modal {
         display: none;
+      }
+      .markdown-modal.show {
+        display: flex !important;
       }
       .tab-active {
         border-bottom-color: #6366f1;
@@ -1472,7 +1479,7 @@
       </main>
       
       <!-- Markdown Preview Modal -->
-      <div v-if="markdownPreview.show" v-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50" @click.self="closeMarkdownPreview()">
+      <div class="markdown-modal fixed inset-0 z-50 items-center justify-center p-4 bg-black bg-opacity-50" :class="{'show': markdownPreview.show}" v-cloak @click.self="closeMarkdownPreview()">
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col" @click.stop>
         <!-- Modal Header -->
         <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
