@@ -237,60 +237,81 @@ export class MultiProjectDashboardServer {
     });
 
     this.app.post('/api/tunnel/start', async (request, reply) => {
-      if (this.tunnelManager) {
-        // Tunnel already initialized
+      try {
+        // Always ensure tunnel manager is initialized
+        if (!this.tunnelManager) {
+          this.tunnelManager = new TunnelManager(this.app);
+          this.tunnelManager.registerProvider(new CloudflareProvider());
+          this.tunnelManager.registerProvider(new NgrokProvider());
+          
+          // Listen for tunnel events
+          this.tunnelManager.on('tunnel:started', (tunnelInfo) => {
+            console.log(`✅ Tunnel started: ${tunnelInfo.url} (${tunnelInfo.provider})`);
+            debug('Tunnel started event:', tunnelInfo);
+            this.broadcast({
+              type: 'tunnel:started',
+              data: tunnelInfo
+            });
+          });
+          
+          this.tunnelManager.on('tunnel:stopped', (data) => {
+            console.log('🛑 Tunnel stopped');
+            debug('Tunnel stopped event:', data);
+            this.broadcast({
+              type: 'tunnel:stopped',
+              data: data || {}
+            });
+          });
+          
+          this.tunnelManager.on('tunnel:metrics:updated', (metrics) => {
+            debug('Tunnel metrics updated:', metrics);
+            this.broadcast({
+              type: 'tunnel:metrics:updated',
+              data: metrics
+            });
+          });
+          
+          this.tunnelManager.on('tunnel:visitor:new', (visitor) => {
+            console.log(`👤 New tunnel visitor from ${visitor.country || 'Unknown'}`);
+            debug('New tunnel visitor:', visitor);
+          });
+          
+          this.tunnelManager.on('tunnel:recovery:start', (data) => {
+            console.log(`🔄 Tunnel recovery started (attempt ${data.attempt})`);
+          });
+          
+          this.tunnelManager.on('tunnel:recovery:success', () => {
+            console.log('✅ Tunnel recovery successful');
+          });
+          
+          this.tunnelManager.on('tunnel:recovery:failed', (data) => {
+            console.log(`❌ Tunnel recovery failed: ${data.error}`);
+          });
+        }
+        
+        // Check if tunnel is already active
         const status = this.getTunnelStatus();
         if (status.active) {
           return { success: true, message: 'Tunnel already active', tunnelInfo: status.info };
         }
-      }
-      
-      // Initialize tunnel if not already done
-      if (!this.tunnelManager) {
-        this.tunnelManager = new TunnelManager(this.app);
-        this.tunnelManager.registerProvider(new CloudflareProvider());
-        this.tunnelManager.registerProvider(new NgrokProvider());
         
-        // Listen for tunnel events
-        this.tunnelManager.on('tunnel:started', (tunnelInfo) => {
-          debug('Tunnel started event:', tunnelInfo);
-          this.broadcast({
-            type: 'tunnel:started',
-            data: tunnelInfo
-          });
-        });
-        
-        this.tunnelManager.on('tunnel:stopped', (data) => {
-          debug('Tunnel stopped event:', data);
-          this.broadcast({
-            type: 'tunnel:stopped',
-            data: data || {}
-          });
-        });
-        
-        this.tunnelManager.on('tunnel:metrics:updated', (metrics) => {
-          debug('Tunnel metrics updated:', metrics);
-          this.broadcast({
-            type: 'tunnel:metrics:updated',
-            data: metrics
-          });
-        });
-      }
-      
-      try {
+        // Start tunnel with options from command line
         const tunnelOptions: TunnelOptions = {
           provider: this.options.tunnelProvider,
           password: this.options.tunnelPassword,
           analytics: true
         };
         
+        console.log(`🚀 Starting tunnel (provider: ${tunnelOptions.provider || 'auto'})...`);
+        debug(`Starting tunnel with provider: ${tunnelOptions.provider || 'auto'}`);
         const tunnelInfo = await this.tunnelManager.startTunnel(tunnelOptions);
         debug('Tunnel started via API:', tunnelInfo);
         
         return { success: true, tunnelInfo };
       } catch (error) {
         console.error('Error starting tunnel:', error);
-        reply.code(500).send({ error: 'Failed to start tunnel', details: (error as any).message });
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        reply.code(500).send({ error: 'Failed to start tunnel', details: errorMessage });
       }
     });
 
@@ -805,6 +826,50 @@ export class MultiProjectDashboardServer {
     this.tunnelManager.registerProvider(new CloudflareProvider());
     this.tunnelManager.registerProvider(new NgrokProvider());
     
+    // Listen for tunnel events
+    this.tunnelManager.on('tunnel:started', (tunnelInfo) => {
+      console.log(`✅ Tunnel started: ${tunnelInfo.url} (${tunnelInfo.provider})`);
+      debug('Tunnel started event:', tunnelInfo);
+      this.broadcast({
+        type: 'tunnel:started',
+        data: tunnelInfo
+      });
+    });
+    
+    this.tunnelManager.on('tunnel:stopped', (data) => {
+      console.log('🛑 Tunnel stopped');
+      debug('Tunnel stopped event:', data);
+      this.broadcast({
+        type: 'tunnel:stopped',
+        data: data || {}
+      });
+    });
+    
+    this.tunnelManager.on('tunnel:metrics:updated', (metrics) => {
+      debug('Tunnel metrics updated:', metrics);
+      this.broadcast({
+        type: 'tunnel:metrics:updated',
+        data: metrics
+      });
+    });
+    
+    this.tunnelManager.on('tunnel:visitor:new', (visitor) => {
+      console.log(`👤 New tunnel visitor from ${visitor.country || 'Unknown'}`);
+      debug('New tunnel visitor:', visitor);
+    });
+    
+    this.tunnelManager.on('tunnel:recovery:start', (data) => {
+      console.log(`🔄 Tunnel recovery started (attempt ${data.attempt})`);
+    });
+    
+    this.tunnelManager.on('tunnel:recovery:success', () => {
+      console.log('✅ Tunnel recovery successful');
+    });
+    
+    this.tunnelManager.on('tunnel:recovery:failed', (data) => {
+      console.log(`❌ Tunnel recovery failed: ${data.error}`);
+    });
+    
     // Start tunnel with options
     const tunnelOptions: TunnelOptions = {
       provider: this.options.tunnelProvider,
@@ -813,14 +878,9 @@ export class MultiProjectDashboardServer {
     };
     
     try {
+      console.log(`🚀 Starting tunnel (provider: ${tunnelOptions.provider || 'auto'})...`);
       const tunnelInfo = await this.tunnelManager.startTunnel(tunnelOptions);
       debug('Tunnel created:', tunnelInfo);
-      
-      // Broadcast tunnel status to all connected clients
-      this.broadcast({
-        type: 'tunnel:started',
-        data: tunnelInfo
-      });
     } catch (error) {
       if (error instanceof TunnelProviderError) {
         console.error('Tunnel setup failed:', error.getUserFriendlyMessage());
