@@ -1182,7 +1182,7 @@
                         </button>
                       </div>
                     </div>
-                    <div v-if="isTasksExpanded(spec.name)" class="space-y-1">
+                    <div class="space-y-1">
                       <div
                         v-for="task in getVisibleTasks(spec)"
                         :key="task.id"
@@ -1206,7 +1206,7 @@
                               :title="getTaskTooltip(task)"
                               >{{ task.description }}</span>
                             <button
-                              v-if="!task.completed"
+                              v-if="!task.completed && isTasksExpanded(spec.name)"
                               @click.stop="copyTaskCommand(spec.name, task.id, $event)"
                               class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
                               :title="`Copy command: /spec-execute ${spec.name} ${task.id}`"
@@ -1216,7 +1216,7 @@
                             </button>
                           </div>
                           <!-- Task Details on separate line -->
-                          <div v-if="task.details && task.details.length > 0 || task.requirements && task.requirements.length > 0 || task.leverage" class="mt-1 ml-6 space-y-1 text-xs">
+                          <div v-if="isTasksExpanded(spec.name) && (task.details && task.details.length > 0 || task.requirements && task.requirements.length > 0 || task.leverage)" class="mt-1 ml-6 space-y-1 text-xs">
                             <!-- Task Steps -->
                             <div v-if="task.details && task.details.length > 0" class="text-gray-600 dark:text-gray-400">
                               <ul class="space-y-0.5">
