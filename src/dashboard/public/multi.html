@@ -1073,7 +1073,7 @@
                       <!-- Requirements Expanded Content - Accordion -->
                       <div v-if="isRequirementsExpanded(spec.name)" class="w-full bg-white dark:bg-gray-900 rounded-b p-3 -mt-2 border-t border-gray-200 dark:border-gray-700">
                         <div v-if="spec.requirements && spec.requirements.content && spec.requirements.content.length > 0">
-                          <div v-for="(requirement, index) in spec.requirements.content" :key="requirement.id || index" class="border border-gray-200 dark:border-gray-700 rounded-lg">
+                          <div v-for="(requirement, index) in spec.requirements.content" :key="requirement.id || index" class="border border-gray-200 dark:border-gray-700">
                             <!-- Requirement Header -->
                             <div class="p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" @click="toggleRequirementAccordion(spec.name, requirement.id || index)">
                               <div class="flex items-center justify-between">

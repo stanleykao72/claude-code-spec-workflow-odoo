@@ -287,26 +287,18 @@ const BaseAppState = {
   formatAcceptanceCriteria,
   formatUserStory(story) {
     if (!story) return '';
+    console.log('formatUserStory called with:', story);
     let formatted = story;
     
-    // Handle user story keywords with bold formatting first (most specific)
-    formatted = formatted.replace(/\*\*(As a|I want|So that)\*\*/gi, 
-      '<span class="ears-keyword font-semibold">$1</span>'
-    );
-    
-    // Handle EARS keywords (WHEN, IF, THEN, SHALL) - avoid already processed spans
-    formatted = formatted.replace(/\b(WHEN|IF|THEN|SHALL)\b(?![^<]*<\/span>)/g, 
+    // Simple test - highlight all instances of common keywords
+    formatted = formatted.replace(/(As a|I want|So that|WHEN|IF|THEN|SHALL)/g, 
       '<span class="ears-keyword">$1</span>'
     );
     
-    // Handle remaining user story keywords without bold formatting - avoid already processed spans
-    formatted = formatted.replace(/\b(As a|I want|So that)\b(?![^<]*<\/span>)/gi, 
-      '<span class="ears-keyword font-semibold">$1</span>'
-    );
-    
-    // Then handle any remaining bold text
+    // Handle any bold text
     formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
     
+    console.log('formatUserStory result:', formatted);
     return formatted;
   },
   
@@ -585,26 +577,18 @@ window.DashboardShared = {
   formatAcceptanceCriteria,
   formatUserStory(story) {
     if (!story) return '';
+    console.log('formatUserStory called with:', story);
     let formatted = story;
     
-    // Handle user story keywords with bold formatting first (most specific)
-    formatted = formatted.replace(/\*\*(As a|I want|So that)\*\*/gi, 
-      '<span class="ears-keyword font-semibold">$1</span>'
-    );
-    
-    // Handle EARS keywords (WHEN, IF, THEN, SHALL) - avoid already processed spans
-    formatted = formatted.replace(/\b(WHEN|IF|THEN|SHALL)\b(?![^<]*<\/span>)/g, 
+    // Simple test - highlight all instances of common keywords
+    formatted = formatted.replace(/(As a|I want|So that|WHEN|IF|THEN|SHALL)/g, 
       '<span class="ears-keyword">$1</span>'
     );
     
-    // Handle remaining user story keywords without bold formatting - avoid already processed spans
-    formatted = formatted.replace(/\b(As a|I want|So that)\b(?![^<]*<\/span>)/gi, 
-      '<span class="ears-keyword font-semibold">$1</span>'
-    );
-    
-    // Then handle any remaining bold text
+    // Handle any bold text
     formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
     
+    console.log('formatUserStory result:', formatted);
     return formatted;
   }
 };
