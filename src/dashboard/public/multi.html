@@ -606,7 +606,8 @@
                     <div class="flex items-center gap-2 mb-2">
                       <span
                         v-if="session.isCurrentlyActive"
-                        class="w-3 h-3 bg-yellow-500 rounded-full animate-pulse"
+                        class="w-3 h-3 rounded-full animate-pulse"
+                        :class="`bg-${getProjectColor(session.projectPath).primary}`"
                         title="Currently active"
                       ></span>
                       <h2 class="text-xl font-bold text-gray-900 dark:text-white">
