@@ -126,6 +126,35 @@ PetiteVue.createApp({
     return color;
   },
 
+  // Get CSS classes for project color
+  getProjectColorClasses(projectPath, type = 'text') {
+    const color = this.getProjectColor(projectPath);
+    if (!color) return '';
+    
+    const isDark = document.documentElement.classList.contains('dark');
+    
+    switch(type) {
+      case 'text':
+        return isDark && color.dark?.primary ? `text-${color.dark.primary}` : `text-${color.primary}`;
+      case 'bg':
+        return isDark && color.dark?.light ? `bg-${color.dark.light}` : `bg-${color.light}`;
+      case 'bg-primary':
+        return `bg-${color.primary}`;
+      case 'border':
+        return `border-${color.primary}`;
+      case 'border-l':
+        return `border-l-${color.primary}`;
+      case 'border-r':
+        return `border-r-${color.primary}`;
+      case 'border-b':
+        return `border-b-${color.primary}`;
+      case 'text-primary':
+        return `text-${color.primary}`;
+      default:
+        return '';
+    }
+  },
+
   // Get the parent project path for nested projects
   getParentProjectPath(projectPath, groupedProjects, currentIndex) {
     // For level 0 projects, they are their own parent
