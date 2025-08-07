@@ -649,38 +649,28 @@ PetiteVue.createApp({
 
   // Override viewMarkdown to include projectPath
   async viewMarkdown(specName, docType, projectPath = null) {
-    console.log('Multi-app viewMarkdown - before call, this.markdownPreview:', this.markdownPreview);
     // If projectPath is provided directly, use it
     if (projectPath) {
-      const result = await window.DashboardShared.BaseAppState.viewMarkdown.call(
+      return window.DashboardShared.BaseAppState.viewMarkdown.call(
         this, 
         specName, 
         docType, 
         projectPath
       );
-      console.log('Multi-app viewMarkdown - after call, this.markdownPreview:', this.markdownPreview);
-      return result;
     }
     
     // Otherwise use selectedProject
     if (!this.selectedProject) {
-      console.error('No project selected or provided for viewing markdown');
-      // Set error content directly
-      this.markdownPreview.show = true;
-      this.markdownPreview.loading = false;
-      this.markdownPreview.title = `${specName} - ${docType}.md`;
-      this.markdownPreview.content = `# Error: No project selected\n\nPlease select a project first.`;
-      this.markdownPreview.rawContent = '';
+      console.error('No project selected for viewing markdown');
+      // Don't show the modal if there's no project selected
       return;
     }
-    const result = await window.DashboardShared.BaseAppState.viewMarkdown.call(
+    return window.DashboardShared.BaseAppState.viewMarkdown.call(
       this, 
       specName, 
       docType, 
       this.selectedProject.path
     );
-    console.log('Multi-app viewMarkdown - after selectedProject call, this.markdownPreview:', this.markdownPreview);
-    return result;
   },
 
   // View bug markdown
