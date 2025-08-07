@@ -1044,9 +1044,9 @@
                 >
                   
                   <div class="mb-4">
-                    <div class="grid gap-4" :class="(isRequirementsExpanded(spec.name) || isDesignExpanded(spec.name) || isTasksExpanded(spec.name)) ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'">
+                    <div class="flex flex-wrap gap-4">
                       <!-- Requirements -->
-                      <div :class="isRequirementsExpanded(spec.name) ? 'col-span-full' : ''">
+                      <div :class="isRequirementsExpanded(spec.name) ? 'w-full basis-full' : 'flex-initial'" class="min-w-0">
                       <!-- Collapsed view - single line -->
                       <div v-if="!isRequirementsExpanded(spec.name)" class="flex items-center justify-between">
                         <div class="flex items-center gap-2 text-sm">
@@ -1171,7 +1171,7 @@
                     </div>
                       
                       <!-- Design -->
-                      <div :class="isDesignExpanded(spec.name) ? 'col-span-full' : ''">
+                      <div :class="isDesignExpanded(spec.name) ? 'w-full basis-full' : 'flex-initial'" class="min-w-0">
                       <!-- Collapsed view - single line -->
                       <div v-if="!isDesignExpanded(spec.name)" class="flex items-center justify-between">
                         <div class="flex items-center gap-2 text-sm">
@@ -1267,7 +1267,7 @@
                     </div>
                       
                       <!-- Tasks -->
-                      <div v-if="spec.tasks" :class="isTasksExpanded(spec.name) ? 'col-span-full' : ''">
+                      <div v-if="spec.tasks" :class="isTasksExpanded(spec.name) ? 'w-full basis-full' : 'flex-initial'" class="min-w-0">
                         <!-- Collapsed view - single line -->
                         <div v-if="!isTasksExpanded(spec.name)" class="flex items-center justify-between">
                           <div class="flex items-center gap-2 text-sm">
