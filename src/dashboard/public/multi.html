@@ -1021,6 +1021,9 @@
                 <!-- Progress bar with task counter (outside clickable area) -->
                 <div v-if="spec.tasks && spec.tasks.total > 0 && spec.status !== 'completed'" class="px-6 pb-3">
                   <div class="flex items-center gap-3">
+                    <span class="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                      {{ spec.tasks.completed }}/{{ spec.tasks.total }}
+                    </span>
                     <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                       <div
                         class="bg-indigo-600 dark:bg-indigo-500 h-2 rounded-full transition-all duration-300"
@@ -1028,7 +1031,7 @@
                       ></div>
                     </div>
                     <span class="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                      {{ spec.tasks.completed }} / {{ spec.tasks.total }} ({{ Math.round((spec.tasks.completed / spec.tasks.total) * 100) }}%)
+                      {{ Math.round((spec.tasks.completed / spec.tasks.total) * 100) }}%
                     </span>
                   </div>
                 </div>
@@ -1041,9 +1044,9 @@
                 >
                   
                   <div class="mb-4">
-                    <div class="flex gap-4 flex-wrap" :class="(isRequirementsExpanded(spec.name) || isDesignExpanded(spec.name)) ? 'flex-col' : ''">
+                    <div class="flex gap-4" :class="(isRequirementsExpanded(spec.name) || isDesignExpanded(spec.name) || isTasksExpanded(spec.name)) ? 'flex-col' : 'flex-row flex-wrap'">
                       <!-- Requirements -->
-                      <div :class="(isRequirementsExpanded(spec.name) || isDesignExpanded(spec.name)) ? 'w-full' : (isTasksExpanded(spec.name) ? 'flex-1 basis-2/5' : 'flex-1')">
+                      <div :class="isRequirementsExpanded(spec.name) ? 'w-full' : 'flex-1'">
                       <!-- Collapsed view - single line -->
                       <div v-if="!isRequirementsExpanded(spec.name)" class="flex items-center justify-between">
                         <div class="flex items-center gap-2 text-sm">
@@ -1168,7 +1171,7 @@
                     </div>
                       
                       <!-- Design -->
-                      <div :class="(isRequirementsExpanded(spec.name) || isDesignExpanded(spec.name)) ? 'w-full' : (isTasksExpanded(spec.name) ? 'flex-1 basis-2/5' : 'flex-1')">
+                      <div :class="isDesignExpanded(spec.name) ? 'w-full' : 'flex-1'">
                       <!-- Collapsed view - single line -->
                       <div v-if="!isDesignExpanded(spec.name)" class="flex items-center justify-between">
                         <div class="flex items-center gap-2 text-sm">
@@ -1264,7 +1267,7 @@
                     </div>
                       
                       <!-- Tasks -->
-                      <div v-if="spec.tasks" :class="isTasksExpanded(spec.name) ? 'w-full basis-full' : 'flex-1'">
+                      <div v-if="spec.tasks" :class="isTasksExpanded(spec.name) ? 'w-full' : 'flex-1'">
                         <!-- Collapsed view - single line -->
                         <div v-if="!isTasksExpanded(spec.name)" class="flex items-center justify-between">
                           <div class="flex items-center gap-2 text-sm">
