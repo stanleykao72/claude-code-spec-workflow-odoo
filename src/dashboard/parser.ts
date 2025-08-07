@@ -282,6 +282,7 @@ export class SpecParser {
                              content.includes('### Existing Components to Reuse') ||
                              content.includes('## Existing Components') ||
                              content.includes('## Code Reuse') ||
+                             content.includes('## Code Reuse Strategy') ||
                              codeReuseContent.length > 0,
         codeReuseContent: codeReuseContent,
       };
@@ -958,15 +959,15 @@ export class SpecParser {
       }
 
       if (inCodeReuseSection) {
-        // Stop at next major section
-        if ((line.startsWith('## ') || line.startsWith('### ')) && 
+        // Stop at next major section (but not subsections of Code Reuse)
+        if (line.startsWith('## ') && 
             !line.includes('Code Reuse') && 
             !line.includes('Existing Components')) {
           break;
         }
 
-        // Look for numbered categories like "1. **Configuration Infrastructure**" or just "1. Item Name:"
-        const categoryMatch = line.match(/^\d+\.\s*(?:\*\*(.+?)\*\*|(.+?)(?::|\s*$))/);
+        // Look for numbered categories like "1. **Configuration Infrastructure**", "1. Item Name:", or "### 1. Item Name"
+        const categoryMatch = line.match(/^(?:###\s+)?\d+\.\s*(?:\*\*(.+?)\*\*|(.+?)(?::|\s*$))/);
         if (categoryMatch) {
           const categoryName = categoryMatch[1] || categoryMatch[2];
           
