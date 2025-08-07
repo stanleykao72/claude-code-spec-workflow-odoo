@@ -491,6 +491,14 @@ PetiteVue.createApp({
     return !!this.expandedRequirements[specName];
   },
 
+  // Scroll to a specific requirement
+  scrollToRequirement(specName, requirementId) {
+    const element = document.getElementById(`${specName}-req-${requirementId}`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  },
+
   // Design expand/collapse
   toggleDesignExpanded(specName) {
     if (this.expandedDesigns[specName]) {

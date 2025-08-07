@@ -1017,8 +1017,7 @@
                             <div class="flex flex-wrap gap-2">
                               <a
                                 v-for="(requirement, index) in spec.requirements.content"
-                                :key="(requirement && requirement.id) || index"
-                                v-if="requirement && requirement.id"
+                                :key="requirement.id || index"
                                 :href="`#${spec.name}-req-${requirement.id}`"
                                 @click.prevent="scrollToRequirement(spec.name, requirement.id)"
                                 class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-white dark:bg-gray-800 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-800 transition-colors border border-indigo-200 dark:border-indigo-700"
@@ -1029,11 +1028,11 @@
                           </div>
                           <div
                             v-for="(requirement, index) in spec.requirements.content"
-                            :key="(requirement && requirement.id) || index"
+                            :key="requirement.id || index"
                             :id="`${spec.name}-req-${requirement.id}`"
                             class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 scroll-mt-20"
                           >
-                            <div v-if="requirement && requirement.id">
+                            <div>
                               <h5 class="text-sm font-medium text-gray-900 dark:text-white mb-2">
                                 <strong>{{ requirement.id }}:</strong> {{
                                 requirement.title || 'No title' }}
