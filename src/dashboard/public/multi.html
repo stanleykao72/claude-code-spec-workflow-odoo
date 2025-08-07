@@ -1043,12 +1043,11 @@
                   class="px-6 pb-6 pt-4 border-t border-gray-200 dark:border-gray-700"
                 >
                   
-                  <div class="mb-4">
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-3 gap-4 mb-4">
                       <!-- Requirements -->
-                      <div :class="isRequirementsExpanded(spec.name) ? 'lg:col-span-3' : ''">
+                      <div :class="isRequirementsExpanded(spec.name) ? 'col-span-3' : 'col-span-1'">
                       <!-- Collapsed view - single line -->
-                      <div v-if="!isRequirementsExpanded(spec.name)" class="flex items-center justify-between">
+                      <div v-if="!isRequirementsExpanded(spec.name)" class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded p-2">
                         <div class="flex items-center gap-2 text-sm">
                           <i class="fas fa-clipboard-list text-gray-600 dark:text-gray-400"></i>
                           <span class="font-medium text-gray-900 dark:text-white">{{ spec.requirements?.content?.length || 0 }} Requirements</span>
@@ -1171,9 +1170,9 @@
                       </div>
                       
                       <!-- Design -->
-                      <div :class="isDesignExpanded(spec.name) ? 'lg:col-span-3' : ''">
+                      <div :class="isDesignExpanded(spec.name) ? 'col-span-3' : 'col-span-1'">
                       <!-- Collapsed view - single line -->
-                      <div v-if="!isDesignExpanded(spec.name)" class="flex items-center justify-between">
+                      <div v-if="!isDesignExpanded(spec.name)" class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded p-2">
                         <div class="flex items-center gap-2 text-sm">
                           <i class="fas fa-drafting-compass text-gray-600 dark:text-gray-400"></i>
                           <span class="font-medium text-gray-900 dark:text-white">Design</span>
@@ -1267,9 +1266,9 @@
                       </div>
                       
                       <!-- Tasks -->
-                      <div v-if="spec.tasks" :class="isTasksExpanded(spec.name) ? 'lg:col-span-3' : ''">
+                      <div v-if="spec.tasks" :class="isTasksExpanded(spec.name) ? 'col-span-3' : 'col-span-1'">
                         <!-- Collapsed view - single line -->
-                        <div v-if="!isTasksExpanded(spec.name)" class="flex items-center justify-between">
+                        <div v-if="!isTasksExpanded(spec.name)" class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded p-2">
                           <div class="flex items-center gap-2 text-sm">
                             <i class="fas fa-tasks text-gray-600 dark:text-gray-400"></i>
                             <span class="font-medium text-gray-900 dark:text-white">{{ spec.tasks.total || 0 }} Tasks</span>
@@ -1395,7 +1394,6 @@
                         <p v-else class="text-sm text-gray-400 dark:text-gray-500">Not created</p>
                       </div>
                     </div>
-                  </div>
           </div>
 
           <!-- Bugs Section -->
