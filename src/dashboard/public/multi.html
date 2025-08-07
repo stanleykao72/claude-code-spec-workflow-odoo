@@ -535,7 +535,7 @@
               @click="selectProject(project)"
               class="py-2 text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-1 relative"
               :class="[
-                activeTab === 'projects' && selectedProject?.path === project.path ? `tab-active text-${getProjectColor(project.path).primary} dark:text-${getProjectColor(project.path).dark?.primary || getProjectColor(project.path).primary} border-b-2 border-${getProjectColor(project.path).primary}` : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white',
+                activeTab === 'projects' && selectedProject?.path === project.path ? `tab-active text-${getProjectColor(project.path).primary} dark:text-${getProjectColor(project.path).dark?.primary || getProjectColor(project.path).primary} border-b-2 border-b-${getProjectColor(project.path).primary}` : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white',
                 project.level > 0 ? 'pl-3 pr-2' : 'px-3',
                 // Visual grouping with accent borders on the sides
                 project.level === 0 && index < getGroupedProjects().length - 1 && getGroupedProjects()[index + 1].level > 0 ? `border-l-4 border-${getProjectColor(project.path).primary}` : '',
