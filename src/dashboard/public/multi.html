@@ -598,10 +598,7 @@
               v-for="session in activeSessions"
               :key="session.type === 'spec' ? `${session.projectPath}-${session.specName}-${session.task.id}` : `${session.projectPath}-${session.bugName}`"
               class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer border-l-4"
-              :class="[
-                session.isCurrentlyActive ? 'ring-2 ring-yellow-500 dark:ring-yellow-400' : '',
-                `border-${getProjectColor(session.projectPath).primary}`
-              ]"
+              :class="`border-${getProjectColor(session.projectPath).primary}`"
               @click="selectProjectFromTask(session.projectPath, session.type === 'spec' ? session.specName : session.bugName, session.type)"
             >
               <div class="flex items-start justify-between">
