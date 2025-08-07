@@ -1044,9 +1044,9 @@
                 >
                   
                   <div class="mb-4">
-                    <div class="flex gap-4" :class="(isRequirementsExpanded(spec.name) || isDesignExpanded(spec.name) || isTasksExpanded(spec.name)) ? 'flex-col' : 'flex-row flex-wrap'">
+                    <div class="flex flex-wrap gap-4" :class="(isRequirementsExpanded(spec.name) || isDesignExpanded(spec.name) || isTasksExpanded(spec.name)) ? 'flex-col' : ''">
                       <!-- Requirements -->
-                      <div :class="isRequirementsExpanded(spec.name) ? 'w-full' : 'flex-1 min-w-[250px] max-w-md'">
+                      <div :class="isRequirementsExpanded(spec.name) ? 'w-full' : 'flex-none w-80'">
                       <!-- Collapsed view - single line -->
                       <div v-if="!isRequirementsExpanded(spec.name)" class="flex items-center justify-between">
                         <div class="flex items-center gap-2 text-sm">
@@ -1171,7 +1171,7 @@
                     </div>
                       
                       <!-- Design -->
-                      <div :class="isDesignExpanded(spec.name) ? 'w-full' : 'flex-1 min-w-[250px] max-w-md'">
+                      <div :class="isDesignExpanded(spec.name) ? 'w-full' : 'flex-none w-80'">
                       <!-- Collapsed view - single line -->
                       <div v-if="!isDesignExpanded(spec.name)" class="flex items-center justify-between">
                         <div class="flex items-center gap-2 text-sm">
@@ -1267,7 +1267,7 @@
                     </div>
                       
                       <!-- Tasks -->
-                      <div v-if="spec.tasks" :class="isTasksExpanded(spec.name) ? 'w-full' : 'flex-1 min-w-[250px] max-w-md'">
+                      <div v-if="spec.tasks" :class="isTasksExpanded(spec.name) ? 'w-full' : 'flex-none w-80'">
                         <!-- Collapsed view - single line -->
                         <div v-if="!isTasksExpanded(spec.name)" class="flex items-center justify-between">
                           <div class="flex items-center gap-2 text-sm">
