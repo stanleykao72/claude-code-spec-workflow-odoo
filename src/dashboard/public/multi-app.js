@@ -48,41 +48,82 @@ PetiteVue.createApp({
   getProjectColor(projectPath) {
     if (!projectPath) return { primary: 'indigo-600', light: 'indigo-100', ring: 'indigo-500' };
     
-    // Create a better hash that spreads similar strings further apart
-    let hash = 0;
-    for (let i = 0; i < projectPath.length; i++) {
-      const char = projectPath.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32bit integer
+    // Use a cache to ensure consistent colors based on position
+    if (!this.projectColorCache) {
+      this.projectColorCache = new Map();
     }
     
-    // Add more variation by considering path structure
-    const pathParts = projectPath.split('/');
-    const depth = pathParts.length;
-    const lastPart = pathParts[pathParts.length - 1];
-    
-    // Mix in the depth and last part name for more variation
-    for (let i = 0; i < lastPart.length; i++) {
-      hash = hash ^ (lastPart.charCodeAt(i) * (i + 1) * depth);
+    // Return cached color if exists
+    if (this.projectColorCache.has(projectPath)) {
+      return this.projectColorCache.get(projectPath);
     }
     
-    // Define color palette with more distinct colors
+    // Define a carefully curated color palette with maximum visual distinction
+    // Colors are ordered to maximize contrast between adjacent items
     const colors = [
-      { primary: 'blue-600', light: 'blue-100', ring: 'blue-500', dark: { primary: 'blue-400', light: 'blue-900' } },
-      { primary: 'emerald-600', light: 'emerald-100', ring: 'emerald-500', dark: { primary: 'emerald-400', light: 'emerald-900' } },
-      { primary: 'violet-600', light: 'violet-100', ring: 'violet-500', dark: { primary: 'violet-400', light: 'violet-900' } },
-      { primary: 'amber-600', light: 'amber-100', ring: 'amber-500', dark: { primary: 'amber-400', light: 'amber-900' } },
-      { primary: 'teal-600', light: 'teal-100', ring: 'teal-500', dark: { primary: 'teal-400', light: 'teal-900' } },
-      { primary: 'rose-600', light: 'rose-100', ring: 'rose-500', dark: { primary: 'rose-400', light: 'rose-900' } },
-      { primary: 'cyan-600', light: 'cyan-100', ring: 'cyan-500', dark: { primary: 'cyan-400', light: 'cyan-900' } },
-      { primary: 'fuchsia-600', light: 'fuchsia-100', ring: 'fuchsia-500', dark: { primary: 'fuchsia-400', light: 'fuchsia-900' } },
-      { primary: 'indigo-600', light: 'indigo-100', ring: 'indigo-500', dark: { primary: 'indigo-400', light: 'indigo-900' } },
-      { primary: 'lime-600', light: 'lime-100', ring: 'lime-500', dark: { primary: 'lime-400', light: 'lime-900' } }
+      { primary: 'cyan-600', light: 'cyan-100', ring: 'cyan-500', dark: { primary: 'cyan-400', light: 'cyan-900' } },        // Cyan
+      { primary: 'violet-600', light: 'violet-100', ring: 'violet-500', dark: { primary: 'violet-400', light: 'violet-900' } }, // Purple/Violet
+      { primary: 'rose-600', light: 'rose-100', ring: 'rose-500', dark: { primary: 'rose-400', light: 'rose-900' } },          // Red/Rose
+      { primary: 'amber-600', light: 'amber-100', ring: 'amber-500', dark: { primary: 'amber-400', light: 'amber-900' } },      // Yellow/Amber
+      { primary: 'emerald-600', light: 'emerald-100', ring: 'emerald-500', dark: { primary: 'emerald-400', light: 'emerald-900' } }, // Green
+      { primary: 'fuchsia-600', light: 'fuchsia-100', ring: 'fuchsia-500', dark: { primary: 'fuchsia-400', light: 'fuchsia-900' } }, // Pink/Fuchsia
+      { primary: 'orange-600', light: 'orange-100', ring: 'orange-500', dark: { primary: 'orange-400', light: 'orange-900' } },     // Orange
+      { primary: 'teal-600', light: 'teal-100', ring: 'teal-500', dark: { primary: 'teal-400', light: 'teal-900' } },             // Teal
+      { primary: 'indigo-600', light: 'indigo-100', ring: 'indigo-500', dark: { primary: 'indigo-400', light: 'indigo-900' } },     // Indigo
+      { primary: 'lime-600', light: 'lime-100', ring: 'lime-500', dark: { primary: 'lime-400', light: 'lime-900' } },             // Lime
+      { primary: 'sky-600', light: 'sky-100', ring: 'sky-500', dark: { primary: 'sky-400', light: 'sky-900' } },                 // Sky Blue
+      { primary: 'pink-600', light: 'pink-100', ring: 'pink-500', dark: { primary: 'pink-400', light: 'pink-900' } },             // Pink
+      { primary: 'red-600', light: 'red-100', ring: 'red-500', dark: { primary: 'red-400', light: 'red-900' } },                   // Pure Red
+      { primary: 'green-600', light: 'green-100', ring: 'green-500', dark: { primary: 'green-400', light: 'green-900' } },         // Pure Green
+      { primary: 'blue-600', light: 'blue-100', ring: 'blue-500', dark: { primary: 'blue-400', light: 'blue-900' } },             // Pure Blue
     ];
     
-    // Select color based on hash
-    const colorIndex = Math.abs(hash) % colors.length;
-    return colors[colorIndex];
+    // Find all top-level projects (level 0) in the grouped list
+    const groupedProjects = this.getGroupedProjects();
+    const topLevelProjects = groupedProjects.filter(p => p.level === 0);
+    
+    // Find which top-level project this path belongs to
+    let topLevelProject = null;
+    let topLevelIndex = -1;
+    
+    for (let i = 0; i < topLevelProjects.length; i++) {
+      const project = topLevelProjects[i];
+      // Check if this projectPath is under this top-level project
+      if (projectPath === project.path || projectPath.startsWith(project.path + '/')) {
+        topLevelProject = project;
+        topLevelIndex = i;
+        break;
+      }
+    }
+    
+    // If not found, check if this IS a top-level project
+    if (topLevelIndex === -1) {
+      topLevelIndex = topLevelProjects.findIndex(p => p.path === projectPath);
+      if (topLevelIndex >= 0) {
+        topLevelProject = topLevelProjects[topLevelIndex];
+      }
+    }
+    
+    // Use the index to select a color, cycling through if needed
+    const colorIndex = topLevelIndex >= 0 ? topLevelIndex % colors.length : 0;
+    const color = colors[colorIndex];
+    
+    // Cache the color for this project and all its children
+    if (topLevelProject) {
+      // Cache color for the top-level project
+      this.projectColorCache.set(topLevelProject.path, color);
+      // Cache same color for all children
+      groupedProjects.forEach(p => {
+        if (p.path.startsWith(topLevelProject.path + '/') || p.path === topLevelProject.path) {
+          this.projectColorCache.set(p.path, color);
+        }
+      });
+    } else {
+      // Just cache for this specific path
+      this.projectColorCache.set(projectPath, color);
+    }
+    
+    return color;
   },
 
   // Get the parent project path for nested projects
