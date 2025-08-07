@@ -174,6 +174,110 @@ PetiteVue.createApp({
     return projectPath;
   },
 
+  // Get dynamic styles for project tabs to handle Tailwind dynamic class limitations
+  getProjectTabStyles(project, index) {
+    const color = this.getProjectColor(project.path);
+    const parentColor = project.level > 0 ? this.getProjectColor(this.getParentProjectPath(project.path, this.getGroupedProjects(), index)) : null;
+    const isActive = this.activeTab === 'projects' && this.selectedProject?.path === project.path;
+    const isDark = document.documentElement.classList.contains('dark');
+    const groupedProjects = this.getGroupedProjects();
+    
+    let styles = {};
+    
+    // Define color mappings with RGB values
+    const colorMap = {
+      'cyan-600': 'rgb(8, 145, 178)',
+      'cyan-400': 'rgb(34, 211, 238)',
+      'cyan-100': 'rgb(207, 250, 254)',
+      'violet-600': 'rgb(124, 58, 237)',
+      'violet-400': 'rgb(167, 139, 250)',
+      'violet-100': 'rgb(237, 233, 254)',
+      'rose-600': 'rgb(225, 29, 72)',
+      'rose-400': 'rgb(251, 113, 133)',
+      'rose-100': 'rgb(255, 228, 230)',
+      'amber-600': 'rgb(217, 119, 6)',
+      'amber-400': 'rgb(251, 191, 36)',
+      'amber-100': 'rgb(254, 243, 199)',
+      'emerald-600': 'rgb(5, 150, 105)',
+      'emerald-400': 'rgb(52, 211, 153)',
+      'emerald-100': 'rgb(209, 250, 229)',
+      'blue-600': 'rgb(37, 99, 235)',
+      'blue-400': 'rgb(96, 165, 250)',
+      'blue-100': 'rgb(219, 234, 254)',
+      'orange-600': 'rgb(234, 88, 12)',
+      'orange-400': 'rgb(251, 146, 60)',
+      'orange-100': 'rgb(254, 215, 170)',
+      'purple-600': 'rgb(147, 51, 234)',
+      'purple-400': 'rgb(192, 132, 252)',
+      'purple-100': 'rgb(243, 232, 255)',
+      'pink-600': 'rgb(219, 39, 119)',
+      'pink-400': 'rgb(244, 114, 182)',
+      'pink-100': 'rgb(252, 231, 243)',
+      'teal-600': 'rgb(13, 148, 136)',
+      'teal-400': 'rgb(45, 212, 191)',
+      'teal-100': 'rgb(204, 251, 241)',
+      'indigo-600': 'rgb(79, 70, 229)',
+      'indigo-400': 'rgb(129, 140, 248)',
+      'indigo-100': 'rgb(224, 231, 255)'
+    };
+    
+    // Active tab colors
+    if (isActive) {
+      const primaryColor = isDark && color.dark?.primary ? color.dark.primary : color.primary;
+      styles.color = colorMap[primaryColor] || colorMap['cyan-600'];
+      styles.borderBottomColor = colorMap[color.primary] || colorMap['cyan-600'];
+    }
+    
+    // Background for parent projects with children
+    if (project.level === 0 && index < groupedProjects.length - 1 && groupedProjects[index + 1].level > 0) {
+      const lightColor = colorMap[color.light] || colorMap['cyan-100'];
+      const rgbMatch = lightColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+      if (rgbMatch) {
+        const opacity = isDark ? 0.1 : 0.3;
+        styles.backgroundColor = `rgba(${rgbMatch[1]}, ${rgbMatch[2]}, ${rgbMatch[3]}, ${opacity})`;
+      }
+      styles.borderLeftWidth = '2px';
+      styles.borderLeftColor = colorMap[color.primary] || colorMap['cyan-600'];
+    }
+    
+    // Background for child projects
+    if (project.level > 0 && parentColor) {
+      const lightColor = colorMap[parentColor.light] || colorMap['cyan-100'];
+      const rgbMatch = lightColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+      if (rgbMatch) {
+        const opacity = isDark ? 0.1 : 0.3;
+        styles.backgroundColor = `rgba(${rgbMatch[1]}, ${rgbMatch[2]}, ${rgbMatch[3]}, ${opacity})`;
+      }
+    }
+    
+    // Right border for last child
+    if (project.level > 0 && (index === groupedProjects.length - 1 || groupedProjects[index + 1].level === 0) && parentColor) {
+      styles.borderRightWidth = '2px';
+      styles.borderRightColor = colorMap[parentColor.primary] || colorMap['cyan-600'];
+    }
+    
+    return Object.entries(styles).map(([key, value]) => `${key}: ${value}`).join('; ');
+  },
+
+  // Get actual color value for project (for inline styles)
+  getProjectColorValue(projectPath) {
+    const color = this.getProjectColor(projectPath);
+    const colorMap = {
+      'cyan-600': 'rgb(8, 145, 178)',
+      'violet-600': 'rgb(124, 58, 237)',
+      'rose-600': 'rgb(225, 29, 72)',
+      'amber-600': 'rgb(217, 119, 6)',
+      'emerald-600': 'rgb(5, 150, 105)',
+      'blue-600': 'rgb(37, 99, 235)',
+      'orange-600': 'rgb(234, 88, 12)',
+      'purple-600': 'rgb(147, 51, 234)',
+      'pink-600': 'rgb(219, 39, 119)',
+      'teal-600': 'rgb(13, 148, 136)',
+      'indigo-600': 'rgb(79, 70, 229)'
+    };
+    return colorMap[color.primary] || 'rgb(8, 145, 178)';
+  },
+
   // Group projects by parent/child relationships for display
   getGroupedProjects() {
     // Return empty array if no projects

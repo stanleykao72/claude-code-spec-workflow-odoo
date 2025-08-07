@@ -700,13 +700,12 @@
               :key="project.path"
               @click="selectProject(project)"
               class="py-2 text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-1 relative"
+              :style="getProjectTabStyles(project, index)"
               :class="[
-                activeTab === 'projects' && selectedProject?.path === project.path ? `tab-active text-${getProjectColor(project.path).primary} dark:text-${getProjectColor(project.path).dark?.primary || getProjectColor(project.path).primary} border-b-2 border-b-${getProjectColor(project.path).primary}` : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white',
+                activeTab === 'projects' && selectedProject?.path === project.path ? 'tab-active border-b-2' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white',
                 project.level > 0 ? 'pl-3 pr-2' : 'px-3',
-                // Visual grouping with accent borders on the sides
-                project.level === 0 && index < getGroupedProjects().length - 1 && getGroupedProjects()[index + 1].level > 0 ? `bg-${getProjectColor(project.path).light}/30 dark:bg-${getProjectColor(project.path).primary}/10 border-l-2 border-${getProjectColor(project.path).primary}` : '',
-                project.level > 0 ? `bg-${getProjectColor(getParentProjectPath(project.path, getGroupedProjects(), index)).light}/30 dark:bg-${getProjectColor(getParentProjectPath(project.path, getGroupedProjects(), index)).primary}/10` : '',
-                project.level > 0 && (index === getGroupedProjects().length - 1 || getGroupedProjects()[index + 1].level === 0) ? `border-r-2 border-${getProjectColor(getParentProjectPath(project.path, getGroupedProjects(), index)).primary} mr-2` : '',
+                // Visual grouping with accent borders on the sides  
+                project.level > 0 && (index === getGroupedProjects().length - 1 || getGroupedProjects()[index + 1].level === 0) ? 'border-r-2 mr-2' : '',
                 // Add spacing between groups
                 index > 0 && project.level === 0 && getGroupedProjects()[index-1].level > 0 ? 'ml-1' : ''
               ]"
@@ -721,7 +720,7 @@
               <span
                 v-if="project.hasActiveSession"
                 class="w-2 h-2 rounded-full animate-pulse flex-shrink-0"
-                :class="`bg-${getProjectColor(project.path).primary}`"
+                :style="`background-color: ${getProjectColorValue(project.path)}`"
                 title="Active Claude session"
               ></span>
               
@@ -762,7 +761,7 @@
               v-for="session in activeSessions"
               :key="session.type === 'spec' ? `${session.projectPath}-${session.specName}-${session.task.id}` : `${session.projectPath}-${session.bugName}`"
               class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer border-l-4"
-              :class="`border-${getProjectColor(session.projectPath).primary}`"
+              :style="`border-left-color: ${getProjectColorValue(session.projectPath)}`"
               @click="selectProjectFromTask(session.projectPath, session.type === 'spec' ? session.specName : session.bugName, session.type)"
             >
               <div class="flex items-start justify-between">
@@ -773,16 +772,28 @@
                       <span
                         v-if="session.isCurrentlyActive"
                         class="w-3 h-3 rounded-full animate-pulse"
-                        :class="`bg-${getProjectColor(session.projectPath).primary}`"
+                        :style="`background-color: ${getProjectColorValue(session.projectPath)}`"
                         title="Currently active"
                       ></span>
-                      <h2 class="text-xl font-bold text-gray-900 dark:text-white">
+                      <h2 class="text-xl font-bold text-gray-900 dark:text-white inline-flex items-center gap-2">
                         <a
                           @click="selectProjectFromTask(session.projectPath, session.type === 'spec' ? session.specName : session.bugName, session.type)"
                           class="hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer"
                         >
                           {{ session.projectName }}: {{ session.displayName }}
                         </a>
+                        
+                        <!-- Orchestrate copy button - after title like in project tabs -->
+                        <button
+                          v-if="session.type === 'spec' && !session.isAdHoc && session.requirements?.approved && session.design?.approved && session.tasks?.approved"
+                          @click.stop="copyCommand(`/spec-orchestrate ${session.specName}`, $event)"
+                          class="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 flex items-center gap-1"
+                          title="Copy orchestrate command (all docs approved)"
+                        >
+                          <i class="fas fa-robot mr-1"></i>
+                          <span>/spec-orchestrate</span>
+                          <i class="fas fa-copy opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                        </button>
                       </h2>
                     </div>
                     <!-- Git info pills -->
@@ -887,9 +898,12 @@
                       <span
                         class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
                         :class="{
-                          'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200': session.bugStatus === 'analyzing',
-                          'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200': session.bugStatus === 'fixing',
-                          'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200': session.bugStatus === 'verifying'
+                          'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200': session.bugStatus === 'reported',
+                          'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200': session.bugStatus === 'analyzing',
+                          'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200': session.bugStatus === 'fixing',
+                          'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200': session.bugStatus === 'fixed',
+                          'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200': session.bugStatus === 'verifying',
+                          'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': session.bugStatus === 'resolved'
                         }"
                       >
                         <i class="fas mr-1"
@@ -1015,20 +1029,14 @@
                   </div>
                 </div>
 
-                <div class="ml-4 flex flex-col gap-2 items-end">
-                  <span
-                    class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                  >
-                    <i class="fas fa-bolt mr-1"></i> Active
-                  </span>
-                  
-                  <!-- Approval indicators -->
+                <div class="ml-4 flex items-center gap-3">
+                  <!-- Stage indicators matching project tabs style -->
                   <div v-if="session.type === 'spec' && !session.isAdHoc" class="flex items-center gap-2">
                     <span v-if="session.requirements" class="text-xs" :title="session.requirements.approved ? 'Requirements Approved' : 'Requirements Pending'">
                       <i class="fas fa-clipboard-list" :class="session.requirements.approved ? 'text-green-500' : 'text-yellow-500'"></i>
                     </span>
                     <span v-if="session.design" class="text-xs" :title="session.design.approved ? 'Design Approved' : 'Design Pending'">
-                      <i class="fas fa-drafting-compass" :class="session.design.approved ? 'text-green-500' : 'text-yellow-500'"></i>
+                      <i class="fas fa-code" :class="session.design.approved ? 'text-green-500' : 'text-yellow-500'"></i>
                     </span>
                     <span v-if="session.tasks" class="text-xs" :title="session.tasks.approved ? 'Tasks Approved' : 'Tasks Pending'">
                       <i class="fas fa-tasks" :class="session.tasks.approved ? 'text-green-500' : 'text-yellow-500'"></i>
@@ -1038,46 +1046,23 @@
                       <i class="fas fa-robot text-green-500"></i>
                     </span>
                   </div>
-                  
-                  <!-- Orchestration Button -->
-                  <button
-                    v-if="session.type === 'spec' && !session.isAdHoc && session.requirements?.approved && session.design?.approved && session.tasks?.approved"
-                    @click.stop="copyCommand(`/spec-orchestrate ${session.specName}`, $event)"
-                    class="text-xs text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 flex items-center gap-1"
-                    :title="`Copy command: /spec-orchestrate ${session.specName}`"
-                  >
-                    <i class="fas fa-robot mr-1"></i>
-                    <span>/spec-orchestrate</span>
-                  </button>
                   <!-- Stage indicator for specs -->
                   <span v-if="session.type === 'spec' && getSpecStatus(session)" 
-                    class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium"
-                    :class="{
-                      'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200': getSpecStatus(session) === 'requirements',
-                      'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200': getSpecStatus(session) === 'design',
-                      'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200': getSpecStatus(session) === 'tasks',
-                      'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200': getSpecStatus(session) === 'in-progress',
-                      'bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200': getSpecStatus(session) === 'completed'
-                    }"
+                    class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
+                    :class="getStatusClass(getSpecStatus(session))"
                   >
-                    <i class="fas mr-1"
-                      :class="{
-                        'fa-clipboard-list': getSpecStatus(session) === 'requirements',
-                        'fa-drafting-compass': getSpecStatus(session) === 'design',
-                        'fa-tasks': getSpecStatus(session) === 'tasks',
-                        'fa-code': getSpecStatus(session) === 'in-progress',
-                        'fa-check-circle': getSpecStatus(session) === 'completed'
-                      }"
-                    ></i>
-                    {{ getSpecStatusLabel(session) }}
+                    {{ getStatusLabel(getSpecStatus(session)) }}
                   </span>
                   <!-- Stage indicator for bugs -->
                   <span v-if="session.type === 'bug'" 
-                    class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium"
+                    class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
                     :class="{
-                      'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200': session.bugStatus === 'analyzing',
-                      'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200': session.bugStatus === 'fixing',
-                      'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200': session.bugStatus === 'verifying'
+                      'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200': session.bugStatus === 'reported',
+                      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200': session.bugStatus === 'analyzing',
+                      'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200': session.bugStatus === 'fixing',
+                      'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200': session.bugStatus === 'fixed',
+                      'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200': session.bugStatus === 'verifying',
+                      'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': session.bugStatus === 'resolved'
                     }"
                   >
                     <i class="fas mr-1"
