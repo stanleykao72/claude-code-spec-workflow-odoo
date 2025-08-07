@@ -64,21 +64,27 @@ PetiteVue.createApp({
       grouped.push({ ...project, level });
       addedPaths.add(project.path);
       
-      // Find all direct children and sort them
-      const children = sortedProjects.filter(child => {
+      // Find all descendants (not just direct children)
+      const descendants = sortedProjects.filter(child => {
         if (addedPaths.has(child.path)) return false;
-        // Check if it's a direct child (parent path + one segment)
-        if (!child.path.startsWith(project.path + '/')) return false;
-        const relativePath = child.path.substring(project.path.length + 1);
-        return !relativePath.includes('/'); // No additional slashes means direct child
+        // Check if it's a descendant
+        return child.path.startsWith(project.path + '/');
       });
       
-      // Sort children by name for consistent ordering
-      children.sort((a, b) => a.name.localeCompare(b.name));
+      // Sort descendants by path depth then by name
+      descendants.sort((a, b) => {
+        const depthA = a.path.split('/').length;
+        const depthB = b.path.split('/').length;
+        if (depthA !== depthB) return depthA - depthB; // Shallower paths first
+        return a.name.localeCompare(b.name);
+      });
       
-      // Recursively add each child with its descendants
-      children.forEach(child => {
-        addProjectWithDescendants(child, level + 1);
+      // Add each descendant with appropriate level based on path depth
+      descendants.forEach(descendant => {
+        const relativePath = descendant.path.substring(project.path.length + 1);
+        const relativeDepth = relativePath.split('/').length;
+        grouped.push({ ...descendant, level: level + relativeDepth });
+        addedPaths.add(descendant.path);
       });
     };
     
@@ -104,6 +110,7 @@ PetiteVue.createApp({
       }
     });
     
+    console.log('Grouped projects:', grouped.map(p => `${' '.repeat(p.level * 2)}${p.name} (${p.path})`).join('\n'));
     return grouped;
   },
 
