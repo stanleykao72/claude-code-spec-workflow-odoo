@@ -44,6 +44,35 @@ PetiteVue.createApp({
     return project.bugs.filter(b => b.status !== 'resolved');
   },
 
+  // Generate unique color for each project (stable within session)
+  getProjectColor(projectPath) {
+    if (!projectPath) return { primary: 'indigo-600', light: 'indigo-100', ring: 'indigo-500' };
+    
+    // Create a simple hash from the project path
+    let hash = 0;
+    for (let i = 0; i < projectPath.length; i++) {
+      const char = projectPath.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    
+    // Define color palette (avoiding red to prevent confusion with errors)
+    const colors = [
+      { primary: 'blue-600', light: 'blue-100', ring: 'blue-500', dark: { primary: 'blue-400', light: 'blue-900' } },
+      { primary: 'green-600', light: 'green-100', ring: 'green-500', dark: { primary: 'green-400', light: 'green-900' } },
+      { primary: 'purple-600', light: 'purple-100', ring: 'purple-500', dark: { primary: 'purple-400', light: 'purple-900' } },
+      { primary: 'indigo-600', light: 'indigo-100', ring: 'indigo-500', dark: { primary: 'indigo-400', light: 'indigo-900' } },
+      { primary: 'teal-600', light: 'teal-100', ring: 'teal-500', dark: { primary: 'teal-400', light: 'teal-900' } },
+      { primary: 'cyan-600', light: 'cyan-100', ring: 'cyan-500', dark: { primary: 'cyan-400', light: 'cyan-900' } },
+      { primary: 'orange-600', light: 'orange-100', ring: 'orange-500', dark: { primary: 'orange-400', light: 'orange-900' } },
+      { primary: 'pink-600', light: 'pink-100', ring: 'pink-500', dark: { primary: 'pink-400', light: 'pink-900' } }
+    ];
+    
+    // Select color based on hash
+    const colorIndex = Math.abs(hash) % colors.length;
+    return colors[colorIndex];
+  },
+
   // Group projects by parent/child relationships for display
   getGroupedProjects() {
     // Return empty array if no projects

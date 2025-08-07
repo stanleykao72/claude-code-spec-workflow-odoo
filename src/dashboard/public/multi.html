@@ -538,12 +538,12 @@
               @click="selectProject(project)"
               class="py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap flex items-center gap-1 relative"
               :class="[
-                activeTab === 'projects' && selectedProject?.path === project.path ? 'tab-active border-indigo-600' : 'text-gray-600 dark:text-gray-400 border-transparent hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-gray-600',
+                activeTab === 'projects' && selectedProject?.path === project.path ? `tab-active border-${getProjectColor(project.path).primary}` : 'text-gray-600 dark:text-gray-400 border-transparent hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-gray-600',
                 project.level > 0 ? 'pl-8 pr-2' : 'px-3',
-                // Visual grouping with backgrounds
-                project.level === 0 && index < getGroupedProjects().length - 1 && getGroupedProjects()[index + 1].level > 0 ? 'bg-gray-50 dark:bg-gray-800/50 rounded-tl-lg border-l-2 border-t-2 border-indigo-300 dark:border-indigo-700' : '',
-                project.level > 0 ? 'bg-gray-50 dark:bg-gray-800/50 border-t-2 border-indigo-300 dark:border-indigo-700' : '',
-                project.level > 0 && (index === getGroupedProjects().length - 1 || getGroupedProjects()[index + 1].level === 0) ? 'rounded-tr-lg border-r-2 border-t-2 border-indigo-300 dark:border-indigo-700 mr-2' : '',
+                // Visual grouping with lighter backgrounds (different from selected state)
+                project.level === 0 && index < getGroupedProjects().length - 1 && getGroupedProjects()[index + 1].level > 0 ? `bg-${getProjectColor(project.path).light} dark:bg-${getProjectColor(project.path).dark?.light || 'gray-800'}/20 rounded-tl-lg border-l-2 border-t-2 border-${getProjectColor(project.path).primary}/30` : '',
+                project.level > 0 ? `bg-${getProjectColor(project.path).light} dark:bg-${getProjectColor(project.path).dark?.light || 'gray-800'}/20 border-t-2 border-${getProjectColor(project.path).primary}/30` : '',
+                project.level > 0 && (index === getGroupedProjects().length - 1 || getGroupedProjects()[index + 1].level === 0) ? `rounded-tr-lg border-r-2 border-t-2 border-${getProjectColor(project.path).primary}/30 mr-2` : '',
                 // Add spacing between groups
                 index > 0 && project.level === 0 && getGroupedProjects()[index-1].level > 0 ? 'ml-1' : ''
               ]"
@@ -597,8 +597,11 @@
             <div
               v-for="session in activeSessions"
               :key="session.type === 'spec' ? `${session.projectPath}-${session.specName}-${session.task.id}` : `${session.projectPath}-${session.bugName}`"
-              class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
-              :class="{'ring-2 ring-yellow-500 dark:ring-yellow-400': session.isCurrentlyActive}"
+              class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer border-l-4"
+              :class="[
+                session.isCurrentlyActive ? 'ring-2 ring-yellow-500 dark:ring-yellow-400' : '',
+                `border-${getProjectColor(session.projectPath).primary}`
+              ]"
               @click="selectProjectFromTask(session.projectPath, session.type === 'spec' ? session.specName : session.bugName, session.type)"
             >
               <div class="flex items-start justify-between">
