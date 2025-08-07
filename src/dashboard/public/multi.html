@@ -667,14 +667,19 @@
 
                   <!-- Current Task/Bug -->
                   <div class="mb-4" v-if="session.type === 'spec'">
-                    <div class="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1">
-                      Current Task
-                    </div>
                     <div class="flex items-center flex-wrap gap-2">
                       <h4 class="text-lg font-medium text-gray-900 dark:text-white"
                           :title="getTaskTooltip(session.task)">
                         Task {{ session.task.id }}: {{ session.task.description }}
                       </h4>
+                      <!-- Approval status for active task -->
+                      <span v-if="session.task.requiresApproval || session.task.approved"
+                        class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+                        :class="session.task.approved ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200'"
+                      >
+                        <i class="fas mr-1" :class="session.task.approved ? 'fa-check' : 'fa-clock'"></i>
+                        {{ session.task.approved ? 'Approved' : 'Approval Required' }}
+                      </span>
                       <button
                         @click.stop="copyTaskCommand(session.specName, session.task.id, $event)"
                         class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
@@ -682,6 +687,16 @@
                       >
                         <i class="fas fa-copy"></i>
                         <span>/spec-execute</span>
+                      </button>
+                      <!-- Orchestration copy button for eligible tasks -->
+                      <button
+                        v-if="session.task.requiresOrchestration"
+                        @click.stop="copyOrchestrationCommand(session.specName, session.task.id, $event)"
+                        class="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 flex items-center gap-1"
+                        :title="`Copy command: /spec-orchestrate ${session.specName} ${session.task.id}`"
+                      >
+                        <i class="fas fa-robot"></i>
+                        <span>/spec-orchestrate</span>
                       </button>
                     </div>
                     <!-- Task Details -->
@@ -720,9 +735,6 @@
                   
                   <!-- Bug Session Display -->
                   <div class="mb-4" v-else-if="session.type === 'bug'">
-                    <div class="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1">
-                      Active Bug
-                    </div>
                     <div class="flex items-center flex-wrap gap-2">
                       <h4 class="text-lg font-medium text-gray-900 dark:text-white">
                         {{ session.bugName }}
@@ -756,6 +768,36 @@
                         <i class="fas fa-flag mr-1"></i>
                         {{ session.bugSeverity }}
                       </span>
+                      <!-- Doc viewer buttons for bug -->
+                      <div class="flex items-center gap-2">
+                        <button
+                          v-if="hasBugDocument(session.bugName, 'report')"
+                          @click.stop="viewBugDocument(session.projectPath, session.bugName, 'report')"
+                          class="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex items-center gap-1"
+                          title="View bug report"
+                        >
+                          <i class="fas fa-file-alt"></i>
+                          <span>Report</span>
+                        </button>
+                        <button
+                          v-if="hasBugDocument(session.bugName, 'analysis')"
+                          @click.stop="viewBugDocument(session.projectPath, session.bugName, 'analysis')"
+                          class="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex items-center gap-1"
+                          title="View analysis"
+                        >
+                          <i class="fas fa-microscope"></i>
+                          <span>Analysis</span>
+                        </button>
+                        <button
+                          v-if="hasBugDocument(session.bugName, 'fix')"
+                          @click.stop="viewBugDocument(session.projectPath, session.bugName, 'fix')"
+                          class="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex items-center gap-1"
+                          title="View fix documentation"
+                        >
+                          <i class="fas fa-wrench"></i>
+                          <span>Fix</span>
+                        </button>
+                      </div>
                     </div>
                     <!-- Next Command -->
                     <div v-if="session.nextCommand" class="mt-2">

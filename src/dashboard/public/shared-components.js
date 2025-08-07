@@ -338,6 +338,62 @@ const BaseAppState = {
     this.copyCommand.call(this, command, event);
   },
   
+  copyOrchestrationCommand(specName, taskId, event) {
+    const command = `/spec-orchestrate ${specName} ${taskId}`;
+    this.copyCommand.call(this, command, event);
+  },
+  
+  hasBugDocument(bugName, docType) {
+    // Check if a bug has a specific document by looking in the bug data
+    const project = this.selectedProject || this.project;
+    if (!project || !project.bugs) return false;
+    
+    const bug = project.bugs.find(b => b.name === bugName);
+    if (!bug) return false;
+    
+    // Check based on document type
+    switch(docType) {
+      case 'report':
+        return bug.report && bug.report.exists;
+      case 'analysis':
+        return bug.analysis && bug.analysis.exists;
+      case 'fix':
+        return bug.fix && bug.fix.exists;
+      default:
+        return false;
+    }
+  },
+  
+  async viewBugDocument(projectPath, bugName, docType) {
+    this.markdownPreview.show = true;
+    this.markdownPreview.loading = true;
+    this.markdownPreview.title = `${bugName} - ${docType}.md`;
+    
+    try {
+      let url = `/api/bugs/${bugName}/${docType}`;
+      if (projectPath) {
+        url = `/api/projects/${encodeURIComponent(projectPath)}/bugs/${bugName}/${docType}`;
+      }
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Response not OK:', response.status, errorText);
+        throw new Error(`Failed to fetch ${docType} content: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      this.markdownPreview.content = data.content;
+      this.markdownPreview.rawContent = data.content;
+    } catch (error) {
+      console.error(`Error fetching ${docType} content:`, error);
+      this.markdownPreview.content = `# Error loading ${docType} content\n\n${error.message}`;
+      this.markdownPreview.rawContent = '';
+    } finally {
+      this.markdownPreview.loading = false;
+    }
+  },
+  
   getTaskTooltip(task) {
     const parts = [];
     
