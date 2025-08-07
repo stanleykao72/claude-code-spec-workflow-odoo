@@ -1086,9 +1086,8 @@
                             <div v-if="isRequirementExpanded(spec.name, requirement.id || index) && requirement.acceptanceCriteria" class="px-3 pb-3 border-t border-gray-100 dark:border-gray-700">
                               <div class="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 pt-2">Acceptance Criteria:</div>
                               <ul class="space-y-1">
-                                <li v-for="criteria in requirement.acceptanceCriteria" :key="criteria" class="text-xs text-gray-600 dark:text-gray-400 flex items-start">
-                                  <span class="mr-2 mt-1 w-1 h-1 bg-gray-400 rounded-full flex-shrink-0"></span>
-                                  <span>{{ criteria }}</span>
+                                <li v-for="criteria in requirement.acceptanceCriteria" :key="criteria" class="text-xs text-gray-600 dark:text-gray-400">
+                                  <span v-html="formatAcceptanceCriteria(criteria)"></span>
                                 </li>
                               </ul>
                             </div>
@@ -1188,17 +1187,18 @@
                               <div v-if="selectedTaskId(spec.name) === task.id" class="px-3 pb-3 border-t border-gray-100 dark:border-gray-700">
                                 <div class="bg-gray-50 dark:bg-gray-800 rounded p-3 mt-2">
                                   <div class="space-y-2 text-xs">
-                                    <div class="text-gray-600 dark:text-gray-400">
-                                      <span class="font-medium">Requirements:</span> Build dependency
+                                    <div v-if="task.requirements && task.requirements.length > 0" class="text-gray-600 dark:text-gray-400">
+                                      <i class="fas fa-list-check mr-1"></i>
+                                      <span class="font-medium">Requirements:</span> {{ task.requirements.join(', ') }}
                                     </div>
-                                    <div class="text-gray-600 dark:text-gray-400">
-                                      <span class="font-medium">Leverage:</span> Gradle build system
+                                    <div v-if="task.leverage" class="text-gray-600 dark:text-gray-400">
+                                      <i class="fas fa-screwdriver mr-1"></i>
+                                      <span class="font-medium">Leverage:</span> {{ task.leverage }}
                                     </div>
-                                    <div class="text-gray-600 dark:text-gray-400">
+                                    <div v-if="task.details && task.details.length > 0" class="text-gray-600 dark:text-gray-400">
                                       <span class="font-medium">Details:</span>
                                       <ul class="mt-1 ml-4 space-y-1">
-                                        <li class="text-gray-600 dark:text-gray-400">• Run build to make new method available to public-api</li>
-                                        <li class="text-gray-600 dark:text-gray-400">• Command: `./gradlew :phenix:common:build`</li>
+                                        <li v-for="(detail, detailIndex) in task.details" :key="detailIndex" class="text-gray-600 dark:text-gray-400">• {{ detail }}</li>
                                       </ul>
                                     </div>
                                   </div>
