@@ -1210,12 +1210,23 @@
                         <p v-else class="text-sm text-gray-500 dark:text-gray-400">No tasks available</p>
                       </div>
                     </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-            <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+
+          <!-- Bugs Section -->
+          <div v-if="getVisibleBugs(selectedProject).length > 0" class="mt-6">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              <i class="fas fa-bug mr-2"></i>Bug Tracking
+            </h2>
+            <div class="bg-white dark:bg-gray-800 shadow rounded-lg transition-colors">
               <div class="divide-y divide-gray-200 dark:divide-gray-700">
                 <div
                   v-for="bug in getVisibleBugs(selectedProject)"
                   :key="bug.name"
+                  :data-bug-name="bug.name"
                   class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all p-4"
                 >
                   <div class="flex items-start justify-between">
