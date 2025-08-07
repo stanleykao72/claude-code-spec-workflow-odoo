@@ -557,7 +557,8 @@
               
               <span
                 v-if="project.hasActiveSession"
-                class="w-2 h-2 bg-green-500 rounded-full animate-pulse"
+                class="w-2 h-2 rounded-full animate-pulse"
+                :class="`bg-${getProjectColor(project.path).primary}`"
                 title="Active Claude session"
               ></span>
               
@@ -570,7 +571,7 @@
               <span
                 v-if="(getOpenSpecsCount(project) + getOpenBugsCount(project)) > 0"
                 class="ml-1 px-1.5 py-0.5 text-xs rounded-full"
-                :class="project.hasActiveSession ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'"
+                :class="project.hasActiveSession ? `bg-${getProjectColor(project.path).light} text-${getProjectColor(project.path).primary} dark:bg-${getProjectColor(project.path).dark?.light || getProjectColor(project.path).light} dark:text-${getProjectColor(project.path).dark?.primary || getProjectColor(project.path).primary}` : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'"
               >
                 {{ getOpenSpecsCount(project) }}/{{ getOpenBugsCount(project) }}
               </span>
