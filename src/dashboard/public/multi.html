@@ -1194,15 +1194,18 @@
                         </button>
                       </div>
                     </div>
-                    <div class="space-y-1">
+                    <div class="space-y-1" @vue:mounted="initializeSelectedTask(spec)">
                       <div
                         v-for="task in getVisibleTasks(spec)"
                         :key="task.id"
                         class="flex items-start p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-opacity"
                         :class="{
                           'bg-yellow-50 dark:bg-yellow-900/50 border-2 border-yellow-500 dark:border-yellow-400': spec.tasks.inProgress === task.id,
-                          'opacity-60': task.completed
+                          'opacity-60': task.completed,
+                          'cursor-pointer': !isTasksExpanded(spec.name),
+                          'bg-indigo-50 dark:bg-indigo-900/30': !isTasksExpanded(spec.name) && isTaskSelected(spec.name, task.id)
                         }"
+                        @click="!isTasksExpanded(spec.name) && selectTask(spec.name, task.id)"
                       >
                         <i
                           class="fas mt-0.5 mr-2"
@@ -1218,7 +1221,7 @@
                               :title="getTaskTooltip(task)"
                               >{{ task.description }}</span>
                             <button
-                              v-if="!task.completed && isTasksExpanded(spec.name)"
+                              v-if="!task.completed && (isTasksExpanded(spec.name) || (!isTasksExpanded(spec.name) && isTaskSelected(spec.name, task.id)))"
                               @click.stop="copyTaskCommand(spec.name, task.id, $event)"
                               class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
                               :title="`Copy command: /spec-execute ${spec.name} ${task.id}`"
@@ -1228,7 +1231,7 @@
                             </button>
                           </div>
                           <!-- Task Details on separate line -->
-                          <div v-if="isTasksExpanded(spec.name) && (task.details && task.details.length > 0 || task.requirements && task.requirements.length > 0 || task.leverage)" class="mt-1 ml-6 space-y-1 text-xs">
+                          <div v-if="(isTasksExpanded(spec.name) || (!isTasksExpanded(spec.name) && isTaskSelected(spec.name, task.id))) && (task.details && task.details.length > 0 || task.requirements && task.requirements.length > 0 || task.leverage)" class="mt-1 ml-6 space-y-1 text-xs">
                             <!-- Task Steps -->
                             <div v-if="task.details && task.details.length > 0" class="text-gray-600 dark:text-gray-400">
                               <ul class="space-y-0.5">

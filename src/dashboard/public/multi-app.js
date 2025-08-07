@@ -15,6 +15,7 @@ PetiteVue.createApp({
   expandedRequirements: {},
   expandedDesigns: {},
   expandedTasks: {},
+  selectedTasks: {}, // Track selected task per spec
   pendingProjectRoute: null, // Store project route when projects haven't loaded yet
   showCompleted: localStorage.getItem('showCompleted') !== 'false', // Default to true, stored in localStorage
 
@@ -528,6 +529,43 @@ PetiteVue.createApp({
 
   isTasksExpanded(specName) {
     return !!this.expandedTasks[specName];
+  },
+
+  // Task selection for detail view
+  selectTask(specName, taskId) {
+    if (this.selectedTasks[specName] === taskId) {
+      // Deselect if clicking the same task
+      delete this.selectedTasks[specName];
+    } else {
+      this.selectedTasks[specName] = taskId;
+    }
+  },
+
+  isTaskSelected(specName, taskId) {
+    return this.selectedTasks[specName] === taskId;
+  },
+
+  // Initialize selected task to first incomplete task
+  initializeSelectedTask(spec) {
+    if (!this.selectedTasks[spec.name] && spec.tasks && spec.tasks.taskList) {
+      const firstIncomplete = this.findFirstIncompleteTask(spec.tasks.taskList);
+      if (firstIncomplete) {
+        this.selectedTasks[spec.name] = firstIncomplete.id;
+      }
+    }
+  },
+
+  findFirstIncompleteTask(tasks) {
+    for (const task of tasks) {
+      if (!task.completed) {
+        return task;
+      }
+      if (task.subtasks) {
+        const subtask = this.findFirstIncompleteTask(task.subtasks);
+        if (subtask) return subtask;
+      }
+    }
+    return null;
   },
 
   // Normalize project data
