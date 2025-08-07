@@ -344,7 +344,26 @@ const BaseAppState = {
   },
   
   hasBugDocument(bugName, docType) {
-    // Check if a bug has a specific document by looking in the bug data
+    // For active sessions, we might need to check differently
+    // First try to find in activeSessions
+    if (this.activeSessions) {
+      const activeSession = this.activeSessions.find(s => s.type === 'bug' && s.bugName === bugName);
+      if (activeSession) {
+        // For active sessions, we might have the bug data directly
+        switch(docType) {
+          case 'report':
+            return activeSession.bugReport?.exists || true; // Assume exists if in active session
+          case 'analysis':
+            return activeSession.bugAnalysis?.exists || (activeSession.bugStatus === 'fixing' || activeSession.bugStatus === 'verifying');
+          case 'fix':
+            return activeSession.bugFix?.exists || activeSession.bugStatus === 'verifying';
+          default:
+            return false;
+        }
+      }
+    }
+    
+    // Otherwise check in project bugs
     const project = this.selectedProject || this.project;
     if (!project || !project.bugs) return false;
     
