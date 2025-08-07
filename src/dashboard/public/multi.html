@@ -1179,6 +1179,7 @@
                                   <span class="font-medium">Task {{ task.id }}:</span> {{ task.description }}
                                 </div>
                               </div>
+                              <i class="fas fa-chevron-right text-gray-400 text-xs transition-transform duration-200" :class="selectedTaskId(spec.name) === task.id ? 'rotate-90' : ''"></i>
                             </div>
                           </div>
                           <!-- Task Details for Selected Task -->

@@ -16,6 +16,7 @@ PetiteVue.createApp({
   expandedDesigns: {},
   expandedTasks: {},
   selectedTasks: {}, // Track selected task per spec
+  expandedRequirementAccordions: {}, // Track expanded requirement accordions per spec
   pendingProjectRoute: null, // Store project route when projects haven't loaded yet
   showCompleted: localStorage.getItem('showCompleted') !== 'false', // Default to true, stored in localStorage
   tunnelStatus: null,
