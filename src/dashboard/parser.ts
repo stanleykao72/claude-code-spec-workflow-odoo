@@ -300,12 +300,6 @@ export class SpecParser {
       debug('Tasks file content length:', content.length);
       debug('Tasks file includes APPROVED:', content.includes('✅ APPROVED'));
       
-      // Special debug for ui-improvements
-      if (name === 'ui-improvements') {
-        console.log(`\n===== UI-IMPROVEMENTS SPEC DEBUG =====`);
-        console.log(`Content preview:`, content.substring(0, 500));
-        console.log(`========================================\n`);
-      }
       
       // If we still haven't found a display name, try to extract from tasks
       if (spec.displayName === this.formatDisplayName(name)) {
