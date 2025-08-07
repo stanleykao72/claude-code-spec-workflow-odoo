@@ -289,10 +289,20 @@ const BaseAppState = {
     if (!story) return '';
     let formatted = story;
     
-    // First, handle user story keywords with special formatting
-    // The regex needs to be more flexible to handle various formats
+    // Handle user story keywords with various formats
+    // First handle keywords with bold formatting
     formatted = formatted.replace(/\*\*(As a|I want|So that)\*\*/gi, 
       '<span class="ears-keyword font-semibold">$1</span>'
+    );
+    
+    // Handle keywords without bold formatting (case-insensitive)
+    formatted = formatted.replace(/\b(As a|I want|So that)\b/gi, 
+      '<span class="ears-keyword font-semibold">$1</span>'
+    );
+    
+    // Handle EARS keywords (WHEN, IF, THEN, SHALL)
+    formatted = formatted.replace(/\b(WHEN|IF|THEN|SHALL)\b/g, 
+      '<span class="ears-keyword">$1</span>'
     );
     
     // Then handle any remaining bold text
@@ -578,10 +588,20 @@ window.DashboardShared = {
     if (!story) return '';
     let formatted = story;
     
-    // First, handle user story keywords with special formatting
-    // The regex needs to be more flexible to handle various formats
+    // Handle user story keywords with various formats
+    // First handle keywords with bold formatting
     formatted = formatted.replace(/\*\*(As a|I want|So that)\*\*/gi, 
       '<span class="ears-keyword font-semibold">$1</span>'
+    );
+    
+    // Handle keywords without bold formatting (case-insensitive)
+    formatted = formatted.replace(/\b(As a|I want|So that)\b/gi, 
+      '<span class="ears-keyword font-semibold">$1</span>'
+    );
+    
+    // Handle EARS keywords (WHEN, IF, THEN, SHALL)
+    formatted = formatted.replace(/\b(WHEN|IF|THEN|SHALL)\b/g, 
+      '<span class="ears-keyword">$1</span>'
     );
     
     // Then handle any remaining bold text

@@ -603,12 +603,20 @@ PetiteVue.createApp({
     return spec.tasks.taskList.find(task => task.id === taskId);
   },
 
-  // Requirement accordion functionality
+  // Requirement accordion functionality (only one open at a time per spec)
   toggleRequirementAccordion(specName, requirementId) {
     const key = `${specName}-${requirementId}`;
-    if (this.expandedRequirementAccordions[key]) {
-      delete this.expandedRequirementAccordions[key];
-    } else {
+    const isCurrentlyExpanded = this.expandedRequirementAccordions[key];
+    
+    // Close all requirements for this spec first
+    Object.keys(this.expandedRequirementAccordions).forEach(k => {
+      if (k.startsWith(specName + '-')) {
+        delete this.expandedRequirementAccordions[k];
+      }
+    });
+    
+    // If it wasn't expanded before, expand it now (accordion behavior)
+    if (!isCurrentlyExpanded) {
       this.expandedRequirementAccordions[key] = true;
     }
   },
