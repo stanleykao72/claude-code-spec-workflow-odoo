@@ -127,6 +127,11 @@ export class ProjectDiscovery {
           continue;
 
         const fullPath = join(dir, entry.name);
+        
+        // Special debug for phenix paths
+        if (fullPath.includes('phenix')) {
+          debug(`Checking phenix-related path: ${fullPath} (depth: ${depth})`);
+        }
 
         // Check if this directory has a .claude folder
         const claudePath = join(fullPath, '.claude');
@@ -135,6 +140,7 @@ export class ProjectDiscovery {
           if (claudeStat.isDirectory()) {
             const project = await this.analyzeProject(fullPath, claudePath, activeSessions);
             projects.push(project);
+            debug(`Found project with .claude dir: ${fullPath}`);
           }
         } catch {
           // No .claude directory
@@ -143,7 +149,11 @@ export class ProjectDiscovery {
         // Always check subdirectories if we haven't reached max depth
         // This ensures we find nested projects like phenix/phenix/public-api
         if (depth < 4) {
+          debug(`Searching subdirectory: ${fullPath} (depth: ${depth})`);
           const subProjects = await this.searchDirectory(fullPath, activeSessions, depth + 1);
+          if (subProjects.length > 0) {
+            debug(`Found ${subProjects.length} projects in subdirectory ${fullPath}`);
+          }
           projects.push(...subProjects);
         }
       }

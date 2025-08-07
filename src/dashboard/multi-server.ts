@@ -83,7 +83,10 @@ export class MultiProjectDashboardServer {
     const discoveredProjects = await this.discovery.discoverProjects();
 
     // Projects are already filtered by discovery
-    console.log(`Found ${discoveredProjects.map(p => p.name).join(', ')}`);
+    console.log(`Found ${discoveredProjects.length} projects:`);
+    discoveredProjects.forEach(p => {
+      console.log(`  - ${p.name} at ${p.path} (specs: ${p.specCount}, bugs: ${p.bugCount}, active: ${p.hasActiveSession})`);
+    });
 
     // Initialize watchers for each project
     for (const project of discoveredProjects) {
