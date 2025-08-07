@@ -943,7 +943,7 @@
               >
                 <div 
                   class="flex items-center justify-between p-6 cursor-pointer"
-                  @click="selectedSpec = selectedSpec?.name === spec.name ? null : spec"
+                  @click="selectedSpec = selectedSpec?.name === spec.name ? null : spec; console.log('selectedSpec:', selectedSpec, 'spec:', spec)"
                 >
                   <div class="flex-1">
                     <h3 class="text-lg font-medium transition-all inline-flex items-center gap-2"
@@ -1041,13 +1041,12 @@
                 <div
                   v-if="selectedSpec?.name === spec.name"
                   class="px-6 pb-6 pt-4 border-t border-gray-200 dark:border-gray-700"
+                  @vue:mounted="console.log('Expanded details mounted for', selectedSpec?.name, 'selectedSpec:', selectedSpec)"
                 >
                   
-                    <div class="grid grid-cols-3 gap-4 mb-4">
+                    <div class="w-full flex flex-col gap-4 mb-4">
                       <!-- Requirements -->
-                      <div :class="isRequirementsExpanded(spec.name) ? 'col-span-3' : 'col-span-1'">
-                      <!-- Collapsed view - single line -->
-                      <div v-if="!isRequirementsExpanded(spec.name)" class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded p-2">
+                      <div v-if="spec.requirements && !isRequirementsExpanded(spec.name)" class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded p-2">
                         <div class="flex items-center gap-2 text-sm">
                           <i class="fas fa-clipboard-list text-gray-600 dark:text-gray-400"></i>
                           <span class="font-medium text-gray-900 dark:text-white">{{ spec.requirements?.content?.length || 0 }} Requirements</span>
@@ -1073,7 +1072,7 @@
                       </div>
                       
                       <!-- Expanded view -->
-                      <div v-if="isRequirementsExpanded(spec.name)">
+                      <div v-if="spec.requirements && isRequirementsExpanded(spec.name)">
                         <h4 class="font-medium text-gray-900 dark:text-white mb-2">
                           <i class="fas fa-clipboard-list mr-1"></i> Requirements
                         </h4>
@@ -1095,7 +1094,7 @@
                               <span>Hide details</span>
                             </button>
                           </div>
-
+                        </div>
 
                         <!-- Expanded view - full details -->
                         <div
@@ -1165,14 +1164,11 @@
                             </div>
                           </div>
                         </div>
-                      </div>
-                      <p v-else class="text-sm text-gray-400 dark:text-gray-500">Not created</p>
-                      </div>
+                      <p v-else-if="spec.requirements" class="text-sm text-gray-400 dark:text-gray-500">Not created</p>
                       
                       <!-- Design -->
-                      <div :class="isDesignExpanded(spec.name) ? 'col-span-3' : 'col-span-1'">
                       <!-- Collapsed view - single line -->
-                      <div v-if="!isDesignExpanded(spec.name)" class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded p-2">
+                      <div v-if="spec.design && !isDesignExpanded(spec.name)" class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded p-2">
                         <div class="flex items-center gap-2 text-sm">
                           <i class="fas fa-drafting-compass text-gray-600 dark:text-gray-400"></i>
                           <span class="font-medium text-gray-900 dark:text-white">Design</span>
@@ -1199,7 +1195,7 @@
                       </div>
                       
                       <!-- Expanded view -->
-                      <div v-if="isDesignExpanded(spec.name)">
+                      <div v-if="spec.design && isDesignExpanded(spec.name)">
                         <h4 class="font-medium text-gray-900 dark:text-white mb-2">
                           <i class="fas fa-drafting-compass mr-1"></i> Design
                           <button
@@ -1262,13 +1258,11 @@
                           </div>
                         </div>
                       </div>
-                      <p v-else class="text-sm text-gray-400 dark:text-gray-500">Not created</p>
-                      </div>
+                      <p v-else-if="spec.design" class="text-sm text-gray-400 dark:text-gray-500">Not created</p>
                       
                       <!-- Tasks -->
-                      <div v-if="spec.tasks" :class="isTasksExpanded(spec.name) ? 'col-span-3' : 'col-span-1'">
-                        <!-- Collapsed view - single line -->
-                        <div v-if="!isTasksExpanded(spec.name)" class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded p-2">
+                      <!-- Collapsed view - single line -->
+                      <div v-if="spec.tasks && !isTasksExpanded(spec.name)" class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded p-2">
                           <div class="flex items-center gap-2 text-sm">
                             <i class="fas fa-tasks text-gray-600 dark:text-gray-400"></i>
                             <span class="font-medium text-gray-900 dark:text-white">{{ spec.tasks.total || 0 }} Tasks</span>
@@ -1292,10 +1286,10 @@
                               <i class="fas fa-chevron-right"></i>
                             </button>
                           </div>
-                        </div>
-                        
-                        <!-- Expanded view -->
-                        <div v-if="isTasksExpanded(spec.name)">
+                      </div>
+                      
+                      <!-- Expanded view -->
+                      <div v-if="spec.tasks && isTasksExpanded(spec.name)">
                           <h4 class="font-medium text-gray-900 dark:text-white mb-2">
                             <i class="fas fa-tasks mr-1"></i> Tasks
                             <button
@@ -1391,7 +1385,7 @@
                             </div>
                           </div>
                         </div>
-                        <p v-else class="text-sm text-gray-400 dark:text-gray-500">Not created</p>
+                      <p v-else-if="spec.tasks" class="text-sm text-gray-400 dark:text-gray-500">Not created</p>
                       </div>
                     </div>
           </div>
