@@ -14,6 +14,7 @@ PetiteVue.createApp({
   username: 'User',
   expandedRequirements: {},
   expandedDesigns: {},
+  expandedTasks: {},
   pendingProjectRoute: null, // Store project route when projects haven't loaded yet
   showCompleted: localStorage.getItem('showCompleted') !== 'false', // Default to true, stored in localStorage
 
@@ -514,6 +515,19 @@ PetiteVue.createApp({
 
   isDesignExpanded(specName) {
     return !!this.expandedDesigns[specName];
+  },
+
+  // Tasks expand/collapse
+  toggleTasksExpanded(specName) {
+    if (this.expandedTasks[specName]) {
+      delete this.expandedTasks[specName];
+    } else {
+      this.expandedTasks[specName] = true;
+    }
+  },
+
+  isTasksExpanded(specName) {
+    return !!this.expandedTasks[specName];
   },
 
   // Normalize project data

@@ -1164,16 +1164,25 @@
                           <i class="fas fa-search"></i> <span class="font-mono text-[10px] opacity-75">.md</span>
                         </button>
                       </h4>
-                      <button
-                        v-if="getCompletedTaskCount(spec) > 0"
-                        @click.stop="toggleCompletedTasks(spec.name)"
-                        class="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex items-center gap-1"
-                      >
-                        <i class="fas" :class="areCompletedTasksCollapsed(spec.name) ? 'fa-eye' : 'fa-eye-slash'"></i>
-                        <span>{{ areCompletedTasksCollapsed(spec.name) ? 'Show' : 'Hide' }} {{ getCompletedTaskCount(spec) }} completed</span>
-                      </button>
+                      <div class="flex items-center gap-2">
+                        <button
+                          @click.stop="toggleTasksExpanded(spec.name)"
+                          class="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex items-center gap-1"
+                        >
+                          <i class="fas" :class="isTasksExpanded(spec.name) ? 'fa-eye-slash' : 'fa-eye'"></i>
+                          <span>{{ isTasksExpanded(spec.name) ? 'Hide' : 'Show' }} details</span>
+                        </button>
+                        <button
+                          v-if="getCompletedTaskCount(spec) > 0 && isTasksExpanded(spec.name)"
+                          @click.stop="toggleCompletedTasks(spec.name)"
+                          class="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex items-center gap-1"
+                        >
+                          <i class="fas" :class="areCompletedTasksCollapsed(spec.name) ? 'fa-eye' : 'fa-eye-slash'"></i>
+                          <span>{{ areCompletedTasksCollapsed(spec.name) ? 'Show' : 'Hide' }} {{ getCompletedTaskCount(spec) }} completed</span>
+                        </button>
+                      </div>
                     </div>
-                    <div class="space-y-1">
+                    <div v-if="isTasksExpanded(spec.name)" class="space-y-1">
                       <div
                         v-for="task in getVisibleTasks(spec)"
                         :key="task.id"
