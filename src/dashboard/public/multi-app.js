@@ -551,6 +551,16 @@ PetiteVue.createApp({
       delete this.expandedTasks[specName];
     } else {
       this.expandedTasks[specName] = true;
+      // Auto-select first incomplete task when expanding
+      if (!this.selectedTasks[specName]) {
+        const project = this.selectedProject;
+        if (project && project.specs) {
+          const spec = project.specs.find(s => s.name === specName);
+          if (spec) {
+            this.initializeSelectedTask(spec);
+          }
+        }
+      }
     }
   },
 
@@ -570,6 +580,41 @@ PetiteVue.createApp({
 
   isTaskSelected(specName, taskId) {
     return this.selectedTasks[specName] === taskId;
+  },
+
+  // Get currently selected task ID for a spec
+  selectedTaskId(specName) {
+    return this.selectedTasks[specName];
+  },
+
+  // Get selected task object for a spec
+  getSelectedTask(specName) {
+    const taskId = this.selectedTasks[specName];
+    if (!taskId) return null;
+    
+    // Find the project and spec
+    const project = this.selectedProject;
+    if (!project || !project.specs) return null;
+    
+    const spec = project.specs.find(s => s.name === specName);
+    if (!spec || !spec.tasks || !spec.tasks.taskList) return null;
+    
+    return spec.tasks.taskList.find(task => task.id === taskId);
+  },
+
+  // Requirement accordion functionality
+  toggleRequirementAccordion(specName, requirementId) {
+    const key = `${specName}-${requirementId}`;
+    if (this.expandedRequirementAccordions[key]) {
+      delete this.expandedRequirementAccordions[key];
+    } else {
+      this.expandedRequirementAccordions[key] = true;
+    }
+  },
+
+  isRequirementExpanded(specName, requirementId) {
+    const key = `${specName}-${requirementId}`;
+    return !!this.expandedRequirementAccordions[key];
   },
 
   // Initialize selected task to first incomplete task
@@ -617,10 +662,8 @@ PetiteVue.createApp({
     return projects.map((project) => {
       if (project.specs) {
         project.specs = project.specs.map((spec) => {
-          // Initialize completed tasks as collapsed by default
-          if (spec.tasks && this.getCompletedTaskCount(spec) > 0) {
-            this.collapsedCompletedTasks[spec.name] = true;
-          }
+          // Initialize selected task to first incomplete when tasks exist
+          this.initializeSelectedTask(spec);
           
           // Ensure requirements content is properly handled
           if (spec.requirements && spec.requirements.content) {

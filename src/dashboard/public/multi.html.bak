@@ -1044,70 +1044,128 @@
                   @vue:mounted="console.log('Expanded details mounted for', selectedSpec?.name, 'selectedSpec:', selectedSpec)"
                 >
                   
-                    <div class="w-full flex flex-wrap gap-4 mb-4">
+                    <div class="w-full grid grid-cols-3 gap-4 mb-4">
                       <!-- Requirements -->
-                      <div :class="isRequirementsExpanded(spec.name) ? 'w-full' : 'flex-1'" class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded p-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" @click.stop="toggleRequirementsExpanded(spec.name)">
-                        <div class="flex items-center gap-2 text-sm">
-                          <span class="font-medium text-gray-900 dark:text-white">
-                            <i class="fas fa-clipboard-list text-gray-600 dark:text-gray-400 mr-2"></i>
-                            {{ spec.requirements?.content?.length || 0 }} Requirements
-                          </span>
-                          <span v-if="spec.requirements?.approved" class="flex items-center gap-1">
-                            <i class="fas fa-check text-green-500 text-xs" title="Approved"></i>
-                            <span class="text-xs text-green-600 dark:text-green-400">Approved</span>
-                          </span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                          <button
-                            v-if="spec.requirements"
-                            @click.stop="viewMarkdown(spec.name, 'requirements', selectedProject?.path)"
-                            class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
-                            title="View source"
-                          >
-                            <i class="fas fa-search"></i> <span class="font-mono text-[10px] opacity-75">.md</span>
-                          </button>
-                          <i class="fas text-xs text-gray-400" :class="isRequirementsExpanded(spec.name) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
-                        </div>
-                      </div>
-                      
-                      <!-- Requirements Expanded Content - Accordion -->
-                      <div v-if="isRequirementsExpanded(spec.name)" class="w-full bg-white dark:bg-gray-900 rounded-b p-3 -mt-2 border-t border-gray-200 dark:border-gray-700">
-                        <div v-if="spec.requirements && spec.requirements.content && spec.requirements.content.length > 0" class="space-y-2">
-                          <div v-for="(requirement, index) in spec.requirements.content" :key="requirement.id || index" class="border border-gray-200 dark:border-gray-700 rounded-lg">
-                            <!-- Requirement Header -->
-                            <div class="p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" @click="toggleRequirementAccordion(spec.name, requirement.id || index)">
-                              <div class="flex items-center justify-between">
-                                <div class="text-sm font-medium text-gray-900 dark:text-white">{{ requirement.id }}: {{ requirement.title || 'No title' }}</div>
-                                <i class="fas fa-chevron-down text-gray-400 transition-transform duration-200" :class="isRequirementExpanded(spec.name, requirement.id || index) ? 'rotate-180' : ''"></i>
-                              </div>
-                              <div v-if="requirement.userStory" class="text-xs text-blue-600 dark:text-blue-400 mt-1" v-html="formatUserStory(requirement.userStory)"></div>
-                            </div>
-                            <!-- Acceptance Criteria -->
-                            <div v-if="isRequirementExpanded(spec.name, requirement.id || index) && requirement.acceptanceCriteria" class="px-3 pb-3 border-t border-gray-100 dark:border-gray-700">
-                              <div class="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 pt-2">Acceptance Criteria:</div>
-                              <ul class="space-y-1">
-                                <li v-for="criteria in requirement.acceptanceCriteria" :key="criteria" class="text-xs text-gray-600 dark:text-gray-400 flex items-start">
-                                  <span class="mr-2 mt-1 w-1 h-1 bg-gray-400 rounded-full flex-shrink-0"></span>
-                                  <span>{{ criteria }}</span>
-                                </li>
-                              </ul>
-                            </div>
-                          </div>
-                        </div>
-                        <p v-else class="text-sm text-gray-500 dark:text-gray-400">No requirements content available</p>
+                      <div class="bg-blue-100 p-4">
+                        <h3>Requirements</h3>
+                        <p>{{ spec.requirements?.content?.length || 0 }} requirements</p>
                       </div>
                       
                       <!-- Design -->
-                      <div :class="isDesignExpanded(spec.name) ? 'w-full' : 'flex-1'" class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded p-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" @click.stop="toggleDesignExpanded(spec.name)">
+                      <div class="bg-green-100 p-4">
+                        <h3>Design</h3>
+                        <p>{{ spec.design ? 'Has design' : 'No design' }}</p>
+                      </div>
+                      
+                      <!-- Tasks -->
+                      <div class="bg-yellow-100 p-4">
+                        <h3>Tasks</h3>
+                        <p>{{ spec.tasks?.total || 0 }} tasks</p>
+                      </div>
+                      
+                      <!-- Expanded view -->
+                      <div v-if="spec.requirements && isRequirementsExpanded(spec.name)">
+                        <h4 class="font-medium text-gray-900 dark:text-white mb-2">
+                          <i class="fas fa-clipboard-list mr-1"></i> Requirements
+                        </h4>
+                        <div v-if="spec.requirements" class="text-sm text-gray-600 dark:text-gray-400">
+                          <div class="flex items-center justify-between mb-2">
+                            <p class="flex items-center">
+                              <i
+                                class="fas mr-1"
+                                :class="spec.requirements.approved ? 'fa-check-circle text-green-500' : 'fa-clock text-yellow-500'"
+                              ></i>
+                              {{ spec.requirements.content?.length || 0 }} requirements - {{
+                              spec.requirements.approved ? 'Approved' : 'Pending' }}
+                            </p>
+                            <button
+                              @click.stop="toggleRequirementsExpanded(spec.name)"
+                              class="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex items-center gap-1"
+                            >
+                              <i class="fas fa-chevron-down"></i>
+                              <span>Hide details</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        <!-- Expanded view - full details -->
+                        <div
+                          v-if="spec.requirements.content && spec.requirements.content.length > 0 && isRequirementsExpanded(spec.name)"
+                          class="space-y-3"
+                        >
+                          <!-- Requirements header with clickable links -->
+                          <div class="bg-indigo-50 dark:bg-indigo-900/20 rounded-lg p-3 mb-3">
+                            <h5 class="text-sm font-medium text-indigo-900 dark:text-indigo-200 mb-2">Jump to Requirement:</h5>
+                            <div class="flex flex-wrap gap-2">
+                              <a
+                                v-for="(requirement, index) in spec.requirements.content"
+                                :key="requirement.id || index"
+                                :href="`#${spec.name}-req-${requirement.id}`"
+                                @click.prevent="scrollToRequirement(spec.name, requirement.id)"
+                                class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-white dark:bg-gray-800 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-800 transition-colors border border-indigo-200 dark:border-indigo-700"
+                              >
+                                {{ requirement.id }}: {{ requirement.title || 'No title' }}
+                              </a>
+                            </div>
+                          </div>
+                          <div
+                            v-for="(requirement, index) in spec.requirements.content"
+                            :key="requirement.id || index"
+                            :id="`${spec.name}-req-${requirement.id}`"
+                            class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 scroll-mt-20"
+                          >
+                            <div v-if="requirement && requirement.id">
+                              <h5 class="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                                <strong>{{ requirement.id }}:</strong> {{
+                                requirement.title || 'No title' }}
+                              </h5>
+                              <div
+                                v-if="requirement.userStory"
+                                class="text-xs text-blue-600 dark:text-blue-400 mb-2 italic"
+                                v-html="formatUserStory(requirement.userStory)"
+                              >
+                              </div>
+                              <div
+                                v-if="requirement.acceptanceCriteria && requirement.acceptanceCriteria.length > 0"
+                              >
+                                <p
+                                  class="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1"
+                                >
+                                  Acceptance Criteria:
+                                </p>
+                                <div class="space-y-1">
+                                  <div
+                                    v-for="(criteria, index) in requirement.acceptanceCriteria"
+                                    :key="index"
+                                    class="flex items-start text-xs text-gray-600 dark:text-gray-400"
+                                  >
+                                    <span class="mr-2">•</span>
+                                    <span v-html="formatAcceptanceCriteria(criteria)"></span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <div
+                              v-else-if="typeof requirement === 'string'"
+                              class="text-xs text-gray-600 dark:text-gray-400"
+                            >
+                              {{ requirement }}
+                            </div>
+                            <div v-else class="text-xs text-gray-600 dark:text-gray-400">
+                              <pre>{{ JSON.stringify(requirement, null, 2) }}</pre>
+                            </div>
+                          </div>
+                        </div>
+                      <p v-else-if="spec.requirements" class="text-sm text-gray-400 dark:text-gray-500">Not created</p>
+                      
+                      <!-- Design -->
+                      <div class="bg-red-500 text-white p-1">DESIGN DEBUG: exists={{!!spec.design}}</div>
+                      <!-- Collapsed view - single line -->
+                      <div v-if="spec.design && !isDesignExpanded(spec.name)" class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded p-2">
                         <div class="flex items-center gap-2 text-sm">
-                          <span class="font-medium text-gray-900 dark:text-white">
-                            <i class="fas fa-drafting-compass text-gray-600 dark:text-gray-400 mr-2"></i>
-                            Design
-                          </span>
-                          <span v-if="spec.design?.approved" class="flex items-center gap-1">
-                            <i class="fas fa-check text-green-500 text-xs" title="Approved"></i>
-                            <span class="text-xs text-green-600 dark:text-green-400">Approved</span>
-                          </span>
+                          <i class="fas fa-drafting-compass text-gray-600 dark:text-gray-400"></i>
+                          <span class="font-medium text-gray-900 dark:text-white">Design</span>
+                          <i v-if="spec.design?.approved" class="fas fa-check-circle text-green-500 text-xs" title="Approved"></i>
                           <i v-if="spec.design?.hasCodeReuseAnalysis" class="fas fa-recycle text-blue-500 text-xs" title="Has code reuse analysis"></i>
                         </div>
                         <div class="flex items-center gap-2">
@@ -1119,93 +1177,216 @@
                           >
                             <i class="fas fa-search"></i> <span class="font-mono text-[10px] opacity-75">.md</span>
                           </button>
-                          <i class="fas text-xs text-gray-400" :class="isDesignExpanded(spec.name) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
-                        </div>
-                      </div>
-                      
-                      <!-- Design Expanded Content -->
-                      <div v-if="isDesignExpanded(spec.name)" class="w-full bg-gray-50 dark:bg-gray-800 rounded-b p-3 -mt-2">
-                        <div v-if="spec.design" class="text-sm text-gray-600 dark:text-gray-400">
-                          <div v-if="spec.design.codeReuseContent && spec.design.codeReuseContent.length > 0" class="space-y-2">
-                            <div v-for="category in spec.design.codeReuseContent" :key="category.title" class="bg-green-50 dark:bg-green-900/20 rounded p-2">
-                              <h6 class="text-xs font-medium text-green-700 dark:text-green-300 mb-1">{{ category.title }}</h6>
-                              <ul class="text-xs text-green-600 dark:text-green-400 space-y-1">
-                                <li v-for="item in category.items" :key="item" class="flex items-start">
-                                  <span class="mr-1.5 mt-1 w-1 h-1 bg-green-500 rounded-full flex-shrink-0"></span>
-                                  <span>{{ item }}</span>
-                                </li>
-                              </ul>
-                            </div>
-                          </div>
-                        </div>
-                        <p v-else class="text-sm text-gray-500">No design content available</p>
-                      </div>
-                      
-                      <!-- Tasks -->
-                      <div :class="isTasksExpanded(spec.name) ? 'w-full' : 'flex-1'" class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded p-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" @click.stop="toggleTasksExpanded(spec.name)">
-                        <div class="flex items-center gap-2 text-sm">
-                          <span class="font-medium text-gray-900 dark:text-white">
-                            <i class="fas fa-tasks text-gray-600 dark:text-gray-400 mr-2"></i>
-                            {{ spec.tasks?.total || 0 }} Tasks
-                          </span>
-                          <span v-if="spec.tasks?.approved" class="flex items-center gap-1">
-                            <i class="fas fa-check text-green-500 text-xs" title="Approved"></i>
-                            <span class="text-xs text-green-600 dark:text-green-400">Approved</span>
-                          </span>
-                          <span v-if="spec.tasks?.completed > 0" class="text-xs text-gray-500 dark:text-gray-400">({{ spec.tasks.completed }} done)</span>
-                        </div>
-                        <div class="flex items-center gap-2">
                           <button
-                            v-if="spec.tasks"
-                            @click.stop="viewMarkdown(spec.name, 'tasks', selectedProject?.path)"
-                            class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
+                            v-if="spec.design"
+                            @click.stop="toggleDesignExpanded(spec.name)"
+                            class="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                          >
+                            <i class="fas fa-chevron-right"></i>
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <!-- Expanded view -->
+                      <div v-if="spec.design && isDesignExpanded(spec.name)">
+                        <h4 class="font-medium text-gray-900 dark:text-white mb-2">
+                          <i class="fas fa-drafting-compass mr-1"></i> Design
+                          <button
+                            v-if="spec.design"
+                            @click.stop="viewMarkdown(spec.name, 'design', selectedProject?.path)"
+                            class="markdown-preview-btn ml-2 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
                             title="View source"
                           >
                             <i class="fas fa-search"></i> <span class="font-mono text-[10px] opacity-75">.md</span>
                           </button>
-                          <i class="fas text-xs text-gray-400" :class="isTasksExpanded(spec.name) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                        </h4>
+                        <div v-if="spec.design" class="text-sm text-gray-600 dark:text-gray-400">
+                          <div class="flex items-center justify-between mb-2">
+                            <p class="flex items-center">
+                              <i
+                                class="fas mr-1"
+                                :class="spec.design.approved ? 'fa-check-circle text-green-500' : 'fa-clock text-yellow-500'"
+                              ></i>
+                              {{ spec.design.approved ? 'Approved' : 'Pending' }}
+                              <i
+                                class="fas ml-2"
+                                :class="spec.design.hasCodeReuseAnalysis ? 'fa-check-circle text-green-500' : 'fa-times-circle text-red-500'"
+                              ></i>
+                              <span class="ml-1">{{ spec.design.hasCodeReuseAnalysis ? 'Has code reuse analysis' : 'No code reuse analysis' }}</span>
+                            </p>
+                            <button
+                              v-if="spec.design.codeReuseContent && spec.design.codeReuseContent.length > 0"
+                              @click.stop="toggleDesignExpanded(spec.name)"
+                              class="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex items-center gap-1"
+                          >
+                            <i class="fas" :class="isDesignExpanded(spec.name) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                            <span>{{ isDesignExpanded(spec.name) ? 'Hide' : 'Show' }} details</span>
+                          </button>
                         </div>
+
+                        <div
+                          v-if="spec.design.codeReuseContent && spec.design.codeReuseContent.length > 0 && isDesignExpanded(spec.name)"
+                          class="space-y-2 mt-2"
+                        >
+                          <div
+                            v-for="category in spec.design.codeReuseContent"
+                            :key="category.title"
+                            class="bg-green-50 dark:bg-green-900/20 rounded-lg p-2"
+                          >
+                            <h6 class="text-xs font-medium text-green-700 dark:text-green-300 mb-1">
+                              {{ category.title }}
+                            </h6>
+                            <ul class="text-xs text-green-600 dark:text-green-400 space-y-0.5">
+                              <li
+                                v-for="item in category.items"
+                                :key="item"
+                                class="flex items-start"
+                              >
+                                <span
+                                  class="mr-1.5 mt-0.5 w-1 h-1 bg-green-500 rounded-full flex-shrink-0"
+                                ></span>
+                                <span>{{ item }}</span>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                      <p v-else-if="spec.design" class="text-sm text-gray-400 dark:text-gray-500">Not created</p>
+                      
+                      <!-- Tasks -->
+                      <!-- Collapsed view - single line -->
+                      <div v-if="spec.tasks && !isTasksExpanded(spec.name)" class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded p-2">
+                          <div class="flex items-center gap-2 text-sm">
+                            <i class="fas fa-tasks text-gray-600 dark:text-gray-400"></i>
+                            <span class="font-medium text-gray-900 dark:text-white">{{ spec.tasks.total || 0 }} Tasks</span>
+                            <i v-if="spec.tasks?.approved" class="fas fa-check-circle text-green-500 text-xs" title="Approved"></i>
+                            <span v-if="spec.tasks?.completed > 0" class="text-xs text-gray-500 dark:text-gray-400">({{ spec.tasks.completed }} done)</span>
+                          </div>
+                          <div class="flex items-center gap-2">
+                            <button
+                              v-if="spec.tasks"
+                              @click.stop="viewMarkdown(spec.name, 'tasks', selectedProject?.path)"
+                              class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
+                              title="View source"
+                            >
+                              <i class="fas fa-search"></i> <span class="font-mono text-[10px] opacity-75">.md</span>
+                            </button>
+                            <button
+                              v-if="spec.tasks?.taskList && spec.tasks.taskList.length > 0"
+                              @click.stop="toggleTasksExpanded(spec.name)"
+                              class="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                            >
+                              <i class="fas fa-chevron-right"></i>
+                            </button>
+                          </div>
                       </div>
                       
-                      <!-- Tasks Expanded Content - Accordion with task details -->
-                      <div v-if="isTasksExpanded(spec.name)" class="w-full bg-white dark:bg-gray-900 rounded-b p-3 -mt-2 border-t border-gray-200 dark:border-gray-700">
-                        <div v-if="spec.tasks && spec.tasks.taskList && spec.tasks.taskList.length > 0">
-                          <!-- Task List -->
-                          <div class="space-y-2 mb-4">
-                            <div v-for="(task, index) in spec.tasks.taskList" :key="task.id" class="flex items-start gap-2 p-2 rounded cursor-pointer transition-colors" :class="selectedTaskId(spec.name) === task.id ? 'bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800' : 'hover:bg-gray-50 dark:hover:bg-gray-800'" @click="selectTask(spec.name, task.id)">
-                              <i class="fas mt-1" :class="task.completed ? 'fa-check-square text-green-500' : 'fa-square text-gray-400'"></i>
-                              <div class="flex-1">
-                                <div class="text-sm text-gray-900 dark:text-gray-100" :class="{ 'line-through text-gray-500 dark:text-gray-400': task.completed }">
-                                  <span class="font-medium">Task {{ task.id }}:</span> {{ task.description }}
-                                </div>
-                              </div>
-                            </div>
+                      <!-- Expanded view -->
+                      <div v-if="spec.tasks && isTasksExpanded(spec.name)">
+                          <h4 class="font-medium text-gray-900 dark:text-white mb-2">
+                            <i class="fas fa-tasks mr-1"></i> Tasks
+                            <button
+                              v-if="spec.tasks"
+                              @click.stop="viewMarkdown(spec.name, 'tasks', selectedProject?.path)"
+                              class="markdown-preview-btn ml-2 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
+                              title="View source"
+                            >
+                              <i class="fas fa-search"></i> <span class="font-mono text-[10px] opacity-75">.md</span>
+                            </button>
+                          </h4>
+                          <div v-if="spec.tasks" class="text-sm text-gray-600 dark:text-gray-400">
+                            <div class="flex items-center justify-between mb-2">
+                              <p class="flex items-center">
+                                <i
+                                  class="fas mr-1"
+                                  :class="spec.tasks.approved ? 'fa-check-circle text-green-500' : 'fa-clock text-yellow-500'"
+                                ></i>
+                                {{ spec.tasks.total || 0 }} tasks - 
+                                {{ spec.tasks.approved ? 'Approved' : 'Pending' }}
+                                <span class="ml-2 text-xs">
+                                  ({{ spec.tasks.completed || 0 }} completed)
+                                </span>
+                              </p>
+                              <button
+                                v-if="spec.tasks.taskList && spec.tasks.taskList.length > 0"
+                                @click.stop="toggleTasksExpanded(spec.name)"
+                                class="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex items-center gap-1"
+                            >
+                              <i class="fas" :class="isTasksExpanded(spec.name) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                              <span>{{ isTasksExpanded(spec.name) ? 'Hide' : 'Show' }} details</span>
+                            </button>
                           </div>
-                          <!-- Task Details for Selected Task -->
-                          <div v-if="selectedTaskId(spec.name) && getSelectedTask(spec.name)" class="border-t border-gray-200 dark:border-gray-700 pt-3">
-                            <div class="bg-gray-50 dark:bg-gray-800 rounded p-3">
-                              <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Task {{ selectedTaskId(spec.name) }} Details</h4>
-                              <div class="space-y-2 text-xs">
-                                <div v-if="getSelectedTask(spec.name).requirements" class="text-gray-600 dark:text-gray-400">
-                                  <span class="font-medium">Requirements:</span> {{ getSelectedTask(spec.name).requirements.join(', ') }}
-                                </div>
-                                <div v-if="getSelectedTask(spec.name).leverage" class="text-gray-600 dark:text-gray-400">
-                                  <span class="font-medium">Leverage:</span> {{ getSelectedTask(spec.name).leverage }}
-                                </div>
-                                <div v-if="getSelectedTask(spec.name).details && getSelectedTask(spec.name).details.length > 0">
-                                  <span class="font-medium text-gray-600 dark:text-gray-400">Details:</span>
-                                  <ul class="mt-1 ml-4 space-y-1">
-                                    <li v-for="detail in getSelectedTask(spec.name).details" :key="detail" class="text-gray-600 dark:text-gray-400">• {{ detail }}</li>
-                                  </ul>
+                          
+                          <!-- Expanded task list -->
+                          <div
+                            v-if="spec.tasks.taskList && spec.tasks.taskList.length > 0 && isTasksExpanded(spec.name)"
+                            class="space-y-1 mt-2"
+                            @vue:mounted="initializeSelectedTask(spec)"
+                          >
+                            <div
+                              v-for="(task, index) in spec.tasks.taskList"
+                              :key="task.id"
+                              class="text-xs text-gray-600 dark:text-gray-400 py-1 rounded hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+                              :class="{ 
+                                'opacity-60': task.completed,
+                                'bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-300 dark:border-indigo-700': isTaskSelected(spec.name, task.id)
+                              }"
+                              @click="selectTask(spec.name, task.id)"
+                            >
+                              <div class="flex items-start gap-2 px-2 py-1">
+                                <i class="fas mt-0.5" :class="task.completed ? 'fa-check-square text-green-500' : 'fa-square text-gray-400'"></i>
+                                <div class="flex-1">
+                                  <div class="flex items-center gap-2">
+                                    <span class="font-medium" :class="{ 'line-through': task.completed }">Task {{ task.id }}:</span>
+                                    <span :class="{ 'line-through': task.completed }">{{ task.description }}</span>
+                                    <button
+                                      v-if="!task.completed && isTaskSelected(spec.name, task.id)"
+                                      @click.stop="copyTaskCommand(spec.name, task.id, $event)"
+                                      class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1 ml-auto"
+                                      :title="`Copy command: /spec-execute ${spec.name} ${task.id}`"
+                                    >
+                                      <i class="fas fa-copy"></i>
+                                      <span>/spec-execute</span>
+                                    </button>
+                                  </div>
+                                  
+                                  <!-- Task details (shown when selected) -->
+                                  <div v-if="isTaskSelected(spec.name, task.id)" class="mt-2 ml-6 space-y-1 text-xs">
+                                    <!-- Task steps/details -->
+                                    <div v-if="task.details && task.details.length > 0" class="text-gray-600 dark:text-gray-400">
+                                      <p class="font-medium mb-1">Steps:</p>
+                                      <ul class="space-y-0.5 ml-4">
+                                        <li v-for="(detail, idx) in task.details" :key="idx" class="flex items-start">
+                                          <span class="mr-2">•</span>
+                                          <span>{{ detail }}</span>
+                                        </li>
+                                      </ul>
+                                    </div>
+                                    
+                                    <!-- Requirements reference -->
+                                    <div v-if="task.requirements && task.requirements.length > 0" class="text-gray-500">
+                                      <span class="font-medium">Requirements:</span> {{ task.requirements.join(', ') }}
+                                    </div>
+                                    
+                                    <!-- Leverage reference -->
+                                    <div v-if="task.leverage" class="text-gray-500">
+                                      <span class="font-medium">Leverage:</span> {{ task.leverage }}
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
                             </div>
                           </div>
                         </div>
-                        <p v-else class="text-sm text-gray-500 dark:text-gray-400">No tasks available</p>
-                      </div>
+                      <p v-else-if="spec.tasks" class="text-sm text-gray-400 dark:text-gray-500">Not created</p>
                     </div>
           </div>
+
+          <!-- Bugs Section -->
+          <div v-if="selectedProject.bugs && selectedProject.bugs.length > 0" class="mt-6">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              <i class="fas fa-bug mr-2"></i>Bug Tracking
+            </h2>
             <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
               <div class="divide-y divide-gray-200 dark:divide-gray-700">
                 <div
