@@ -44,6 +44,11 @@ interface ActiveSpecSession extends BaseActiveSession {
   type: 'spec';
   specName: string;
   task: Task;
+  status?: string;
+  requirements?: any;
+  design?: any;
+  tasks?: any;
+  isAdHoc?: boolean;
 }
 
 interface ActiveBugSession extends BaseActiveSession {
@@ -629,6 +634,10 @@ export class MultiProjectDashboardServer {
             projectName: state.project.name,
             displayName: spec.displayName || spec.name,
             specName: spec.name,
+            status: spec.status, // Include spec status
+            requirements: spec.requirements,
+            design: spec.design,
+            tasks: spec.tasks,
             task: activeTask,
             lastModified: mostRecent.lastModified,
             isCurrentlyActive: true,
@@ -680,8 +689,9 @@ export class MultiProjectDashboardServer {
           type: 'spec',
           projectPath,
           projectName: state.project.name,
-          displayName: 'Active Session',
-          specName: 'current-session',
+          displayName: 'Ad-hoc Session',
+          specName: 'ad-hoc-session',
+          isAdHoc: true, // Mark as ad-hoc
           task: {
             id: 'session',
             description: 'Active Claude session',

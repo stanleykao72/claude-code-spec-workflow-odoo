@@ -835,11 +835,16 @@
                   <div class="mb-4" v-if="session.type === 'spec'">
                     <div class="flex items-center flex-wrap gap-2">
                       <h4 class="text-lg font-medium text-gray-900 dark:text-white"
-                          :title="getTaskTooltip(session.task)">
+                          :title="getTaskTooltip(session.task)"
+                          v-if="!session.isAdHoc">
                         Task {{ session.task.id }}: {{ session.task.description }}
                       </h4>
+                      <h4 class="text-lg font-medium text-gray-900 dark:text-white"
+                          v-else>
+                        No specific task or bug being worked on
+                      </h4>
                       <!-- Approval status for active task -->
-                      <span v-if="session.task.requiresApproval || session.task.approved"
+                      <span v-if="!session.isAdHoc && (session.task.requiresApproval || session.task.approved)"
                         class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
                         :class="session.task.approved ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200'"
                       >
@@ -847,6 +852,7 @@
                         {{ session.task.approved ? 'Approved' : 'Approval Required' }}
                       </span>
                       <button
+                        v-if="!session.isAdHoc"
                         @click.stop="copyTaskCommand(session.specName, session.task.id, $event)"
                         class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
                         :title="`Copy command: /spec-execute ${session.specName} ${session.task.id}`"
@@ -856,7 +862,7 @@
                       </button>
                       <!-- Orchestration copy button for eligible tasks -->
                       <button
-                        v-if="session.task.requiresOrchestration"
+                        v-if="!session.isAdHoc && session.task.requiresOrchestration"
                         @click.stop="copyOrchestrationCommand(session.specName, session.task.id, $event)"
                         class="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 flex items-center gap-1"
                         :title="`Copy command: /spec-orchestrate ${session.specName} ${session.task.id}`"
@@ -981,8 +987,8 @@
                     </div>
                   </div>
 
-                  <!-- Task Progress (Spec Only) -->
-                  <div v-if="session.type === 'spec'" class="mb-3">
+                  <!-- Task Progress (Spec Only - but not for ad-hoc sessions) -->
+                  <div v-if="session.type === 'spec' && !session.isAdHoc" class="mb-3">
                     <div class="flex items-center justify-between mb-2">
                       <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
                         Task {{ getTaskNumber(session) }} of {{ getSpecTaskCount(session) }}
@@ -999,8 +1005,8 @@
                     </div>
                   </div>
 
-                  <!-- Next Task (Spec Only) -->
-                  <div v-if="session.type === 'spec' && getNextTask(session)" class="mb-3">
+                  <!-- Next Task (Spec Only - but not for ad-hoc sessions) -->
+                  <div v-if="session.type === 'spec' && !session.isAdHoc && getNextTask(session)" class="mb-3">
                     <div class="flex items-center flex-wrap gap-2">
                       <span class="text-sm font-medium text-gray-700 dark:text-gray-300"
                         >Next Up:</span
@@ -1020,8 +1026,8 @@
                     </div>
                   </div>
 
-                  <!-- Task Details - Flattened on one line (Spec Only) -->
-                  <div v-if="session.type === 'spec'" class="flex flex-wrap gap-4 text-sm">
+                  <!-- Task Details - Flattened on one line (Spec Only - but not for ad-hoc sessions) -->
+                  <div v-if="session.type === 'spec' && !session.isAdHoc" class="flex flex-wrap gap-4 text-sm">
                     <span
                       v-if="session.task.requirements && session.task.requirements.length > 0"
                       class="text-gray-600 dark:text-gray-400"
@@ -1043,24 +1049,26 @@
                     <i class="fas fa-bolt mr-1"></i> Active
                   </span>
                   <!-- Stage indicator for specs -->
-                  <span v-if="session.type === 'spec'" 
+                  <span v-if="session.type === 'spec' && getSpecStatus(session)" 
                     class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium"
                     :class="{
-                      'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200': session.status === 'requirements',
-                      'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200': session.status === 'design',
-                      'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200': session.status === 'tasks',
-                      'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200': session.status === 'in-progress'
+                      'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200': getSpecStatus(session) === 'requirements',
+                      'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200': getSpecStatus(session) === 'design',
+                      'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200': getSpecStatus(session) === 'tasks',
+                      'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200': getSpecStatus(session) === 'in-progress',
+                      'bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200': getSpecStatus(session) === 'completed'
                     }"
                   >
                     <i class="fas mr-1"
                       :class="{
-                        'fa-clipboard-list': session.status === 'requirements',
-                        'fa-drafting-compass': session.status === 'design',
-                        'fa-tasks': session.status === 'tasks',
-                        'fa-code': session.status === 'in-progress'
+                        'fa-clipboard-list': getSpecStatus(session) === 'requirements',
+                        'fa-drafting-compass': getSpecStatus(session) === 'design',
+                        'fa-tasks': getSpecStatus(session) === 'tasks',
+                        'fa-code': getSpecStatus(session) === 'in-progress',
+                        'fa-check-circle': getSpecStatus(session) === 'completed'
                       }"
                     ></i>
-                    {{ session.status === 'in-progress' ? 'Implementing' : session.status.charAt(0).toUpperCase() + session.status.slice(1) }}
+                    {{ getSpecStatusLabel(session) }}
                   </span>
                   <!-- Stage indicator for bugs -->
                   <span v-if="session.type === 'bug'" 

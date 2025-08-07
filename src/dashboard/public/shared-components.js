@@ -486,6 +486,42 @@ const BaseAppState = {
     });
   },
   
+  // Get spec status from active session
+  getSpecStatus(session) {
+    if (session.type !== 'spec') return null;
+    
+    // Don't show status for ad-hoc sessions
+    if (session.isAdHoc) return null;
+    
+    // Check if we have status directly on the session
+    if (session.status) return session.status;
+    
+    // Otherwise try to determine from the documents
+    if (session.tasks?.inProgress || (session.task && !session.task.completed)) {
+      return 'in-progress';
+    } else if (session.tasks?.approved) {
+      return 'tasks';
+    } else if (session.design?.approved) {
+      return 'design';
+    } else if (session.requirements?.approved) {
+      return 'requirements';
+    }
+    
+    return 'requirements'; // Default
+  },
+  
+  getSpecStatusLabel(session) {
+    const status = this.getSpecStatus(session);
+    switch(status) {
+      case 'requirements': return 'Requirements';
+      case 'design': return 'Design';
+      case 'tasks': return 'Tasks';
+      case 'in-progress': return 'Implementing';
+      case 'completed': return 'Completed';
+      default: return status ? status.charAt(0).toUpperCase() + status.slice(1) : '';
+    }
+  },
+  
   // Code block copy functionality
   copyCodeBlock(event) {
     const button = event.target.closest('.code-copy-btn');
