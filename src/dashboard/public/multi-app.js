@@ -550,15 +550,21 @@ PetiteVue.createApp({
   toggleTasksExpanded(specName) {
     if (this.expandedTasks[specName]) {
       delete this.expandedTasks[specName];
+      // Clear task selection when collapsing
+      delete this.selectedTasks[specName];
     } else {
       this.expandedTasks[specName] = true;
       // Auto-select first incomplete task when expanding
-      if (!this.selectedTasks[specName]) {
-        const project = this.selectedProject;
-        if (project && project.specs) {
-          const spec = project.specs.find(s => s.name === specName);
-          if (spec) {
-            this.initializeSelectedTask(spec);
+      const project = this.selectedProject;
+      if (project && project.specs) {
+        const spec = project.specs.find(s => s.name === specName);
+        if (spec && spec.tasks && spec.tasks.taskList && spec.tasks.taskList.length > 0) {
+          const firstIncomplete = this.findFirstIncompleteTask(spec.tasks.taskList);
+          if (firstIncomplete) {
+            this.selectedTasks[specName] = firstIncomplete.id;
+          } else {
+            // If no incomplete tasks, select the first task
+            this.selectedTasks[specName] = spec.tasks.taskList[0].id;
           }
         }
       }
