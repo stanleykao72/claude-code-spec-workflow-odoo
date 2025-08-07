@@ -41,14 +41,18 @@ export class ProjectDiscovery {
   async discoverProjects(): Promise<DiscoveredProject[]> {
     const allProjects: DiscoveredProject[] = [];
     const activeClaudes = await this.getActiveClaudeSessions();
+    debug(`Starting project discovery with ${activeClaudes.length} active Claude sessions`);
 
     // Search for .claude directories
     for (const searchPath of this.searchPaths) {
       try {
         await fs.access(searchPath);
+        debug(`Searching in: ${searchPath}`);
         const found = await this.searchDirectory(searchPath, activeClaudes);
+        debug(`Found ${found.length} projects in ${searchPath}`);
         allProjects.push(...found);
       } catch {
+        debug(`Directory doesn't exist: ${searchPath}`);
         // Directory doesn't exist, skip it
       }
     }

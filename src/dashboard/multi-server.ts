@@ -395,6 +395,11 @@ export class MultiProjectDashboardServer {
     // Collect all active sessions across projects
     const activeSessions = await this.collectActiveSessions();
 
+    debug(`Sending initial state: ${projects.length} projects, ${activeSessions.length} active sessions`);
+    projects.forEach(p => {
+      debug(`  Project: ${p.name} (${p.path}) - specs: ${p.specs?.length || 0}, bugs: ${p.bugs?.length || 0}`);
+    });
+
     socket.send(
       JSON.stringify({
         type: 'initial',

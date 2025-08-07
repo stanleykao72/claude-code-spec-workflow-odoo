@@ -42,6 +42,11 @@ PetiteVue.createApp({
 
   // Group projects by parent/child relationships for display
   getGroupedProjects() {
+    // Return empty array if no projects
+    if (!this.projects || this.projects.length === 0) {
+      return [];
+    }
+    
     // Sort projects by path first to ensure parents come before children
     const sortedProjects = [...this.projects].sort((a, b) => a.path.localeCompare(b.path));
     
@@ -144,13 +149,25 @@ PetiteVue.createApp({
   handleWebSocketMessage(message) {
     switch (message.type) {
       case 'initial':
-        this.projects = Array.isArray(message.data) ? this.normalizeProjects(message.data) : [];
-        this.activeSessions = Array.isArray(message.activeSessions) ? message.activeSessions : [];
+        console.log('Initial message received:', message);
+        console.log('message.data type:', typeof message.data, 'isArray:', Array.isArray(message.data));
+        console.log('message.data:', message.data);
+        console.log('message.activeSessions type:', typeof message.activeSessions, 'isArray:', Array.isArray(message.activeSessions));
+        console.log('message.activeSessions:', message.activeSessions);
+        
+        // Ensure we have arrays
+        const projectsData = Array.isArray(message.data) ? message.data : [];
+        const sessionsData = Array.isArray(message.activeSessions) ? message.activeSessions : [];
+        
+        this.projects = this.normalizeProjects(projectsData);
+        this.activeSessions = sessionsData;
         this.username = message.username || 'User';
 
         console.log(
           `Received initial data: ${this.projects.length} projects, ${this.activeSessions.length} active sessions`
         );
+        console.log('Projects after normalization:', this.projects);
+        console.log('Active sessions:', this.activeSessions);
         
         // Sort projects: active first, then by activity
         this.sortProjects();
@@ -362,12 +379,12 @@ PetiteVue.createApp({
   },
 
   getOpenSpecsCount(project) {
-    if (!project.specs) return 0;
+    if (!project || !project.specs) return 0;
     return project.specs.filter((s) => s.status !== 'completed').length;
   },
 
   getOpenBugsCount(project) {
-    if (!project.bugs) return 0;
+    if (!project || !project.bugs) return 0;
     return project.bugs.filter((b) => b.status !== 'resolved').length;
   },
 
@@ -379,10 +396,6 @@ PetiteVue.createApp({
   getBugsResolved(project) {
     if (!project.bugs) return 0;
     return project.bugs.filter((b) => b.status === 'resolved').length;
-  },
-  getOpenBugsCount(project) {
-    if (!project.bugs) return 0;
-    return project.bugs.filter((b) => b.status !== 'resolved').length;
   },
 
   // Sort projects: active sessions first, then by last activity
