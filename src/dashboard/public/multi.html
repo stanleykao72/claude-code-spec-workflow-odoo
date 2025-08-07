@@ -541,9 +541,9 @@
                 activeTab === 'projects' && selectedProject?.path === project.path ? `tab-active border-${getProjectColor(project.path).primary}` : 'text-gray-600 dark:text-gray-400 border-transparent hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-gray-600',
                 project.level > 0 ? 'pl-3 pr-2' : 'px-3',
                 // Visual grouping with lighter backgrounds (different from selected state)
-                project.level === 0 && index < getGroupedProjects().length - 1 && getGroupedProjects()[index + 1].level > 0 ? `bg-${getProjectColor(project.path).light} dark:bg-${getProjectColor(project.path).dark?.light || 'gray-800'}/20 rounded-tl-lg border-l-2 border-t-2 border-${getProjectColor(project.path).primary}/30` : '',
-                project.level > 0 ? `bg-${getProjectColor(project.path).light} dark:bg-${getProjectColor(project.path).dark?.light || 'gray-800'}/20 border-t-2 border-${getProjectColor(project.path).primary}/30` : '',
-                project.level > 0 && (index === getGroupedProjects().length - 1 || getGroupedProjects()[index + 1].level === 0) ? `rounded-tr-lg border-r-2 border-t-2 border-${getProjectColor(project.path).primary}/30 mr-2` : '',
+                project.level === 0 && index < getGroupedProjects().length - 1 && getGroupedProjects()[index + 1].level > 0 ? `bg-${getProjectColor(project.path).light}/50 dark:bg-${getProjectColor(project.path).dark?.light || getProjectColor(project.path).primary}/10 rounded-tl-lg border-l-2 border-t-2 border-${getProjectColor(project.path).primary}/30` : '',
+                project.level > 0 ? `bg-${getProjectColor(getParentProjectPath(project.path, getGroupedProjects(), index)).light}/50 dark:bg-${getProjectColor(getParentProjectPath(project.path, getGroupedProjects(), index)).dark?.light || getProjectColor(getParentProjectPath(project.path, getGroupedProjects(), index)).primary}/10 border-t-2 border-${getProjectColor(getParentProjectPath(project.path, getGroupedProjects(), index)).primary}/30` : '',
+                project.level > 0 && (index === getGroupedProjects().length - 1 || getGroupedProjects()[index + 1].level === 0) ? `rounded-tr-lg border-r-2 border-t-2 border-${getProjectColor(getParentProjectPath(project.path, getGroupedProjects(), index)).primary}/30 mr-2` : '',
                 // Add spacing between groups
                 index > 0 && project.level === 0 && getGroupedProjects()[index-1].level > 0 ? 'ml-1' : ''
               ]"

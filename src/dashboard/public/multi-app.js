@@ -73,6 +73,25 @@ PetiteVue.createApp({
     return colors[colorIndex];
   },
 
+  // Get the parent project path for nested projects
+  getParentProjectPath(projectPath, groupedProjects, currentIndex) {
+    // For level 0 projects, they are their own parent
+    const currentProject = groupedProjects[currentIndex];
+    if (!currentProject || currentProject.level === 0) {
+      return projectPath;
+    }
+    
+    // Look backwards to find the parent (level 0) project
+    for (let i = currentIndex - 1; i >= 0; i--) {
+      if (groupedProjects[i].level === 0) {
+        return groupedProjects[i].path;
+      }
+    }
+    
+    // Fallback to current path
+    return projectPath;
+  },
+
   // Group projects by parent/child relationships for display
   getGroupedProjects() {
     // Return empty array if no projects
