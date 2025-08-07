@@ -518,7 +518,7 @@ const BaseAppState = {
       case 'requirements': return 'Requirements';
       case 'design': return 'Design';
       case 'tasks': return 'Tasks';
-      case 'in-progress': return 'Implementing';
+      case 'in-progress': return 'In Progress';
       case 'completed': return 'Completed';
       default: return status ? status.charAt(0).toUpperCase() + status.slice(1) : '';
     }
