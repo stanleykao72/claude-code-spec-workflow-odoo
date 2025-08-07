@@ -938,6 +938,18 @@
                     >
                       {{ getStatusLabel(spec.status) }}
                     </span>
+                    <!-- Acceptance Status Indicators -->
+                    <div v-if="selectedSpec?.name !== spec.name" class="flex items-center gap-2">
+                      <span v-if="spec.requirements" class="text-xs" :title="spec.requirements.approved ? 'Requirements Approved' : 'Requirements Pending'">
+                        <i class="fas fa-clipboard-list" :class="spec.requirements.approved ? 'text-green-500' : 'text-yellow-500'"></i>
+                      </span>
+                      <span v-if="spec.design" class="text-xs" :title="spec.design.approved ? 'Design Approved' : 'Design Pending'">
+                        <i class="fas fa-drafting-compass" :class="spec.design.approved ? 'text-green-500' : 'text-yellow-500'"></i>
+                      </span>
+                      <span v-if="spec.tasks" class="text-xs" :title="spec.tasks.approved ? 'Tasks Approved' : 'Tasks Pending'">
+                        <i class="fas fa-tasks" :class="spec.tasks.approved ? 'text-green-500' : 'text-yellow-500'"></i>
+                      </span>
+                    </div>
                     <span v-if="spec.status === 'completed'" class="text-sm text-gray-500 dark:text-gray-400">
                       <i class="fas fa-clock mr-1"></i>
                       {{ formatDate(spec.lastModified) }}
