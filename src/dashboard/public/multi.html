@@ -939,7 +939,7 @@
                       {{ getStatusLabel(spec.status) }}
                     </span>
                     <!-- Acceptance Status Indicators -->
-                    <div v-if="selectedSpec?.name !== spec.name" class="flex items-center gap-2">
+                    <div class="flex items-center gap-2">
                       <span v-if="spec.requirements" class="text-xs" :title="spec.requirements.approved ? 'Requirements Approved' : 'Requirements Pending'">
                         <i class="fas fa-clipboard-list" :class="spec.requirements.approved ? 'text-green-500' : 'text-yellow-500'"></i>
                       </span>
@@ -1177,6 +1177,24 @@
                         </button>
                       </h4>
                       <div class="flex items-center gap-2">
+                        <button
+                          v-if="spec.requirements?.approved && spec.design?.approved && spec.tasks?.approved"
+                          @click.stop="copyOrchestrateCommand(spec, $event)"
+                          class="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 flex items-center gap-1"
+                          title="Copy orchestrate command (all docs approved)"
+                        >
+                          <i class="fas fa-robot"></i>
+                          <span>/spec-orchestrate</span>
+                        </button>
+                        <button
+                          v-if="spec.tasks.completed < spec.tasks.total"
+                          @click.stop="copyNextTaskCommand(spec, $event)"
+                          class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
+                          :title="`Copy command for next task`"
+                        >
+                          <i class="fas fa-copy"></i>
+                          <span>/spec-execute</span>
+                        </button>
                         <button
                           @click.stop="toggleTasksExpanded(spec.name)"
                           class="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex items-center gap-1"

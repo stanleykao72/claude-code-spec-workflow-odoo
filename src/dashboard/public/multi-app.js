@@ -568,6 +568,23 @@ PetiteVue.createApp({
     return null;
   },
 
+  // Copy next task command
+  copyNextTaskCommand(spec, event) {
+    if (spec.tasks && spec.tasks.taskList) {
+      const nextTask = this.findFirstIncompleteTask(spec.tasks.taskList);
+      if (nextTask) {
+        const command = `/spec-execute ${spec.name} ${nextTask.id}`;
+        this.copyCommand(command, event);
+      }
+    }
+  },
+
+  // Copy orchestrate command
+  copyOrchestrateCommand(spec, event) {
+    const command = `/spec-orchestrate ${spec.name}`;
+    this.copyCommand(command, event);
+  },
+
   // Normalize project data
   normalizeProjects(projects) {
     return projects.map((project) => {
