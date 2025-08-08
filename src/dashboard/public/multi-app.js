@@ -1,7 +1,15 @@
 // Multi-project dashboard app using shared components
 PetiteVue.createApp({
-  // Extend the base state from shared components
-  ...window.DashboardShared.BaseAppState,
+  // Copy base state properties (not methods)
+  theme: window.DashboardShared.BaseAppState.theme,
+  collapsedCompletedTasks: {},
+  markdownPreview: {
+    show: false,
+    title: '',
+    content: '',
+    rawContent: '',
+    loading: false
+  },
   
   // Multi dashboard specific state
   projects: [],
@@ -1245,6 +1253,16 @@ PetiteVue.createApp({
   },
 
   // Add methods from shared components
+  initTheme: window.DashboardShared.BaseAppState.initTheme,
+  applyTheme: window.DashboardShared.BaseAppState.applyTheme,
+  cycleTheme: window.DashboardShared.BaseAppState.cycleTheme,
+  formatUserStory: window.DashboardShared.BaseAppState.formatUserStory,
+  formatAcceptanceCriteria: window.DashboardShared.BaseAppState.formatAcceptanceCriteria,
+  showMarkdownPreview: window.DashboardShared.BaseAppState.showMarkdownPreview,
+  closeMarkdownPreview: window.DashboardShared.BaseAppState.closeMarkdownPreview,
+  setupKeyboardHandlers: window.DashboardShared.BaseAppState.setupKeyboardHandlers,
+  getSpecStatus: window.DashboardShared.BaseAppState.getSpecStatus,
+  getSpecStatusLabel: window.DashboardShared.BaseAppState.getSpecStatusLabel,
   getStatusClass: window.DashboardShared.getStatusClass,
   getStatusLabel: window.DashboardShared.getStatusLabel,
   copyCommand: window.DashboardShared.copyCommand,
