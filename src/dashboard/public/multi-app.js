@@ -1233,5 +1233,12 @@ PetiteVue.createApp({
     } else {
       return 'soon';
     }
-  }
+  },
+
+  // Add methods from shared components
+  getStatusClass: window.DashboardShared.getStatusClass,
+  getStatusLabel: window.DashboardShared.getStatusLabel,
+  copyCommand: window.DashboardShared.copyCommand,
+  renderMarkdown: window.DashboardShared.renderMarkdown,
+  formatDate: window.DashboardShared.formatDate
 }).mount('#app');

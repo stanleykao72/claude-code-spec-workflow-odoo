@@ -906,13 +906,6 @@
                           'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': session.bugStatus === 'resolved'
                         }"
                       >
-                        <i class="fas mr-1"
-                          :class="{
-                            'fa-magnifying-glass': session.bugStatus === 'analyzing',
-                            'fa-wrench': session.bugStatus === 'fixing',
-                            'fa-check-circle': session.bugStatus === 'verifying'
-                          }"
-                        ></i>
                         {{ session.bugStatus }}
                       </span>
                       <span v-if="session.bugSeverity"
@@ -1065,13 +1058,6 @@
                       'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': session.bugStatus === 'resolved'
                     }"
                   >
-                    <i class="fas mr-1"
-                      :class="{
-                        'fa-magnifying-glass': session.bugStatus === 'analyzing',
-                        'fa-wrench': session.bugStatus === 'fixing',
-                        'fa-check-circle': session.bugStatus === 'verifying'
-                      }"
-                    ></i>
                     {{ session.bugStatus.charAt(0).toUpperCase() + session.bugStatus.slice(1) }}
                   </span>
                 </div>
@@ -1659,7 +1645,7 @@
       </div>
     </div>
 
-    <script src="/public/shared-components.js"></script>
-    <script src="/public/multi-app.js"></script>
+    <script src="shared-components.js"></script>
+    <script src="multi-app.js"></script>
   </body>
 </html>
