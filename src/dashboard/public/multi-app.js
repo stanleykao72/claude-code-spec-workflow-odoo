@@ -42,6 +42,7 @@ PetiteVue.createApp({
   _groupedProjectsCache: null, // Cache for grouped projects
   _projectColorCache: null, // Cache for project colors - will be initialized as Map in init()
   _colorValueCache: {}, // Cache for computed color values
+  projectTabsData: [], // Pre-computed data for project tabs to avoid reactivity issues
 
   // Computed properties
   get activeSessionCount() {
@@ -460,6 +461,77 @@ PetiteVue.createApp({
     return prevProject && prevProject.level > 0;
   },
 
+  // Update pre-computed project tabs data
+  updateProjectTabsData() {
+    const grouped = this.getCachedGroupedProjects();
+    if (!grouped || grouped.length === 0) {
+      this.projectTabsData = [];
+      return;
+    }
+    
+    // Pre-compute all data needed for project tabs
+    this.projectTabsData = grouped.map((project, index) => {
+      const colorValue = this.getProjectColorValue(project.path);
+      const color = this.getProjectColor(project.path);
+      const isNextTopLevel = index < grouped.length - 1 && grouped[index + 1].level === 0;
+      const isPrevNested = index > 0 && grouped[index - 1].level > 0;
+      
+      return {
+        path: project.path,
+        name: project.name,
+        level: project.level || 0,
+        hasActiveSession: project.hasActiveSession || false,
+        colorValue: colorValue,
+        colorPrimary: color.primary,
+        isNextTopLevel: isNextTopLevel,
+        isPrevNested: isPrevNested,
+        specs: project.specs || [],
+        bugs: project.bugs || [],
+        tabStyles: this.computeProjectTabStyles(project, index, color)
+      };
+    });
+  },
+  
+  // Compute tab styles as a string
+  computeProjectTabStyles(project, index, color) {
+    const styles = [];
+    const isDark = document.documentElement.classList.contains('dark');
+    
+    if (project.level > 0) {
+      // Nested project - use parent color
+      const parentColor = this.getProjectColor(this.getParentProjectPath(project.path, null, index));
+      if (parentColor) {
+        const borderColor = this.getColorValue(parentColor.primary);
+        styles.push(`border-bottom-color: ${borderColor}`);
+      }
+    }
+    
+    return styles.join('; ');
+  },
+  
+  // Get color value from color name
+  getColorValue(colorName) {
+    const colorMap = {
+      'cyan-600': 'rgb(8, 145, 178)',
+      'violet-600': 'rgb(124, 58, 237)',
+      'rose-600': 'rgb(225, 29, 72)',
+      'amber-600': 'rgb(217, 119, 6)',
+      'emerald-600': 'rgb(5, 150, 105)',
+      'blue-600': 'rgb(37, 99, 235)',
+      'orange-600': 'rgb(234, 88, 12)',
+      'purple-600': 'rgb(147, 51, 234)',
+      'pink-600': 'rgb(219, 39, 119)',
+      'teal-600': 'rgb(13, 148, 136)',
+      'indigo-600': 'rgb(79, 70, 229)',
+      'fuchsia-600': 'rgb(236, 72, 153)',
+      'lime-600': 'rgb(132, 204, 22)',
+      'sky-600': 'rgb(2, 132, 199)',
+      'green-600': 'rgb(22, 163, 74)',
+      'red-600': 'rgb(220, 38, 38)'
+    };
+    return colorMap[colorName] || 'rgb(79, 70, 229)';
+  },
+  
   // Initialize the dashboard
   async init() {
     console.log('Multi-project dashboard initializing...');
@@ -516,7 +588,11 @@ PetiteVue.createApp({
         const sessionsData = Array.isArray(message.activeSessions) ? message.activeSessions : [];
         
         this.projects = this.normalizeProjects(projectsData);
-        this.activeSessions = sessionsData;
+        // Pre-compute color values for active sessions
+        this.activeSessions = sessionsData.map(session => ({
+          ...session,
+          projectColorValue: this.getProjectColorValue(session.projectPath)
+        }));
         this.username = message.username || 'User';
         // Clear caches when projects change
         this._groupedProjectsCache = null;
@@ -524,6 +600,8 @@ PetiteVue.createApp({
           this._projectColorCache.clear();
         }
         this._colorValueCache = {};
+        // Pre-compute project tabs data
+        this.updateProjectTabsData();
 
         console.log(
           `Received initial data: ${this.projects.length} projects, ${this.activeSessions.length} active sessions`
@@ -625,7 +703,12 @@ PetiteVue.createApp({
         break;
 
       case 'active-sessions-update':
-        this.activeSessions = Array.isArray(message.data) ? message.data : [];
+        const sessions = Array.isArray(message.data) ? message.data : [];
+        // Pre-compute color values for active sessions
+        this.activeSessions = sessions.map(session => ({
+          ...session,
+          projectColorValue: this.getProjectColorValue(session.projectPath)
+        }));
         console.log(`Active sessions updated: ${this.activeSessions.length} sessions`, this.activeSessions);
         break;
 

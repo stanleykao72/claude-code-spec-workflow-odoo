@@ -696,18 +696,18 @@
           <!-- Project Tabs -->
           <div class="flex overflow-x-auto">
             <button
-              v-for="(project, index) in getGroupedProjects()"
+              v-for="(project, index) in projectTabsData"
               :key="project.path"
               @click="selectProject(project)"
               class="py-2 text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-1 relative"
-              :style="getProjectTabStyles(project, index)"
+              :style="project.tabStyles"
               :class="[
                 activeTab === 'projects' && selectedProject?.path === project.path ? 'tab-active border-b-2' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white',
                 project.level > 0 ? 'pl-3 pr-2' : 'px-3',
                 // Visual grouping with accent borders on the sides  
-                project.level > 0 && (index === getGroupedProjects().length - 1 || isNextProjectTopLevel(index)) ? 'border-r-2 mr-2' : '',
+                project.level > 0 && (index === projectTabsData.length - 1 || project.isNextTopLevel) ? 'border-r-2 mr-2' : '',
                 // Add spacing between groups
-                index > 0 && project.level === 0 && isPreviousProjectNested(index) ? 'ml-1' : ''
+                index > 0 && project.level === 0 && project.isPrevNested ? 'ml-1' : ''
               ]"
             >
               <!-- Improved tree connector for nested projects -->
@@ -761,7 +761,7 @@
               v-for="session in activeSessions"
               :key="session.type === 'spec' ? `${session.projectPath}-${session.specName}-${session.task.id}` : `${session.projectPath}-${session.bugName}`"
               class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer border-l-4"
-              :style="`border-left-color: ${getProjectColorValue(session.projectPath)}`"
+              :style="`border-left-color: ${session.projectColorValue || 'rgb(79, 70, 229)'}`"
               @click="selectProjectFromTask(session.projectPath, session.type === 'spec' ? session.specName : session.bugName, session.type)"
             >
               <div class="flex items-start justify-between">
