@@ -47,6 +47,23 @@ PetiteVue.createApp({
   get activeSessionCount() {
     return this.projects.filter((p) => p.hasActiveSession).length;
   },
+  
+  // Computed grouped projects for template use
+  get groupedProjectsList() {
+    // Return a simple array that petite-vue can handle
+    const grouped = this.getCachedGroupedProjects();
+    if (!grouped || grouped.length === 0) return [];
+    
+    // Create a new array with simple objects to avoid reactivity issues
+    return grouped.map(p => ({
+      path: p.path,
+      name: p.name,
+      level: p.level || 0,
+      hasActiveSession: p.hasActiveSession || false,
+      specs: p.specs || [],
+      bugs: p.bugs || []
+    }));
+  },
 
   // Get visible specs for a project (filtered by showCompleted)
   getVisibleSpecs(project) {
@@ -342,7 +359,8 @@ PetiteVue.createApp({
   
   // Group projects by parent/child relationships for display
   getGroupedProjects() {
-    return this.getCachedGroupedProjects();
+    // Use the computed property for template access
+    return this.groupedProjectsList;
   },
   
   // Internal method to build grouped projects
@@ -421,22 +439,24 @@ PetiteVue.createApp({
   
   // Helper method to get project at specific index from grouped projects
   getProjectAtIndex(index) {
-    const projects = this.getCachedGroupedProjects();
+    const projects = this.groupedProjectsList;
     return projects && projects[index] ? projects[index] : null;
   },
   
   // Helper to check if next project is at level 0
   isNextProjectTopLevel(index) {
-    const projects = this.getCachedGroupedProjects();
-    const nextProject = projects && projects[index + 1] ? projects[index + 1] : null;
+    const projects = this.groupedProjectsList;
+    if (!projects || index < 0 || index >= projects.length - 1) return false;
+    const nextProject = projects[index + 1];
     return nextProject && nextProject.level === 0;
   },
   
   // Helper to check if previous project is nested
   isPreviousProjectNested(index) {
     if (index === 0) return false;
-    const projects = this.getCachedGroupedProjects();
-    const prevProject = projects && projects[index - 1] ? projects[index - 1] : null;
+    const projects = this.groupedProjectsList;
+    if (!projects || index <= 0 || index >= projects.length) return false;
+    const prevProject = projects[index - 1];
     return prevProject && prevProject.level > 0;
   },
 
