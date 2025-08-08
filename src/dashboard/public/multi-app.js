@@ -39,6 +39,8 @@ PetiteVue.createApp({
   pendingProjectRoute: null, // Store project route when projects haven't loaded yet
   showCompleted: localStorage.getItem('showCompleted') !== 'false', // Default to true, stored in localStorage
   tunnelStatus: null,
+  _groupedProjectsCache: null, // Cache for grouped projects
+  _projectColorCache: new Map(), // Cache for project colors
 
   // Computed properties
   get activeSessionCount() {
@@ -67,14 +69,9 @@ PetiteVue.createApp({
   getProjectColor(projectPath) {
     if (!projectPath) return { primary: 'indigo-600', light: 'indigo-100', ring: 'indigo-500' };
     
-    // Use a cache to ensure consistent colors based on position
-    if (!this.projectColorCache) {
-      this.projectColorCache = new Map();
-    }
-    
     // Return cached color if exists
-    if (this.projectColorCache.has(projectPath)) {
-      return this.projectColorCache.get(projectPath);
+    if (this._projectColorCache.has(projectPath)) {
+      return this._projectColorCache.get(projectPath);
     }
     
     // Define a carefully curated color palette with maximum visual distinction
@@ -98,8 +95,14 @@ PetiteVue.createApp({
     ];
     
     // Find all top-level projects (level 0) in the grouped list
-    const groupedProjects = this.getGroupedProjects();
-    const topLevelProjects = groupedProjects.filter(p => p.level === 0);
+    // Clone the result to avoid reactivity issues
+    const groupedProjects = [...this.getGroupedProjects()];
+    const topLevelProjects = [];
+    for (let i = 0; i < groupedProjects.length; i++) {
+      if (groupedProjects[i] && groupedProjects[i].level === 0) {
+        topLevelProjects.push(groupedProjects[i]);
+      }
+    }
     
     // Find which top-level project this path belongs to
     let topLevelProject = null;
@@ -130,16 +133,17 @@ PetiteVue.createApp({
     // Cache the color for this project and all its children
     if (topLevelProject) {
       // Cache color for the top-level project
-      this.projectColorCache.set(topLevelProject.path, color);
+      this._projectColorCache.set(topLevelProject.path, color);
       // Cache same color for all children
-      groupedProjects.forEach(p => {
-        if (p.path.startsWith(topLevelProject.path + '/') || p.path === topLevelProject.path) {
-          this.projectColorCache.set(p.path, color);
+      for (let i = 0; i < groupedProjects.length; i++) {
+        const p = groupedProjects[i];
+        if (p && (p.path.startsWith(topLevelProject.path + '/') || p.path === topLevelProject.path)) {
+          this._projectColorCache.set(p.path, color);
         }
-      });
+      }
     } else {
       // Just cache for this specific path
-      this.projectColorCache.set(projectPath, color);
+      this._projectColorCache.set(projectPath, color);
     }
     
     return color;
@@ -297,8 +301,28 @@ PetiteVue.createApp({
     return colorMap[color.primary] || 'rgb(8, 145, 178)';
   },
 
+  // Get cached grouped projects to avoid excessive recalculation
+  getCachedGroupedProjects() {
+    // Invalidate cache if projects have changed
+    if (!this._groupedProjectsCache || 
+        this._groupedProjectsCache.projectsCount !== this.projects.length ||
+        this._groupedProjectsCache.projectsHash !== JSON.stringify(this.projects.map(p => p.path))) {
+      this._groupedProjectsCache = {
+        projectsCount: this.projects.length,
+        projectsHash: JSON.stringify(this.projects.map(p => p.path)),
+        data: this._buildGroupedProjects()
+      };
+    }
+    return this._groupedProjectsCache.data;
+  },
+  
   // Group projects by parent/child relationships for display
   getGroupedProjects() {
+    return this.getCachedGroupedProjects();
+  },
+  
+  // Internal method to build grouped projects
+  _buildGroupedProjects() {
     // Return empty array if no projects
     if (!this.projects || this.projects.length === 0) {
       return [];
@@ -373,13 +397,13 @@ PetiteVue.createApp({
   
   // Helper method to get project at specific index from grouped projects
   getProjectAtIndex(index) {
-    const projects = this.getGroupedProjects();
+    const projects = this.getCachedGroupedProjects();
     return projects && projects[index] ? projects[index] : null;
   },
   
   // Helper to check if next project is at level 0
   isNextProjectTopLevel(index) {
-    const projects = this.getGroupedProjects();
+    const projects = this.getCachedGroupedProjects();
     const nextProject = projects && projects[index + 1] ? projects[index + 1] : null;
     return nextProject && nextProject.level === 0;
   },
@@ -387,7 +411,7 @@ PetiteVue.createApp({
   // Helper to check if previous project is nested
   isPreviousProjectNested(index) {
     if (index === 0) return false;
-    const projects = this.getGroupedProjects();
+    const projects = this.getCachedGroupedProjects();
     const prevProject = projects && projects[index - 1] ? projects[index - 1] : null;
     return prevProject && prevProject.level > 0;
   },
@@ -448,6 +472,9 @@ PetiteVue.createApp({
         this.projects = this.normalizeProjects(projectsData);
         this.activeSessions = sessionsData;
         this.username = message.username || 'User';
+        // Clear caches when projects change
+        this._groupedProjectsCache = null;
+        this._projectColorCache.clear();
 
         console.log(
           `Received initial data: ${this.projects.length} projects, ${this.activeSessions.length} active sessions`
