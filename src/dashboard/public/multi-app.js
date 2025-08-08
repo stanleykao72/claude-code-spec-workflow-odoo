@@ -1,15 +1,18 @@
 // Multi-project dashboard app using shared components
 // Wait for DOM and shared components to load
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initApp);
-} else {
-  initApp();
-}
-
 function initApp() {
+  // Check if shared components are loaded
+  if (!window.DashboardShared || !window.DashboardShared.BaseAppState) {
+    console.error('DashboardShared not loaded yet, retrying...');
+    setTimeout(initApp, 100);
+    return;
+  }
+  
+  console.log('Initializing multi-dashboard app with DashboardShared:', window.DashboardShared);
+  
 PetiteVue.createApp({
   // Copy base state properties (not methods)
-  theme: window.DashboardShared.BaseAppState.theme,
+  theme: window.DashboardShared.BaseAppState.theme || 'system',
   collapsedCompletedTasks: {},
   markdownPreview: {
     show: false,
@@ -1260,28 +1263,35 @@ PetiteVue.createApp({
     }
   },
 
-  // Add methods from shared components
-  initTheme: window.DashboardShared.BaseAppState.initTheme,
-  applyTheme: window.DashboardShared.BaseAppState.applyTheme,
-  cycleTheme: window.DashboardShared.BaseAppState.cycleTheme,
-  formatUserStory: window.DashboardShared.BaseAppState.formatUserStory,
-  formatAcceptanceCriteria: window.DashboardShared.BaseAppState.formatAcceptanceCriteria,
-  showMarkdownPreview: window.DashboardShared.BaseAppState.showMarkdownPreview,
-  closeMarkdownPreview: window.DashboardShared.BaseAppState.closeMarkdownPreview,
-  setupKeyboardHandlers: window.DashboardShared.BaseAppState.setupKeyboardHandlers,
-  setupCodeBlockCopyHandlers: window.DashboardShared.BaseAppState.setupCodeBlockCopyHandlers,
-  copyCodeBlock: window.DashboardShared.BaseAppState.copyCodeBlock,
-  getSpecStatus: window.DashboardShared.BaseAppState.getSpecStatus,
-  getSpecStatusLabel: window.DashboardShared.BaseAppState.getSpecStatusLabel,
-  getTaskTooltip: window.DashboardShared.BaseAppState.getTaskTooltip,
-  hasBugDocument: window.DashboardShared.BaseAppState.hasBugDocument,
-  viewBugDocument: window.DashboardShared.BaseAppState.viewBugDocument,
-  copyTaskCommand: window.DashboardShared.BaseAppState.copyTaskCommand,
-  copyOrchestrationCommand: window.DashboardShared.BaseAppState.copyOrchestrationCommand,
-  getStatusClass: window.DashboardShared.getStatusClass,
-  getStatusLabel: window.DashboardShared.getStatusLabel,
-  copyCommand: window.DashboardShared.copyCommand,
-  renderMarkdown: window.DashboardShared.renderMarkdown,
-  formatDate: window.DashboardShared.formatDate
+  // Add methods from shared components - bind them properly
+  initTheme() { return window.DashboardShared.BaseAppState.initTheme.call(this); },
+  applyTheme(theme) { return window.DashboardShared.BaseAppState.applyTheme.call(this, theme); },
+  cycleTheme() { return window.DashboardShared.BaseAppState.cycleTheme.call(this); },
+  formatUserStory(story) { return window.DashboardShared.BaseAppState.formatUserStory.call(this, story); },
+  formatAcceptanceCriteria(criteria) { return window.DashboardShared.BaseAppState.formatAcceptanceCriteria.call(this, criteria); },
+  showMarkdownPreview(file, title) { return window.DashboardShared.BaseAppState.showMarkdownPreview.call(this, file, title); },
+  closeMarkdownPreview() { return window.DashboardShared.BaseAppState.closeMarkdownPreview.call(this); },
+  setupKeyboardHandlers() { return window.DashboardShared.BaseAppState.setupKeyboardHandlers.call(this); },
+  setupCodeBlockCopyHandlers() { return window.DashboardShared.BaseAppState.setupCodeBlockCopyHandlers.call(this); },
+  copyCodeBlock(event) { return window.DashboardShared.BaseAppState.copyCodeBlock.call(this, event); },
+  getSpecStatus(session) { return window.DashboardShared.BaseAppState.getSpecStatus.call(this, session); },
+  getSpecStatusLabel(session) { return window.DashboardShared.BaseAppState.getSpecStatusLabel.call(this, session); },
+  getTaskTooltip(task) { return window.DashboardShared.BaseAppState.getTaskTooltip.call(this, task); },
+  hasBugDocument(bugName, docType) { return window.DashboardShared.BaseAppState.hasBugDocument.call(this, bugName, docType); },
+  viewBugDocument(projectPath, bugName, docType) { return window.DashboardShared.BaseAppState.viewBugDocument.call(this, projectPath, bugName, docType); },
+  copyTaskCommand(specName, taskId, event) { return window.DashboardShared.BaseAppState.copyTaskCommand.call(this, specName, taskId, event); },
+  copyOrchestrationCommand(specName, taskId, event) { return window.DashboardShared.BaseAppState.copyOrchestrationCommand.call(this, specName, taskId, event); },
+  getStatusClass(status) { return window.DashboardShared.getStatusClass(status); },
+  getStatusLabel(status) { return window.DashboardShared.getStatusLabel(status); },
+  copyCommand(command, event) { return window.DashboardShared.copyCommand(command, event); },
+  renderMarkdown(content) { return window.DashboardShared.renderMarkdown(content); },
+  formatDate(dateString) { return window.DashboardShared.formatDate(dateString); }
 }).mount('#app');
 } // End of initApp function
+
+// Start initialization
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
