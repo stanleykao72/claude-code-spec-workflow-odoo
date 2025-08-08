@@ -1,4 +1,8 @@
 // Multi-project dashboard app using shared components
+
+// Store Map outside of reactive system to avoid petite-vue Proxy issues
+const projectColorCache = new Map();
+
 // Wait for DOM and shared components to load
 function initApp() {
   // Check if shared components are loaded
@@ -40,7 +44,7 @@ PetiteVue.createApp({
   showCompleted: localStorage.getItem('showCompleted') !== 'false', // Default to true, stored in localStorage
   tunnelStatus: null,
   _groupedProjectsCache: null, // Cache for grouped projects
-  _projectColorCache: null, // Cache for project colors - will be initialized as Map in init()
+  // Note: _projectColorCache will be stored outside reactive system
   _colorValueCache: {}, // Cache for computed color values
   projectTabsData: [], // Pre-computed data for project tabs to avoid reactivity issues
 
@@ -88,14 +92,10 @@ PetiteVue.createApp({
   getProjectColor(projectPath) {
     if (!projectPath) return { primary: 'indigo-600', light: 'indigo-100', ring: 'indigo-500' };
     
-    // Initialize cache if needed
-    if (!this._projectColorCache) {
-      this._projectColorCache = new Map();
-    }
-    
+    // Use external cache to avoid petite-vue reactivity issues
     // Return cached color if exists
-    if (this._projectColorCache.has(projectPath)) {
-      return this._projectColorCache.get(projectPath);
+    if (projectColorCache.has(projectPath)) {
+      return projectColorCache.get(projectPath);
     }
     
     // Define a carefully curated color palette with maximum visual distinction
@@ -161,17 +161,17 @@ PetiteVue.createApp({
     // Cache the color for this project and all its children
     if (topLevelProject) {
       // Cache color for the top-level project
-      this._projectColorCache.set(topLevelProject.path, color);
+      projectColorCache.set(topLevelProject.path, color);
       // Cache same color for all children
       for (let i = 0; i < groupedProjects.length; i++) {
         const p = groupedProjects[i];
         if (p && (p.path.startsWith(topLevelProject.path + '/') || p.path === topLevelProject.path)) {
-          this._projectColorCache.set(p.path, color);
+          projectColorCache.set(p.path, color);
         }
       }
     } else {
       // Just cache for this specific path
-      this._projectColorCache.set(projectPath, color);
+      projectColorCache.set(projectPath, color);
     }
     
     return color;
@@ -469,7 +469,7 @@ PetiteVue.createApp({
       return;
     }
     
-    // Pre-compute all data needed for project tabs
+    // Pre-compute all data needed for project tabs (except dynamic styles)
     this.projectTabsData = grouped.map((project, index) => {
       const colorValue = this.getProjectColorValue(project.path);
       const color = this.getProjectColor(project.path);
@@ -486,24 +486,135 @@ PetiteVue.createApp({
         isNextTopLevel: isNextTopLevel,
         isPrevNested: isPrevNested,
         specs: project.specs || [],
-        bugs: project.bugs || [],
-        tabStyles: this.computeProjectTabStyles(project, index, color)
+        bugs: project.bugs || []
+        // Note: removed tabStyles as it needs to be dynamic
       };
     });
   },
   
-  // Compute tab styles as a string
-  computeProjectTabStyles(project, index, color) {
+  // Get dynamic tab styles based on current selection
+  getProjectTabStyles(project) {
     const styles = [];
+    const isActive = this.activeTab === 'projects' && this.selectedProject?.path === project.path;
+    const color = this.getProjectColor(project.path);
+    const borderColor = this.getColorValue(color.primary);
+    const isDark = document.documentElement.classList.contains('dark');
+    const groupedProjects = this.getCachedGroupedProjects();
+    const projectIndex = groupedProjects.findIndex(p => p.path === project.path);
+    
+    // For active tabs, set the border and text color
+    if (isActive) {
+      styles.push(`border-bottom-color: ${borderColor}`);
+      styles.push(`color: ${borderColor}`);
+    }
+    
+    // Check if this project is part of a group (either parent or child)
+    const hasChildren = projectIndex >= 0 && projectIndex < groupedProjects.length - 1 && 
+                       groupedProjects[projectIndex + 1] && groupedProjects[projectIndex + 1].level > 0;
+    const isPartOfGroup = project.level > 0 || hasChildren;
+    
+    if (isPartOfGroup) {
+      // Determine which color to use (parent's color for the whole group)
+      let groupColor;
+      if (project.level > 0) {
+        // Nested project - use parent color
+        const parentPath = this.getParentProjectPath(project.path, groupedProjects, projectIndex);
+        groupColor = this.getProjectColor(parentPath);
+      } else {
+        // Parent project - use its own color
+        groupColor = color;
+      }
+      
+      const groupBorderColor = this.getColorValue(groupColor.primary);
+      
+      // Add left border ONLY for the parent (first item in group)
+      if (project.level === 0 && hasChildren) {
+        styles.push(`border-left: 2px solid ${groupBorderColor}`);
+      }
+      
+      // Add subtle background color for all projects in a group
+      const bgOpacity = isDark ? '0.1' : '0.05';
+      styles.push(`background-color: ${this.getColorWithOpacity(groupColor.primary, bgOpacity)}`);
+      
+      // Add right border ONLY for the last item in group
+      const isLastInGroup = project.level > 0 && 
+                           (projectIndex === groupedProjects.length - 1 || 
+                            (projectIndex < groupedProjects.length - 1 && groupedProjects[projectIndex + 1].level === 0));
+      
+      if (isLastInGroup) {
+        styles.push(`border-right: 2px solid ${groupBorderColor}`);
+      }
+    }
+    
+    return styles.join('; ');
+  },
+  
+  // Convert color to RGBA with opacity
+  getColorWithOpacity(colorName, opacity) {
+    const colorRgb = {
+      'cyan-600': '8, 145, 178',
+      'violet-600': '124, 58, 237',
+      'rose-600': '225, 29, 72',
+      'amber-600': '217, 119, 6',
+      'emerald-600': '5, 150, 105',
+      'fuchsia-600': '219, 39, 119',
+      'orange-600': '234, 88, 12',
+      'teal-600': '13, 148, 136',
+      'indigo-600': '79, 70, 229',
+      'lime-600': '132, 204, 22',
+      'sky-600': '2, 132, 199'
+    };
+    
+    const rgb = colorRgb[colorName] || '79, 70, 229'; // Default to indigo
+    return `rgba(${rgb}, ${opacity})`;
+  },
+  
+  // Get badge styles for project count
+  getProjectBadgeStyles(project) {
+    const styles = [];
+    const color = this.getProjectColor(project.path);
     const isDark = document.documentElement.classList.contains('dark');
     
-    if (project.level > 0) {
-      // Nested project - use parent color
-      const parentColor = this.getProjectColor(this.getParentProjectPath(project.path, null, index));
-      if (parentColor) {
-        const borderColor = this.getColorValue(parentColor.primary);
-        styles.push(`border-bottom-color: ${borderColor}`);
-      }
+    if (project.hasActiveSession) {
+      // Light mode colors
+      const bgColors = {
+        'cyan-600': 'rgb(207, 250, 254)', // cyan-100
+        'violet-600': 'rgb(237, 233, 254)', // violet-100
+        'rose-600': 'rgb(255, 228, 230)', // rose-100
+        'amber-600': 'rgb(254, 243, 199)', // amber-100
+        'emerald-600': 'rgb(209, 250, 229)', // emerald-100
+        'fuchsia-600': 'rgb(250, 232, 255)', // fuchsia-100
+        'orange-600': 'rgb(255, 237, 213)', // orange-100
+        'teal-600': 'rgb(204, 251, 241)', // teal-100
+        'indigo-600': 'rgb(224, 231, 255)', // indigo-100
+        'lime-600': 'rgb(236, 252, 203)', // lime-100
+        'sky-600': 'rgb(224, 242, 254)' // sky-100
+      };
+      
+      // Dark mode colors
+      const darkBgColors = {
+        'cyan-600': 'rgb(22, 78, 99)', // cyan-900
+        'violet-600': 'rgb(76, 29, 149)', // violet-900
+        'rose-600': 'rgb(136, 19, 55)', // rose-900
+        'amber-600': 'rgb(120, 53, 15)', // amber-900
+        'emerald-600': 'rgb(6, 78, 59)', // emerald-900
+        'fuchsia-600': 'rgb(134, 25, 143)', // fuchsia-900
+        'orange-600': 'rgb(124, 45, 18)', // orange-900
+        'teal-600': 'rgb(19, 78, 74)', // teal-900
+        'indigo-600': 'rgb(49, 46, 129)', // indigo-900
+        'lime-600': 'rgb(54, 83, 20)', // lime-900
+        'sky-600': 'rgb(12, 74, 110)' // sky-900
+      };
+      
+      const bgColor = isDark ? (darkBgColors[color.primary] || 'rgb(55, 65, 81)') : (bgColors[color.primary] || 'rgb(243, 244, 246)');
+      const textColor = this.getColorValue(color.primary);
+      
+      styles.push(`background-color: ${bgColor}`);
+      styles.push(`color: ${textColor}`);
+    } else {
+      // Inactive - gray colors
+      styles.push(`background-color: ${isDark ? 'rgb(55, 65, 81)' : 'rgb(243, 244, 246)'}`);
+      styles.push(`color: ${isDark ? 'rgb(156, 163, 175)' : 'rgb(75, 85, 99)'}`);
     }
     
     return styles.join('; ');
@@ -535,8 +646,7 @@ PetiteVue.createApp({
   // Initialize the dashboard
   async init() {
     console.log('Multi-project dashboard initializing...');
-    // Initialize the Map here to avoid petite-vue reactivity issues
-    this._projectColorCache = new Map();
+    // Map is already initialized in the data properties
     this.initTheme();
     this.setupKeyboardHandlers();
     this.setupCodeBlockCopyHandlers();
@@ -596,9 +706,8 @@ PetiteVue.createApp({
         this.username = message.username || 'User';
         // Clear caches when projects change
         this._groupedProjectsCache = null;
-        if (this._projectColorCache) {
-          this._projectColorCache.clear();
-        }
+        // Clear external color cache
+        projectColorCache.clear();
         this._colorValueCache = {};
         // Pre-compute project tabs data
         this.updateProjectTabsData();
