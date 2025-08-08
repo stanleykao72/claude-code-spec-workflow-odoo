@@ -1027,17 +1027,17 @@ PetiteVue.createApp({
   handleRouteChange() {
     const path = window.location.pathname;
     
-    // Handle base path - if we're at the dashboard root or any path that ends with /dashboard
-    if (path === '/' || path === '/active' || path.endsWith('/dashboard') || path.endsWith('/dashboard/')) {
+    // Handle base path - if we're at the dashboard root or common dashboard paths
+    if (path === '/' || path === '/active' || path === '/dashboard' || path === '/dashboard/' || path.includes('/dashboard/public')) {
       this.activeTab = 'active';
       this.selectedProject = null;
       return;
     }
     
-    // Check if this looks like a project route (should start with /project/ or be a simple slug)
-    const projectMatch = path.match(/\/project\/(.+)|^\/([^\/]+)$/);
+    // Check if this looks like a project route (only match /project/name pattern)
+    const projectMatch = path.match(/^\/project\/(.+)$/);
     if (projectMatch) {
-      const projectName = projectMatch[1] || projectMatch[2];
+      const projectName = projectMatch[1];
       
       // Find project by name
       const project = this.projects.find(p => this.getProjectSlug(p) === projectName);
@@ -1057,7 +1057,7 @@ PetiteVue.createApp({
         }
       }
     } else {
-      // Unknown route format - default to active tab
+      // For any other path, default to active tab
       this.activeTab = 'active';
       this.selectedProject = null;
     }
