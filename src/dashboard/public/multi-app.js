@@ -370,6 +370,27 @@ PetiteVue.createApp({
     console.log('Grouped projects:', grouped.map(p => `${' '.repeat(p.level * 2)}${p.name} (${p.path})`).join('\n'));
     return grouped;
   },
+  
+  // Helper method to get project at specific index from grouped projects
+  getProjectAtIndex(index) {
+    const projects = this.getGroupedProjects();
+    return projects && projects[index] ? projects[index] : null;
+  },
+  
+  // Helper to check if next project is at level 0
+  isNextProjectTopLevel(index) {
+    const projects = this.getGroupedProjects();
+    const nextProject = projects && projects[index + 1] ? projects[index + 1] : null;
+    return nextProject && nextProject.level === 0;
+  },
+  
+  // Helper to check if previous project is nested
+  isPreviousProjectNested(index) {
+    if (index === 0) return false;
+    const projects = this.getGroupedProjects();
+    const prevProject = projects && projects[index - 1] ? projects[index - 1] : null;
+    return prevProject && prevProject.level > 0;
+  },
 
   // Initialize the dashboard
   async init() {
