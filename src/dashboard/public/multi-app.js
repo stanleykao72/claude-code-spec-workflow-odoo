@@ -40,7 +40,7 @@ PetiteVue.createApp({
   showCompleted: localStorage.getItem('showCompleted') !== 'false', // Default to true, stored in localStorage
   tunnelStatus: null,
   _groupedProjectsCache: null, // Cache for grouped projects
-  _projectColorCache: new Map(), // Cache for project colors
+  _projectColorCache: null, // Cache for project colors - will be initialized as Map in init()
 
   // Computed properties
   get activeSessionCount() {
@@ -68,6 +68,11 @@ PetiteVue.createApp({
   // Generate unique color for each project (stable within session)
   getProjectColor(projectPath) {
     if (!projectPath) return { primary: 'indigo-600', light: 'indigo-100', ring: 'indigo-500' };
+    
+    // Initialize cache if needed
+    if (!this._projectColorCache) {
+      this._projectColorCache = new Map();
+    }
     
     // Return cached color if exists
     if (this._projectColorCache.has(projectPath)) {
@@ -419,6 +424,8 @@ PetiteVue.createApp({
   // Initialize the dashboard
   async init() {
     console.log('Multi-project dashboard initializing...');
+    // Initialize the Map here to avoid petite-vue reactivity issues
+    this._projectColorCache = new Map();
     this.initTheme();
     this.setupKeyboardHandlers();
     this.setupCodeBlockCopyHandlers();
@@ -474,7 +481,9 @@ PetiteVue.createApp({
         this.username = message.username || 'User';
         // Clear caches when projects change
         this._groupedProjectsCache = null;
-        this._projectColorCache.clear();
+        if (this._projectColorCache) {
+          this._projectColorCache.clear();
+        }
 
         console.log(
           `Received initial data: ${this.projects.length} projects, ${this.activeSessions.length} active sessions`
