@@ -41,6 +41,7 @@ PetiteVue.createApp({
   tunnelStatus: null,
   _groupedProjectsCache: null, // Cache for grouped projects
   _projectColorCache: null, // Cache for project colors - will be initialized as Map in init()
+  _colorValueCache: {}, // Cache for computed color values
 
   // Computed properties
   get activeSessionCount() {
@@ -100,8 +101,12 @@ PetiteVue.createApp({
     ];
     
     // Find all top-level projects (level 0) in the grouped list
-    // Clone the result to avoid reactivity issues
-    const groupedProjects = [...this.getGroupedProjects()];
+    // Get grouped projects once and work with plain array
+    const groupedProjects = this.getCachedGroupedProjects();
+    if (!groupedProjects || groupedProjects.length === 0) {
+      return { primary: 'indigo-600', light: 'indigo-100', ring: 'indigo-500' };
+    }
+    
     const topLevelProjects = [];
     for (let i = 0; i < groupedProjects.length; i++) {
       if (groupedProjects[i] && groupedProjects[i].level === 0) {
@@ -289,6 +294,12 @@ PetiteVue.createApp({
 
   // Get actual color value for project (for inline styles)
   getProjectColorValue(projectPath) {
+    if (!projectPath) return 'rgb(79, 70, 229)'; // Default indigo
+    
+    // Try to get from cache first
+    const cachedValue = this._colorValueCache && this._colorValueCache[projectPath];
+    if (cachedValue) return cachedValue;
+    
     const color = this.getProjectColor(projectPath);
     const colorMap = {
       'cyan-600': 'rgb(8, 145, 178)',
@@ -303,7 +314,15 @@ PetiteVue.createApp({
       'teal-600': 'rgb(13, 148, 136)',
       'indigo-600': 'rgb(79, 70, 229)'
     };
-    return colorMap[color.primary] || 'rgb(8, 145, 178)';
+    const value = colorMap[color.primary] || 'rgb(8, 145, 178)';
+    
+    // Cache the computed value
+    if (!this._colorValueCache) {
+      this._colorValueCache = {};
+    }
+    this._colorValueCache[projectPath] = value;
+    
+    return value;
   },
 
   // Get cached grouped projects to avoid excessive recalculation
@@ -484,6 +503,7 @@ PetiteVue.createApp({
         if (this._projectColorCache) {
           this._projectColorCache.clear();
         }
+        this._colorValueCache = {};
 
         console.log(
           `Received initial data: ${this.projects.length} projects, ${this.activeSessions.length} active sessions`
