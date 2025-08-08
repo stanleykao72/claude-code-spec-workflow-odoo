@@ -1027,12 +1027,17 @@ PetiteVue.createApp({
   handleRouteChange() {
     const path = window.location.pathname;
     
-    if (path === '/' || path === '/active') {
+    // Handle base path - if we're at the dashboard root or any path that ends with /dashboard
+    if (path === '/' || path === '/active' || path.endsWith('/dashboard') || path.endsWith('/dashboard/')) {
       this.activeTab = 'active';
       this.selectedProject = null;
-    } else {
-      // Extract project name from path (e.g., /my-project -> my-project)
-      const projectName = path.substring(1); // Remove leading slash
+      return;
+    }
+    
+    // Check if this looks like a project route (should start with /project/ or be a simple slug)
+    const projectMatch = path.match(/\/project\/(.+)|^\/([^\/]+)$/);
+    if (projectMatch) {
+      const projectName = projectMatch[1] || projectMatch[2];
       
       // Find project by name
       const project = this.projects.find(p => this.getProjectSlug(p) === projectName);
@@ -1041,16 +1046,20 @@ PetiteVue.createApp({
         this.activeTab = 'projects';
       } else {
         // Project not found, check if we have projects loaded yet
-        if (this.projects.length === 0) {
-          // Projects not loaded yet, store the desired project name for later
+        if (this.projects.length === 0 && projectName && !projectName.includes('.')) {
+          // Projects not loaded yet and this looks like a project name, store for later
           this.pendingProjectRoute = projectName;
         } else {
-          // Projects are loaded but project not found, redirect to active
+          // Projects are loaded but project not found, or invalid route - go to active tab
           this.activeTab = 'active';
           this.selectedProject = null;
           this.updateURL();
         }
       }
+    } else {
+      // Unknown route format - default to active tab
+      this.activeTab = 'active';
+      this.selectedProject = null;
     }
   },
 
