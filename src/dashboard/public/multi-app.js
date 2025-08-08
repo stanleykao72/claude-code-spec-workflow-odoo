@@ -1,4 +1,12 @@
 // Multi-project dashboard app using shared components
+// Wait for DOM and shared components to load
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
+
+function initApp() {
 PetiteVue.createApp({
   // Copy base state properties (not methods)
   theme: window.DashboardShared.BaseAppState.theme,
@@ -1265,9 +1273,15 @@ PetiteVue.createApp({
   copyCodeBlock: window.DashboardShared.BaseAppState.copyCodeBlock,
   getSpecStatus: window.DashboardShared.BaseAppState.getSpecStatus,
   getSpecStatusLabel: window.DashboardShared.BaseAppState.getSpecStatusLabel,
+  getTaskTooltip: window.DashboardShared.BaseAppState.getTaskTooltip,
+  hasBugDocument: window.DashboardShared.BaseAppState.hasBugDocument,
+  viewBugDocument: window.DashboardShared.BaseAppState.viewBugDocument,
+  copyTaskCommand: window.DashboardShared.BaseAppState.copyTaskCommand,
+  copyOrchestrationCommand: window.DashboardShared.BaseAppState.copyOrchestrationCommand,
   getStatusClass: window.DashboardShared.getStatusClass,
   getStatusLabel: window.DashboardShared.getStatusLabel,
   copyCommand: window.DashboardShared.copyCommand,
   renderMarkdown: window.DashboardShared.renderMarkdown,
   formatDate: window.DashboardShared.formatDate
 }).mount('#app');
+} // End of initApp function
