@@ -1261,6 +1261,8 @@ PetiteVue.createApp({
   showMarkdownPreview: window.DashboardShared.BaseAppState.showMarkdownPreview,
   closeMarkdownPreview: window.DashboardShared.BaseAppState.closeMarkdownPreview,
   setupKeyboardHandlers: window.DashboardShared.BaseAppState.setupKeyboardHandlers,
+  setupCodeBlockCopyHandlers: window.DashboardShared.BaseAppState.setupCodeBlockCopyHandlers,
+  copyCodeBlock: window.DashboardShared.BaseAppState.copyCodeBlock,
   getSpecStatus: window.DashboardShared.BaseAppState.getSpecStatus,
   getSpecStatusLabel: window.DashboardShared.BaseAppState.getSpecStatusLabel,
   getStatusClass: window.DashboardShared.getStatusClass,
