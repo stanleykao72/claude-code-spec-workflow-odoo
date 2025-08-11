@@ -17,7 +17,7 @@ This task list breaks down the TypeScript frontend conversion into atomic, execu
   - _Leverage: tsconfig.json_
   - _Requirements: 1.1, 1.2, 1.3_
 
-- [ ] 2. Set up frontend bundling system
+- [x] 2. Set up frontend bundling system
   - Install esbuild as dev dependency
   - Add bundle scripts to package.json (build:frontend, watch:frontend)
   - Configure source maps for development
@@ -25,7 +25,7 @@ This task list breaks down the TypeScript frontend conversion into atomic, execu
   - _Leverage: package.json build scripts_
   - _Requirements: 1.1, 1.5_
 
-- [ ] 3. Create petite-vue type definitions
+- [x] 3. Create petite-vue type definitions
   - Create `src/dashboard/client/types/petite-vue.d.ts`
   - Define PetiteVue namespace and createApp function
   - Add reactive property type helpers
