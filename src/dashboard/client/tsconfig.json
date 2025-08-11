@@ -6,7 +6,7 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "outDir": "../public/dist",
-    "rootDir": "../",
+    "rootDir": "../../",
     "strict": true,
     "strictNullChecks": true,
     "noUncheckedIndexedAccess": true,
@@ -25,7 +25,8 @@
     "../client/**/*",
     "../shared/**/*",
     "../tunnel/types.ts",
-    "../parser.ts"
+    "../parser.ts",
+    "../../steering.ts"
   ],
   "exclude": [
     "node_modules",

@@ -108,11 +108,11 @@ type StatusLabelMap = Record<StatusType, string>;
 
 const STATUS_LABELS: StatusLabelMap = {
   'not-started': 'Not Started',
-  'requirements': 'Requirements ✅',
-  'design': 'Design ✅',
-  'tasks': 'Tasks ✅', 
+  'requirements': 'Requirements',
+  'design': 'Design',
+  'tasks': 'Tasks', 
   'in-progress': 'In Progress',
-  'completed': 'Completed ✅',
+  'completed': 'Completed',
 };
 
 /**
@@ -263,7 +263,7 @@ export function renderMarkdown(content: string): string {
         '"': '&quot;',
         "'": '&#39;'
       };
-      return escapeMap[match];
+      return escapeMap[match] || match;
     });
     
     // Base64 encode the original code for data attribute

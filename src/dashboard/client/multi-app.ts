@@ -168,7 +168,77 @@ interface MultiAppState extends AppState {
   getProjectColorClasses(projectPath: string, type?: 'text' | 'bg' | 'bg-primary' | 'border' | 'border-l' | 'border-r' | 'border-b' | 'text-primary'): string;
   getProjectColorValue(projectPath: string): string;
   getCachedGroupedProjects(): Project[];
+  getGroupedProjects(): Project[];
   _buildGroupedProjects(): Project[];
+  
+  // Additional methods found in implementation
+  getProjectTabStyles(project: Project): string;
+  getProjectBadgeStyles(project: Project): string;
+  getColorValue(colorName: string): string;
+  getColorWithOpacity(colorName: string, opacity: string): string;
+  getParentProjectPath(projectPath: string, groupedProjects: Project[], currentIndex: number): string;
+  updateProjectTabsData(): void;
+  initializeRouting(): void;
+  fetchTunnelStatus(): Promise<void>;
+  normalizeProjects(projects: Project[]): Project[];
+  sortProjects(): void;
+  getProjectSlug(project: Project): string;
+  updateURL(): void;
+  getOpenBugsCount(project: Project): number;
+  selectProjectFromSession(session: ActiveSession): void;
+  findFirstIncompleteTask(tasks: Task[]): Task | null;
+  handleRouteChange(): void;
+  initializeSelectedTask(spec: Spec): void;
+  getProjectAtIndex(index: number): Project | null;
+  isNextProjectTopLevel(index: number): boolean;
+  isPreviousProjectNested(index: number): boolean;
+  getCurrentTask(spec: Spec): Task | null;
+  switchTab(tab: 'active' | 'projects'): void;
+  selectProject(project: Project | null): void;
+  selectProjectAndShowBugs(project: Project | null): void;
+  selectProjectFromTask(projectPath: string, itemName: string, sessionType?: 'spec' | 'bug'): void;
+  toggleRequirementsExpanded(specName: string): void;
+  isRequirementsExpanded(specName: string): boolean;
+  toggleDesignExpanded(specName: string): void;
+  isDesignExpanded(specName: string): boolean;
+  toggleTasksExpanded(specName: string): void;
+  isTasksExpanded(specName: string): boolean;
+  toggleRequirementAccordion(specName: string, requirementId: string): void;
+  isRequirementExpanded(specName: string, requirementId: string): boolean;
+  selectTask(specName: string, taskId: string): void;
+  isTaskSelected(specName: string, taskId: string): boolean;
+  getSelectedTask(specName: string): Task | null;
+  getTaskNumber(activeSession: ActiveSession): number;
+  getSpecTaskCount(activeSession: ActiveSession): number;
+  getSpecProgress(activeSession: ActiveSession): number;
+  getNextTask(activeSession: ActiveSession): Task | null;
+  getSpecsInProgress(project: Project): number;
+  getSpecsCompleted(project: Project): number;
+  getTotalTasks(project: Project): number;
+  getOpenSpecsCount(project: Project): number;
+  getBugsInProgress(project: Project): number;
+  getBugsResolved(project: Project): number;
+  copyNextTaskCommand(spec: Spec, event: Event): void;
+  copyOrchestrateCommand(spec: Spec, event: Event): void;
+  toggleShowCompleted(): void;
+  selectedTaskId(specName: string): string | undefined;
+  sortSpecs(specs: Spec[]): void;
+  sortBugs(bugs: Bug[]): void;
+  scrollToRequirement(specName: string, requirementId: string): void;
+  startTunnel(): Promise<void>;
+  stopTunnel(): Promise<void>;
+  viewMarkdown(specName: string, docType: string, projectPath?: string | null): Promise<void>;
+  viewBugMarkdown(projectPath: string, bugName: string, docType: string): Promise<void>;
+  formatTunnelExpiry(expiresAt: string): string;
+  
+  // Shared utility methods from dashboardShared
+  getStatusLabel(status: StatusType): string;
+  getStatusClass(status: StatusType): string;
+  formatDate(dateString: string): string;
+  copyCommand(command: string, event?: globalThis.Event): Promise<void>;
+  renderMarkdown(content: string): string;
+  formatAcceptanceCriteria(criteria: string): string;
+  formatUserStory(story: string): string;
 }
 
 // ============================================================================
@@ -318,7 +388,7 @@ function initApp(): void {
       
       // Use the index to select a color, cycling through if needed
       const colorIndex = topLevelIndex >= 0 ? topLevelIndex % COLOR_PALETTE.length : 0;
-      const color = COLOR_PALETTE[colorIndex];
+      const color = COLOR_PALETTE[colorIndex] as ColorScheme; // TypeScript doesn't infer that modulo ensures valid index
       
       // Cache the color for this project and all its children
       if (topLevelProject) {
@@ -415,7 +485,7 @@ function initApp(): void {
           groupColor = this.getProjectColor(parentPath);
         } else {
           // Parent project - use its own color
-          groupColor = color;
+          groupColor = color || { primary: 'indigo-600', light: 'indigo-100', ring: 'indigo-500' };
         }
         
         const groupBorderColor = this.getColorValue(groupColor?.primary || 'indigo-600');
@@ -609,21 +679,22 @@ function initApp(): void {
         }
       });
       
-      console.log('Grouped projects:', grouped.map(p => `${' '.repeat(p.level * 2)}${p.name} (${p.path})`).join('\n'));
+      console.log('Grouped projects:', grouped.map(p => `${' '.repeat((p?.level || 0) * 2)}${p?.name || 'Unknown'} (${p?.path || 'Unknown'})`).join('\n'));
       return grouped;
     },
 
     getParentProjectPath(projectPath: string, groupedProjects: Project[], currentIndex: number): string {
       // For level 0 projects, they are their own parent
       const currentProject = groupedProjects[currentIndex];
-      if (!currentProject || currentProject.level === 0) {
+      if (!currentProject || (currentProject?.level || 0) === 0) {
         return projectPath;
       }
       
       // Look backwards to find the parent (level 0) project
       for (let i = currentIndex - 1; i >= 0; i--) {
-        if (groupedProjects[i].level === 0) {
-          return groupedProjects[i].path;
+        const project = groupedProjects[i];
+        if (project && (project?.level || 0) === 0) {
+          return project?.path || projectPath;
         }
       }
       
@@ -660,10 +731,10 @@ function initApp(): void {
       
       // Pre-compute all data needed for project tabs (except dynamic styles)
       this.projectTabsData = grouped.map((project, index): ProjectTabData => {
-        const colorValue = this.getProjectColorValue(project.path);
-        const color = this.getProjectColor(project.path);
-        const isNextTopLevel = index < grouped.length - 1 && grouped[index + 1].level === 0;
-        const isPrevNested = index > 0 && grouped[index - 1].level > 0;
+        const colorValue = this.getProjectColorValue(project?.path || '');
+        const color = this.getProjectColor(project?.path || '');
+        const isNextTopLevel = index < grouped.length - 1 && (grouped[index + 1]?.level || 0) === 0;
+        const isPrevNested = index > 0 && (grouped[index - 1]?.level || 0) > 0;
         
         return {
           path: project.path,
@@ -793,7 +864,7 @@ function initApp(): void {
           }
           // Select first project if none selected and we're on projects tab
           else if (!this.selectedProject && this.projects.length > 0 && this.activeTab === 'projects') {
-            this.selectedProject = this.projects[0];
+            this.selectedProject = this.projects[0] || null;
             this.updateURL();
           }
           break;
@@ -840,7 +911,7 @@ function initApp(): void {
         case 'tunnel:stopped':
           this.tunnelStatus = {
             active: false,
-            info: null,
+            info: null as any,  // TypeScript workaround for initial state
             viewers: 0
           } as TunnelStatus;
           console.log('Tunnel stopped:', this.tunnelStatus);
@@ -976,14 +1047,17 @@ function initApp(): void {
         // Auto-select first incomplete task when expanding
         const project = this.selectedProject;
         if (project && project.specs) {
-          const spec = project.specs.find(s => s.name === specName);
+          const spec = project.specs.find(s => s?.name === specName);
           if (spec && spec.tasks && spec.tasks.taskList && spec.tasks.taskList.length > 0) {
             const firstIncomplete = this.findFirstIncompleteTask(spec.tasks.taskList);
             if (firstIncomplete) {
               this.selectedTasks[specName] = firstIncomplete.id;
             } else {
               // If no incomplete tasks, select the first task
-              this.selectedTasks[specName] = spec.tasks.taskList[0].id;
+              const firstTask = spec.tasks.taskList[0];
+              if (firstTask) {
+                this.selectedTasks[specName] = firstTask.id;
+              }
             }
           }
         }
@@ -1120,18 +1194,21 @@ function initApp(): void {
       
       if (!spec?.tasks?.taskList) return null;
       
-      const currentIndex = spec.tasks.taskList.findIndex((t) => t?.id === activeSession?.currentTaskId);
-      if (currentIndex >= 0 && currentIndex < spec.tasks.taskList.length - 1) {
-        const nextTask = spec.tasks.taskList[currentIndex + 1];
+      const taskList = spec.tasks.taskList;  // TypeScript now knows this is defined
+      const currentIndex = taskList.findIndex((t) => t?.id === activeSession?.currentTaskId);
+      if (currentIndex >= 0 && currentIndex < taskList.length - 1) {
+        const nextTask = taskList[currentIndex + 1];
         if (nextTask && !nextTask.completed) return nextTask;
       }
       
-      return spec.tasks.taskList.find((t) => t && !t.completed && t.id !== activeSession?.currentTaskId) || null;
+      return taskList.find((t) => t && !t.completed && t.id !== activeSession?.currentTaskId) || null;
     },
 
     getCurrentTask(spec: Spec): Task | null {
       if (!spec?.tasks?.taskList || !spec.tasks.inProgress) return null;
-      return spec.tasks.taskList.find(task => task?.id === spec.tasks.inProgress) || null;
+      const taskList = spec.tasks.taskList;
+      const inProgressId = spec.tasks.inProgress;
+      return taskList.find(task => task?.id === inProgressId) || null;
     },
 
     // ========================================================================
@@ -1538,7 +1615,7 @@ function initApp(): void {
     cycleTheme(): void {
       const themes = ['light', 'dark', 'system'] as const;
       const currentIndex = themes.indexOf(this.theme);
-      this.theme = themes[(currentIndex + 1) % themes.length];
+      this.theme = themes[(currentIndex + 1) % themes.length] || 'system';
       localStorage.setItem('theme', this.theme);
       this.applyTheme(this.theme);
     },
@@ -1619,11 +1696,23 @@ function initApp(): void {
       } finally {
         this.markdownPreview.loading = false;
       }
-    }
+    },
+
+    // ========================================================================
+    // Expose shared utilities from dashboardShared
+    // ========================================================================
+    
+    getStatusLabel: dashboardShared.getStatusLabel,
+    getStatusClass: dashboardShared.getStatusClass,
+    formatDate: dashboardShared.formatDate,
+    copyCommand: dashboardShared.copyCommand,
+    renderMarkdown: dashboardShared.renderMarkdown,
+    formatAcceptanceCriteria: dashboardShared.formatAcceptanceCriteria,
+    formatUserStory: dashboardShared.formatUserStory
   };
 
   // Mount the PetiteVue application
-  PetiteVue.createApp(appState).mount('#app');
+  PetiteVue.createApp(appState as any).mount('#app');
 }
 
 // ============================================================================

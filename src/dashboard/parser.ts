@@ -384,45 +384,77 @@ export class SpecParser {
       };
     }
 
-    // Check analysis
+    // Check all files first to determine the most advanced status
     const analysisPath = join(bugPath, 'analysis.md');
-    if (await this.fileExists(analysisPath)) {
-      const content = await readFile(analysisPath, 'utf-8');
+    const fixPath = join(bugPath, 'fix.md');
+    const verificationPath = join(bugPath, 'verification.md');
+    
+    const hasAnalysis = await this.fileExists(analysisPath);
+    const hasFix = await this.fileExists(fixPath);
+    const hasVerification = await this.fileExists(verificationPath);
+
+    // Check verification first (most advanced status)
+    if (hasVerification) {
+      const content = await readFile(verificationPath, 'utf-8');
       
-      bug.analysis = {
-        exists: true,
-        rootCause: this.extractSection(content, 'Root Cause'),
-        proposedFix: this.extractSection(content, 'Proposed Fix'),
-        filesAffected: this.extractFilesAffected(content),
-      };
+      // Check if there's actual verification content (not just template)
+      const hasTestResults = this.hasContentAfterSection(content, 'Test Results') ||
+                           this.hasContentAfterSection(content, 'Verification Steps') ||
+                           this.hasContentAfterSection(content, 'Fix Verification') ||
+                           this.hasContentAfterSection(content, 'Fix Implementation Summary');
+      const hasRegressionChecks = this.hasContentAfterSection(content, 'Regression Testing') ||
+                                this.hasContentAfterSection(content, 'Regression Checks') ||
+                                this.hasContentAfterSection(content, 'Side Effects Check');
       
-      // Only set to analyzing if there's actual analysis content
-      // Check for content in the actual analysis sections (not just headers)
-      const hasRootCauseContent = this.hasContentAfterSection(content, 'Root Cause Analysis') ||
-                                this.hasContentAfterSection(content, 'Investigation Summary') ||
-                                this.hasContentAfterSection(content, 'Root Cause');
-      const hasImplementationPlan = this.hasContentAfterSection(content, 'Implementation Plan') ||
-                                  this.hasContentAfterSection(content, 'Changes Required');
-      
-      if (hasRootCauseContent || hasImplementationPlan) {
-        bug.status = 'analyzing';
+      if (hasTestResults || hasRegressionChecks) {
+        // Has actual verification content
+        // Check for completion markers - look for checked boxes or verification statements
+        const hasCheckedBoxes = (content.match(/\[x\]/gi) || []).length > 0;
+        const hasVerificationStatement = content.includes('✅ VERIFIED') || 
+                                        content.includes('**Verified:** ✓') ||
+                                        content.includes('**Production Verified**') ||
+                                        content.includes('successfully verified') ||
+                                        content.includes('verification complete') ||
+                                        content.includes('bug is resolved') ||
+                                        content.includes('fix confirmed');
         
-        // If analysis is complete (all required sections have content), we're ready to fix
-        const hasAllAnalysisContent = hasRootCauseContent && hasImplementationPlan;
-        const analysisApproved = content.includes('✅ APPROVED') || 
-                               content.includes('**Approved:** ✓') ||
-                               content.includes('## Next Phase') ||
-                               content.includes('proceed to');
+        // Consider it resolved if it has checked boxes showing verification was done
+        // or explicit verification statements
+        const isVerified = hasCheckedBoxes || hasVerificationStatement;
         
-        if (hasAllAnalysisContent && analysisApproved) {
-          bug.status = 'fixing';
+        bug.verification = {
+          exists: true,
+          verified: isVerified,
+          testsPassed: this.extractTestStatus(content),
+          regressionChecks: this.extractRegressionChecks(content),
+        };
+        
+        if (isVerified) {
+          bug.status = 'resolved';
+        } else {
+          bug.status = 'verifying';
+        }
+      } else {
+        // Verification file exists but is just template, check if we should be in fixing status
+        if (hasFix) {
+          const fixContent = await readFile(fixPath, 'utf-8');
+          const hasFixContent = this.hasContentAfterSection(fixContent, 'Fix Summary') ||
+                               this.hasContentAfterSection(fixContent, 'Implementation Details') ||
+                               this.hasContentAfterSection(fixContent, 'Changes Made') ||
+                               this.hasContentAfterSection(fixContent, 'Code Changes');
+          if (hasFixContent) {
+            bug.status = 'fixed';
+          } else {
+            bug.status = 'fixing';
+          }
+        } else if (hasAnalysis) {
+          bug.status = 'analyzing';
         }
       }
     }
-
-    // Check if fix has been implemented
-    const fixPath = join(bugPath, 'fix.md');
-    if (await this.fileExists(fixPath)) {
+    
+    // Check fix if not already in verification/resolved status
+    else if (hasFix) {
       const content = await readFile(fixPath, 'utf-8');
       
       // Check if fix has actual content (not just template)
@@ -440,42 +472,48 @@ export class SpecParser {
           summary: this.extractSection(content, 'Fix Summary'),
           implemented: content.includes('✅') || content.includes('implemented') || content.includes('complete'),
         };
+      } else {
+        // Fix file exists but is just template
+        if (hasAnalysis) {
+          const analysisContent = await readFile(analysisPath, 'utf-8');
+          const hasAnalysisContent = this.hasContentAfterSection(analysisContent, 'Root Cause Analysis') ||
+                                   this.hasContentAfterSection(analysisContent, 'Investigation Summary') ||
+                                   this.hasContentAfterSection(analysisContent, 'Root Cause');
+          if (hasAnalysisContent) {
+            bug.status = 'fixing';
+          } else {
+            bug.status = 'analyzing';
+          }
+        } else {
+          bug.status = 'reported';
+        }
       }
     }
     
-    // Check verification
-    const verificationPath = join(bugPath, 'verification.md');
-    if (await this.fileExists(verificationPath)) {
-      const content = await readFile(verificationPath, 'utf-8');
+    // Check analysis if not already in a more advanced status
+    else if (hasAnalysis) {
+      const content = await readFile(analysisPath, 'utf-8');
       
-      bug.verification = {
-        exists: true,
-        verified: content.includes('✅ VERIFIED') || 
-                 content.includes('**Verified:** ✓') ||
-                 content.includes('**Production Verified**') ||
-                 (content.includes('✅') && content.toLowerCase().includes('verified')),
-        testsPassed: this.extractTestStatus(content),
-        regressionChecks: this.extractRegressionChecks(content),
-      };
+      // Check for content in the actual analysis sections (not just headers)
+      const hasRootCauseContent = this.hasContentAfterSection(content, 'Root Cause Analysis') ||
+                                this.hasContentAfterSection(content, 'Investigation Summary') ||
+                                this.hasContentAfterSection(content, 'Root Cause');
+      const hasImplementationPlan = this.hasContentAfterSection(content, 'Implementation Plan') ||
+                                  this.hasContentAfterSection(content, 'Changes Required') ||
+                                  this.hasContentAfterSection(content, 'Proposed Fix');
       
-      // Only set to verifying if there's actual verification content
-      const hasTestResults = this.hasContentAfterSection(content, 'Test Results') ||
-                           this.hasContentAfterSection(content, 'Verification Steps') ||
-                           this.hasContentAfterSection(content, 'Fix Verification');
-      const hasRegressionChecks = this.hasContentAfterSection(content, 'Regression Testing') ||
-                                this.hasContentAfterSection(content, 'Regression Checks') ||
-                                this.hasContentAfterSection(content, 'Side Effects Check');
-      
-      // Only set to verifying if:
-      // 1. Fix has been implemented (status is 'fixed')
-      // 2. There's actual verification content (not just template)
-      if ((hasTestResults || hasRegressionChecks) && bug.status === 'fixed') {
-        bug.status = 'verifying';
+      if (hasRootCauseContent || hasImplementationPlan) {
+        bug.status = 'analyzing';
         
-        // Check if verification is complete
-        if (bug.verification.verified) {
-          bug.status = 'resolved';
-        }
+        bug.analysis = {
+          exists: true,
+          rootCause: this.extractSection(content, 'Root Cause'),
+          proposedFix: this.extractSection(content, 'Proposed Fix'),
+          filesAffected: this.extractFilesAffected(content),
+        };
+      } else {
+        // Analysis file exists but is just template
+        bug.status = 'reported';
       }
     }
 

@@ -1034,13 +1034,13 @@
                   <!-- Stage indicators matching project tabs style -->
                   <div v-if="session.type === 'spec' && !session.isAdHoc" class="flex items-center gap-2">
                     <span v-if="session.requirements" class="text-sm" :title="session.requirements.approved ? 'Requirements Approved' : 'Requirements Pending'">
-                      {{ session.requirements.approved ? '✅' : '📋' }}
+                      <i class="fas fa-clipboard-list" :class="session.requirements.approved ? 'text-green-500' : 'text-yellow-500'"></i>
                     </span>
                     <span v-if="session.design" class="text-sm" :title="session.design.approved ? 'Design Approved' : 'Design Pending'">
-                      {{ session.design.approved ? '✅' : '🎨' }}
+                      <i class="fas fa-drafting-compass" :class="session.design.approved ? 'text-green-500' : 'text-yellow-500'"></i>
                     </span>
                     <span v-if="session.tasks" class="text-sm" :title="session.tasks.approved ? 'Tasks Approved' : 'Tasks Pending'">
-                      {{ session.tasks.approved ? '✅' : '📝' }}
+                      <i class="fas fa-tasks" :class="session.tasks.approved ? 'text-green-500' : 'text-yellow-500'"></i>
                     </span>
                     <!-- Orchestration Indicator -->
                     <span v-if="session.requirements?.approved && session.design?.approved && session.tasks?.approved" class="text-xs" title="Orchestration Available - All docs approved">
@@ -1254,13 +1254,13 @@
                     <!-- Acceptance Status Indicators -->
                     <div class="flex items-center gap-2">
                       <span v-if="spec.requirements" class="text-sm" :title="spec.requirements.approved ? 'Requirements Approved' : 'Requirements Pending'">
-                        {{ spec.requirements.approved ? '✅' : '📋' }}
+                        <i class="fas fa-clipboard-list" :class="spec.requirements.approved ? 'text-green-500' : 'text-yellow-500'"></i>
                       </span>
                       <span v-if="spec.design" class="text-sm" :title="spec.design.approved ? 'Design Approved' : 'Design Pending'">
-                        {{ spec.design.approved ? '✅' : '🎨' }}
+                        <i class="fas fa-drafting-compass" :class="spec.design.approved ? 'text-green-500' : 'text-yellow-500'"></i>
                       </span>
                       <span v-if="spec.tasks" class="text-sm" :title="spec.tasks.approved ? 'Tasks Approved' : 'Tasks Pending'">
-                        {{ spec.tasks.approved ? '✅' : '📝' }}
+                        <i class="fas fa-tasks" :class="spec.tasks.approved ? 'text-green-500' : 'text-yellow-500'"></i>
                       </span>
                       <!-- Orchestration Indicator -->
                       <span v-if="spec.requirements?.approved && spec.design?.approved && spec.tasks?.approved" class="text-xs" title="Orchestration Available - All docs approved">
