@@ -125,10 +125,15 @@ export function getStatusLabel(status: StatusType): string {
 export async function copyCommand(command: string, event?: globalThis.Event): Promise<void> {
   console.log('copyCommand called with:', command, 'length:', command?.length);
   
+  if (!command) {
+    console.warn('No command provided to copy');
+    return;
+  }
+  
   // Find the button that was clicked
-  const button = event?.currentTarget as globalThis.HTMLButtonElement || 
-                event?.target && (event.target as globalThis.Element).closest('button') || 
-                globalThis.document.activeElement as globalThis.HTMLButtonElement;
+  const button = (event?.currentTarget as globalThis.HTMLButtonElement) || 
+                (event?.target && (event.target as globalThis.Element).closest('button') as globalThis.HTMLButtonElement) || 
+                (globalThis.document.activeElement as globalThis.HTMLButtonElement);
   
   const copyToClipboard = async (): Promise<void> => {
     if (globalThis.navigator.clipboard) {
@@ -211,13 +216,13 @@ declare global {
  * Render markdown content using marked library with enhanced code blocks
  */
 export function renderMarkdown(content: string): string {
-  if (!content) return '';
+  if (!content?.trim()) return '';
   
   // Check if marked library is available
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const markedLib = (globalThis as any).marked as MarkedLib | undefined;
-  if (!markedLib) {
-    console.error('Marked library not loaded');
+  if (!markedLib?.parse) {
+    console.error('Marked library not loaded or incomplete');
     return content;
   }
   

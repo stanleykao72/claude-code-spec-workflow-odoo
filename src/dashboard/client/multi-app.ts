@@ -377,19 +377,19 @@ function initApp(): void {
     // ========================================================================
 
     getVisibleSpecs(project: Project): Spec[] {
-      if (!project || !project.specs) return [];
+      if (!project?.specs) return [];
       if (this.showCompleted) {
         return project.specs;
       }
-      return project.specs.filter(s => s.status !== 'completed');
+      return project.specs.filter(s => s?.status !== 'completed');
     },
 
     getVisibleBugs(project: Project): Bug[] {
-      if (!project || !project.bugs) return [];
+      if (!project?.bugs) return [];
       if (this.showCompleted) {
         return project.bugs;
       }
-      return project.bugs.filter(b => b.status !== 'resolved');
+      return project.bugs.filter(b => b?.status !== 'resolved');
     },
 
     // ========================================================================
@@ -402,8 +402,9 @@ function initApp(): void {
       }
       
       // Return cached color if exists
-      if (projectColorCache.has(projectPath)) {
-        return projectColorCache.get(projectPath)!;
+      const cachedColor = projectColorCache.get(projectPath);
+      if (cachedColor) {
+        return cachedColor;
       }
       
       // Get grouped projects once and work with plain array
@@ -415,8 +416,9 @@ function initApp(): void {
       // Find all top-level projects (level 0) in the grouped list
       const topLevelProjects: Project[] = [];
       for (let i = 0; i < groupedProjects.length; i++) {
-        if (groupedProjects[i] && groupedProjects[i].level === 0) {
-          topLevelProjects.push(groupedProjects[i]);
+        const project = groupedProjects[i];
+        if (project?.level === 0) {
+          topLevelProjects.push(project);
         }
       }
       
@@ -427,7 +429,7 @@ function initApp(): void {
       for (let i = 0; i < topLevelProjects.length; i++) {
         const project = topLevelProjects[i];
         // Check if this projectPath is under this top-level project
-        if (projectPath === project.path || projectPath.startsWith(project.path + '/')) {
+        if (project && (projectPath === project.path || projectPath.startsWith(project.path + '/'))) {
           topLevelProject = project;
           topLevelIndex = i;
           break;
@@ -436,9 +438,9 @@ function initApp(): void {
       
       // If not found, check if this IS a top-level project
       if (topLevelIndex === -1) {
-        topLevelIndex = topLevelProjects.findIndex(p => p.path === projectPath);
+        topLevelIndex = topLevelProjects.findIndex(p => p?.path === projectPath);
         if (topLevelIndex >= 0) {
-          topLevelProject = topLevelProjects[topLevelIndex];
+          topLevelProject = topLevelProjects[topLevelIndex] || null;
         }
       }
       
@@ -453,7 +455,7 @@ function initApp(): void {
         // Cache same color for all children
         for (let i = 0; i < groupedProjects.length; i++) {
           const p = groupedProjects[i];
-          if (p && (p.path.startsWith(topLevelProject.path + '/') || p.path === topLevelProject.path)) {
+          if (p?.path && (p.path.startsWith(topLevelProject.path + '/') || p.path === topLevelProject.path)) {
             projectColorCache.set(p.path, color);
           }
         }
@@ -467,7 +469,7 @@ function initApp(): void {
 
     getProjectColorClasses(projectPath: string, type: 'text' | 'bg' | 'bg-primary' | 'border' | 'border-l' | 'border-r' | 'border-b' | 'text-primary' = 'text'): string {
       const color = this.getProjectColor(projectPath);
-      if (!color) return '';
+      if (!color?.primary) return '';
       
       const isDark = document.documentElement.classList.contains('dark');
       
@@ -475,7 +477,7 @@ function initApp(): void {
         case 'text':
           return isDark && color.dark?.primary ? `text-${color.dark.primary}` : `text-${color.primary}`;
         case 'bg':
-          return isDark && color.dark?.light ? `bg-${color.dark.light}` : `bg-${color.light}`;
+          return isDark && color.dark?.light ? `bg-${color.dark.light}` : `bg-${color.light || 'indigo-100'}`;
         case 'bg-primary':
           return `bg-${color.primary}`;
         case 'border':
@@ -501,7 +503,7 @@ function initApp(): void {
       if (cachedValue) return cachedValue;
       
       const color = this.getProjectColor(projectPath);
-      const value = COLOR_RGB_MAP[color.primary] || 'rgb(8, 145, 178)';
+      const value = (color?.primary && COLOR_RGB_MAP[color.primary]) || 'rgb(8, 145, 178)';
       
       // Cache the computed value
       if (!this._colorValueCache) {
@@ -514,12 +516,12 @@ function initApp(): void {
 
     getProjectTabStyles(project: Project): string {
       const styles: string[] = [];
-      const isActive = this.activeTab === 'projects' && this.selectedProject?.path === project.path;
-      const color = this.getProjectColor(project.path);
-      const borderColor = this.getColorValue(color.primary);
+      const isActive = this.activeTab === 'projects' && this.selectedProject?.path === project?.path;
+      const color = this.getProjectColor(project?.path || '');
+      const borderColor = this.getColorValue(color?.primary || 'indigo-600');
       const isDark = document.documentElement.classList.contains('dark');
       const groupedProjects = this.getCachedGroupedProjects();
-      const projectIndex = groupedProjects.findIndex(p => p.path === project.path);
+      const projectIndex = groupedProjects.findIndex(p => p?.path === project?.path);
       
       // For active tabs, set the border and text color
       if (isActive) {
@@ -528,37 +530,38 @@ function initApp(): void {
       }
       
       // Check if this project is part of a group (either parent or child)
-      const hasChildren = projectIndex >= 0 && projectIndex < groupedProjects.length - 1 && 
-                         groupedProjects[projectIndex + 1] && groupedProjects[projectIndex + 1].level > 0;
-      const isPartOfGroup = project.level > 0 || hasChildren;
+      const nextProject = projectIndex >= 0 && projectIndex < groupedProjects.length - 1 ? groupedProjects[projectIndex + 1] : null;
+      const hasChildren = nextProject?.level !== undefined && nextProject.level > 0;
+      const isPartOfGroup = (project?.level || 0) > 0 || hasChildren;
       
       if (isPartOfGroup) {
         // Determine which color to use (parent's color for the whole group)
         let groupColor: ColorScheme;
-        if (project.level > 0) {
+        if ((project?.level || 0) > 0) {
           // Nested project - use parent color
-          const parentPath = this.getParentProjectPath(project.path, groupedProjects, projectIndex);
+          const parentPath = this.getParentProjectPath(project?.path || '', groupedProjects, projectIndex);
           groupColor = this.getProjectColor(parentPath);
         } else {
           // Parent project - use its own color
           groupColor = color;
         }
         
-        const groupBorderColor = this.getColorValue(groupColor.primary);
+        const groupBorderColor = this.getColorValue(groupColor?.primary || 'indigo-600');
         
         // Add left border ONLY for the parent (first item in group)
-        if (project.level === 0 && hasChildren) {
+        if ((project?.level || 0) === 0 && hasChildren) {
           styles.push(`border-left: 2px solid ${groupBorderColor}`);
         }
         
         // Add subtle background color for all projects in a group
         const bgOpacity = isDark ? '0.1' : '0.05';
-        styles.push(`background-color: ${this.getColorWithOpacity(groupColor.primary, bgOpacity)}`);
+        styles.push(`background-color: ${this.getColorWithOpacity(groupColor?.primary || 'indigo-600', bgOpacity)}`);
         
         // Add right border ONLY for the last item in group
-        const isLastInGroup = project.level > 0 && 
+        const nextProjectAfter = projectIndex < groupedProjects.length - 1 ? groupedProjects[projectIndex + 1] : null;
+        const isLastInGroup = (project?.level || 0) > 0 && 
                              (projectIndex === groupedProjects.length - 1 || 
-                              (projectIndex < groupedProjects.length - 1 && groupedProjects[projectIndex + 1].level === 0));
+                              (nextProjectAfter?.level === 0));
         
         if (isLastInGroup) {
           styles.push(`border-right: 2px solid ${groupBorderColor}`);
@@ -570,10 +573,10 @@ function initApp(): void {
 
     getProjectBadgeStyles(project: Project): string {
       const styles: string[] = [];
-      const color = this.getProjectColor(project.path);
+      const color = this.getProjectColor(project?.path || '');
       const isDark = document.documentElement.classList.contains('dark');
       
-      if (project.hasActiveSession) {
+      if (project?.hasActiveSession) {
         // Light mode colors
         const bgColors: Record<string, string> = {
           'cyan-600': 'rgb(207, 250, 254)', // cyan-100
@@ -604,8 +607,9 @@ function initApp(): void {
           'sky-600': 'rgb(12, 74, 110)' // sky-900
         };
         
-        const bgColor = isDark ? (darkBgColors[color.primary] || 'rgb(55, 65, 81)') : (bgColors[color.primary] || 'rgb(243, 244, 246)');
-        const textColor = this.getColorValue(color.primary);
+        const primaryColor = color?.primary || 'indigo-600';
+        const bgColor = isDark ? (darkBgColors[primaryColor] || 'rgb(55, 65, 81)') : (bgColors[primaryColor] || 'rgb(243, 244, 246)');
+        const textColor = this.getColorValue(primaryColor);
         
         styles.push(`background-color: ${bgColor}`);
         styles.push(`color: ${textColor}`);
@@ -757,14 +761,14 @@ function initApp(): void {
     
     getProjectAtIndex(index: number): Project | null {
       const projects = this.groupedProjectsList;
-      return projects && projects[index] ? projects[index] : null;
+      return projects?.[index] || null;
     },
     
     isNextProjectTopLevel(index: number): boolean {
       const projects = this.groupedProjectsList;
       if (!projects || index < 0 || index >= projects.length - 1) return false;
       const nextProject = projects[index + 1];
-      return nextProject && nextProject.level === 0;
+      return nextProject?.level === 0;
     },
     
     isPreviousProjectNested(index: number): boolean {
@@ -772,7 +776,7 @@ function initApp(): void {
       const projects = this.groupedProjectsList;
       if (!projects || index <= 0 || index >= projects.length) return false;
       const prevProject = projects[index - 1];
-      return prevProject && prevProject.level > 0;
+      return (prevProject?.level || 0) > 0;
     },
 
     updateProjectTabsData(): void {
@@ -1186,60 +1190,60 @@ function initApp(): void {
     // ========================================================================
 
     getTaskNumber(activeSession: ActiveSession): number {
-      if (activeSession.type !== 'spec') return 1;
+      if (activeSession?.type !== 'spec') return 1;
       
       const spec = this.projects
-        .find((p) => p.path === activeSession.projectPath)
-        ?.specs?.find((s) => s.name === activeSession.specName);
+        .find((p) => p?.path === activeSession?.projectPath)
+        ?.specs?.find((s) => s?.name === activeSession?.specName);
       
       if (!spec?.tasks?.taskList) return 1;
       
-      const taskIndex = spec.tasks.taskList.findIndex((t) => t.id === activeSession.currentTaskId);
+      const taskIndex = spec.tasks.taskList.findIndex((t) => t?.id === activeSession?.currentTaskId);
       return taskIndex >= 0 ? taskIndex + 1 : 1;
     },
 
     getSpecTaskCount(activeSession: ActiveSession): number {
-      if (activeSession.type !== 'spec') return 0;
+      if (activeSession?.type !== 'spec') return 0;
       
       const spec = this.projects
-        .find((p) => p.path === activeSession.projectPath)
-        ?.specs?.find((s) => s.name === activeSession.specName);
+        .find((p) => p?.path === activeSession?.projectPath)
+        ?.specs?.find((s) => s?.name === activeSession?.specName);
       
       return spec?.tasks?.total || 0;
     },
 
     getSpecProgress(activeSession: ActiveSession): number {
-      if (activeSession.type !== 'spec') return 0;
+      if (activeSession?.type !== 'spec') return 0;
       
       const spec = this.projects
-        .find((p) => p.path === activeSession.projectPath)
-        ?.specs?.find((s) => s.name === activeSession.specName);
+        .find((p) => p?.path === activeSession?.projectPath)
+        ?.specs?.find((s) => s?.name === activeSession?.specName);
       
-      if (!spec?.tasks) return 0;
+      if (!spec?.tasks?.total) return 0;
       return (spec.tasks.completed / spec.tasks.total) * 100;
     },
 
     getNextTask(activeSession: ActiveSession): Task | null {
-      if (activeSession.type !== 'spec') return null;
+      if (activeSession?.type !== 'spec') return null;
       
       const spec = this.projects
-        .find((p) => p.path === activeSession.projectPath)
-        ?.specs?.find((s) => s.name === activeSession.specName);
+        .find((p) => p?.path === activeSession?.projectPath)
+        ?.specs?.find((s) => s?.name === activeSession?.specName);
       
       if (!spec?.tasks?.taskList) return null;
       
-      const currentIndex = spec.tasks.taskList.findIndex((t) => t.id === activeSession.currentTaskId);
+      const currentIndex = spec.tasks.taskList.findIndex((t) => t?.id === activeSession?.currentTaskId);
       if (currentIndex >= 0 && currentIndex < spec.tasks.taskList.length - 1) {
         const nextTask = spec.tasks.taskList[currentIndex + 1];
-        if (!nextTask.completed) return nextTask;
+        if (nextTask && !nextTask.completed) return nextTask;
       }
       
-      return spec.tasks.taskList.find((t) => !t.completed && t.id !== activeSession.currentTaskId) || null;
+      return spec.tasks.taskList.find((t) => t && !t.completed && t.id !== activeSession?.currentTaskId) || null;
     },
 
     getCurrentTask(spec: Spec): Task | null {
-      if (!spec.tasks || !spec.tasks.taskList || !spec.tasks.inProgress) return null;
-      return spec.tasks.taskList.find(task => task.id === spec.tasks.inProgress) || null;
+      if (!spec?.tasks?.taskList || !spec.tasks.inProgress) return null;
+      return spec.tasks.taskList.find(task => task?.id === spec.tasks.inProgress) || null;
     },
 
     // ========================================================================
@@ -1247,40 +1251,40 @@ function initApp(): void {
     // ========================================================================
 
     getSpecsInProgress(project: Project): number {
-      if (!project.specs) return 0;
-      return project.specs.filter((s) => s.status === 'in-progress').length;
+      if (!project?.specs) return 0;
+      return project.specs.filter((s) => s?.status === 'in-progress').length;
     },
 
     getSpecsCompleted(project: Project): number {
-      if (!project.specs) return 0;
-      return project.specs.filter((s) => s.status === 'completed').length;
+      if (!project?.specs) return 0;
+      return project.specs.filter((s) => s?.status === 'completed').length;
     },
 
     getTotalTasks(project: Project): number {
-      if (!project.specs) return 0;
+      if (!project?.specs) return 0;
       return project.specs.reduce((total, spec) => {
-        return total + (spec.tasks?.total || 0);
+        return total + (spec?.tasks?.total || 0);
       }, 0);
     },
 
     getOpenSpecsCount(project: Project): number {
-      if (!project || !project.specs) return 0;
-      return project.specs.filter((s) => s.status !== 'completed').length;
+      if (!project?.specs) return 0;
+      return project.specs.filter((s) => s?.status !== 'completed').length;
     },
 
     getOpenBugsCount(project: Project): number {
-      if (!project || !project.bugs) return 0;
-      return project.bugs.filter((b) => b.status !== 'resolved').length;
+      if (!project?.bugs) return 0;
+      return project.bugs.filter((b) => b?.status !== 'resolved').length;
     },
 
     getBugsInProgress(project: Project): number {
-      if (!project.bugs) return 0;
-      return project.bugs.filter((b) => ['analyzing', 'fixing', 'verifying'].includes(b.status)).length;
+      if (!project?.bugs) return 0;
+      return project.bugs.filter((b) => b?.status && ['analyzing', 'fixing', 'verifying'].includes(b.status)).length;
     },
 
     getBugsResolved(project: Project): number {
-      if (!project.bugs) return 0;
-      return project.bugs.filter((b) => b.status === 'resolved').length;
+      if (!project?.bugs) return 0;
+      return project.bugs.filter((b) => b?.status === 'resolved').length;
     },
 
     // ========================================================================
@@ -1351,7 +1355,8 @@ function initApp(): void {
 
     getProjectSlug(project: Project): string {
       // Convert project name to URL-friendly slug
-      return project.name.toLowerCase()
+      return (project?.name || '')
+        .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')  // Replace non-alphanumeric with hyphens
         .replace(/^-+|-+$/g, '');     // Remove leading/trailing hyphens
     },
@@ -1361,9 +1366,9 @@ function initApp(): void {
     // ========================================================================
 
     copyNextTaskCommand(spec: Spec, event: Event): void {
-      if (spec.tasks && spec.tasks.taskList) {
+      if (spec?.tasks?.taskList) {
         const nextTask = this.findFirstIncompleteTask(spec.tasks.taskList);
-        if (nextTask) {
+        if (nextTask?.id && spec.name) {
           const command = `/spec-execute ${spec.name} ${nextTask.id}`;
           void dashboardShared.copyCommand(command, event);
         }
@@ -1371,8 +1376,10 @@ function initApp(): void {
     },
 
     copyOrchestrateCommand(spec: Spec, event: Event): void {
-      const command = `/spec-orchestrate ${spec.name}`;
-      void dashboardShared.copyCommand(command, event);
+      if (spec?.name) {
+        const command = `/spec-orchestrate ${spec.name}`;
+        void dashboardShared.copyCommand(command, event);
+      }
     },
 
     // ========================================================================
