@@ -41,7 +41,7 @@ This task list breaks down the TypeScript frontend conversion into atomic, execu
   - Update .gitignore if needed
   - _Requirements: 3.1, 3.2, 3.5_
 
-- [ ] 5. Update server routes for unified dashboard
+- [x] 5. Update server routes for unified dashboard
   - Remove single dashboard route from `src/dashboard/server.ts`
   - Update default route to serve multi-project dashboard
   - Remove any single-dashboard specific API endpoints
@@ -49,7 +49,7 @@ This task list breaks down the TypeScript frontend conversion into atomic, execu
   - _Leverage: src/dashboard/server.ts_
   - _Requirements: 3.1, 7.1, 7.2_
 
-- [ ] 6. Rename and update main HTML file
+- [x] 6. Rename and update main HTML file
   - Rename `src/dashboard/public/multi.html` to `index.html`
   - Update script references to point to new TypeScript bundles
   - Remove any single-dashboard related HTML comments
@@ -59,7 +59,7 @@ This task list breaks down the TypeScript frontend conversion into atomic, execu
 
 ### Phase 3: Shared Type Definitions
 
-- [ ] 7. Create core type definitions
+- [x] 7. Create core type definitions
   - Create `src/dashboard/shared/dashboard.types.ts`
   - Define Project, Spec, Task, Bug interfaces
   - Import and extend types from `src/dashboard/parser.ts`
