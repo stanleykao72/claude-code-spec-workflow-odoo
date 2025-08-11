@@ -6,7 +6,7 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "outDir": "../public/dist",
-    "rootDir": "./",
+    "rootDir": "../",
     "strict": true,
     "strictNullChecks": true,
     "noUncheckedIndexedAccess": true,
@@ -14,17 +14,25 @@
     "sourceMap": true,
     "declaration": false,
     "declarationMap": false,
-    "noEmit": false,
+    "noEmit": true,
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "incremental": true,
+    "tsBuildInfoFile": "../public/dist/.tsbuildinfo"
   },
   "include": [
-    "./**/*"
+    "../client/**/*",
+    "../shared/**/*",
+    "../tunnel/types.ts",
+    "../parser.ts"
   ],
   "exclude": [
     "node_modules",
     "../public/dist",
-    "**/*.test.ts"
+    "**/*.test.ts",
+    "server.ts",
+    "cli.ts",
+    "watcher.ts"
   ]
 }
