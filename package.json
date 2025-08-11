@@ -9,11 +9,14 @@
     "claude-spec-dashboard": "dist/dashboard/cli.js"
   },
   "scripts": {
-    "build": "tsc && npm run copy-static && npm run fix-permissions",
+    "build": "tsc && npm run build:dashboard && npm run copy-static && npm run fix-permissions",
     "build:frontend": "npm run build:frontend:dev",
     "build:frontend:dev": "node esbuild.config.js development",
     "build:frontend:prod": "node esbuild.config.js production",
+    "build:dashboard": "npm run typecheck:frontend && npm run build:frontend:prod",
     "watch:frontend": "node esbuild.config.js watch",
+    "typecheck": "npm run typecheck:backend && npm run typecheck:frontend",
+    "typecheck:backend": "tsc --noEmit --skipLibCheck",
     "typecheck:frontend": "tsc --project src/dashboard/client/tsconfig.json --noEmit",
     "copy-static": "cpy 'src/dashboard/public/**' 'dist/dashboard/public/'",
     "fix-permissions": "node scripts/fix-permissions.js",
