@@ -62,8 +62,13 @@ export interface Project {
 export type WebSocketMessage = 
   | InitialDataMessage
   | UpdateDataMessage
+  | BugUpdateMessage
+  | SteeringUpdateMessage
   | ErrorDataMessage
-  | TunnelStatusMessage;
+  | TunnelStartedMessage
+  | TunnelStoppedMessage
+  | TunnelMetricsMessage
+  | TunnelVisitorMessage;
 
 export interface InitialDataMessage {
   type: 'initial';
@@ -75,22 +80,84 @@ export interface UpdateDataMessage {
   data: UpdateData;
 }
 
+export interface BugUpdateMessage {
+  type: 'bug-update';
+  data: UpdateData;
+}
+
+export interface SteeringUpdateMessage {
+  type: 'steering-update';
+  data: SteeringStatus;
+}
+
 export interface ErrorDataMessage {
   type: 'error';
   data: ErrorData;
 }
 
-export interface TunnelStatusMessage {
-  type: 'tunnel-status';
-  data: TunnelStatusData;
+export interface TunnelStartedMessage {
+  type: 'tunnel:started';
+  data: TunnelInfo;
+}
+
+export interface TunnelStoppedMessage {
+  type: 'tunnel:stopped';
+  data: Record<string, unknown>;
+}
+
+export interface TunnelMetricsMessage {
+  type: 'tunnel:metrics:updated';
+  data: TunnelMetrics;
+}
+
+export interface TunnelVisitorMessage {
+  type: 'tunnel:visitor:new';
+  data: TunnelVisitor;
+}
+
+/**
+ * Tunnel metrics data
+ */
+export interface TunnelMetrics {
+  /** Current number of active viewers */
+  viewers: number;
+  /** Total requests served */
+  totalRequests?: number;
+  /** Data transferred in bytes */
+  dataTransferred?: number;
+  /** Uptime in milliseconds */
+  uptime?: number;
+}
+
+/**
+ * Tunnel visitor information
+ */
+export interface TunnelVisitor {
+  /** Visitor IP address (anonymized) */
+  ip: string;
+  /** User agent string */
+  userAgent?: string;
+  /** Referrer URL */
+  referrer?: string;
+  /** Timestamp of first visit */
+  firstVisit: Date;
+  /** Location information (if available) */
+  location?: {
+    country?: string;
+    city?: string;
+  };
 }
 
 /**
  * Initial data sent when client connects
  */
 export interface InitialData {
-  /** All projects with their specs and bugs */
-  projects: Project[];
+  /** All specifications found */
+  specs: Spec[];
+  /** All bugs found */
+  bugs: Bug[];
+  /** Current tunnel status */
+  tunnelStatus: TunnelStatus;
   /** Server configuration info */
   config?: {
     version?: string;
@@ -122,15 +189,6 @@ export interface ErrorData {
   details?: Record<string, unknown>;
 }
 
-/**
- * Tunnel status data for sharing functionality
- */
-export interface TunnelStatusData {
-  /** Current tunnel status */
-  status: TunnelStatus;
-  /** Optional message about status change */
-  message?: string;
-}
 
 /**
  * Application state interface for reactive frontend state
@@ -331,12 +389,32 @@ export function isUpdateDataMessage(msg: WebSocketMessage): msg is UpdateDataMes
   return msg.type === 'update';
 }
 
+export function isBugUpdateMessage(msg: WebSocketMessage): msg is BugUpdateMessage {
+  return msg.type === 'bug-update';
+}
+
+export function isSteeringUpdateMessage(msg: WebSocketMessage): msg is SteeringUpdateMessage {
+  return msg.type === 'steering-update';
+}
+
 export function isErrorDataMessage(msg: WebSocketMessage): msg is ErrorDataMessage {
   return msg.type === 'error';
 }
 
-export function isTunnelStatusMessage(msg: WebSocketMessage): msg is TunnelStatusMessage {
-  return msg.type === 'tunnel-status';
+export function isTunnelStartedMessage(msg: WebSocketMessage): msg is TunnelStartedMessage {
+  return msg.type === 'tunnel:started';
+}
+
+export function isTunnelStoppedMessage(msg: WebSocketMessage): msg is TunnelStoppedMessage {
+  return msg.type === 'tunnel:stopped';
+}
+
+export function isTunnelMetricsMessage(msg: WebSocketMessage): msg is TunnelMetricsMessage {
+  return msg.type === 'tunnel:metrics:updated';
+}
+
+export function isTunnelVisitorMessage(msg: WebSocketMessage): msg is TunnelVisitorMessage {
+  return msg.type === 'tunnel:visitor:new';
 }
 
 /**
@@ -353,10 +431,10 @@ export type ThemeType = 'light' | 'dark' | 'system';
 export type TabType = 'active' | 'projects';
 
 /** Event handler types for common interactions */
-export type ProjectSelectHandler = (project: Project | null) => void;
-export type SpecSelectHandler = (spec: Spec | null) => void;
-export type TaskSelectHandler = (task: Task | null) => void;
-export type ThemeChangeHandler = (theme: ThemeType) => void;
+export type ProjectSelectHandler = (_project: Project | null) => void;
+export type SpecSelectHandler = (_spec: Spec | null) => void;
+export type TaskSelectHandler = (_task: Task | null) => void;
+export type ThemeChangeHandler = (_theme: ThemeType) => void;
 
 /**
  * Constants for common values

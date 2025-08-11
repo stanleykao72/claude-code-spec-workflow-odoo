@@ -67,7 +67,7 @@ This task list breaks down the TypeScript frontend conversion into atomic, execu
   - _Leverage: src/dashboard/parser.ts (Spec, Task, Bug types)_
   - _Requirements: 2.1, 2.2, 2.4_
 
-- [ ] 8. Define WebSocket message types
+- [x] 8. Define WebSocket message types
   - Create discriminated union for all message types
   - Define InitialData, UpdateData, ErrorData interfaces
   - Add tunnel status message types
