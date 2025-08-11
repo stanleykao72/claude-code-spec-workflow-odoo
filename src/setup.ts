@@ -30,6 +30,16 @@ import {
 // CLAUDE.md generation removed - all workflow instructions now in individual commands
 // Script imports removed in v1.2.5 - task command generation now uses NPX command
 
+/**
+ * Main class that orchestrates the entire spec workflow setup process.
+ * Creates directory structure, commands, templates, and configuration files.
+ * 
+ * @example
+ * ```typescript
+ * const setup = new SpecWorkflowSetup('/my/project');
+ * await setup.setupWorkflow();
+ * ```
+ */
 export class SpecWorkflowSetup {
   private projectRoot: string;
   private claudeDir: string;

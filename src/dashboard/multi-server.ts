@@ -107,16 +107,16 @@ export class MultiProjectDashboardServer {
 
     // Serve multi.html as the main page
     this.app.get('/', async (request, reply) => {
-      return reply.sendFile('multi.html', join(__dirname, 'public'));
+      return reply.sendFile('index.html', join(__dirname, 'public'));
     });
 
-    // Catch-all route for client-side routing - serve multi.html for any non-API route
+    // Catch-all route for client-side routing - serve index.html for any non-API route
     this.app.get('/*', async (request, reply) => {
       // Skip API routes and static files
       if (request.url.startsWith('/api/') || request.url.startsWith('/public/') || request.url.startsWith('/ws')) {
         return reply.code(404).send({ error: 'Not found' });
       }
-      return reply.sendFile('multi.html', join(__dirname, 'public'));
+      return reply.sendFile('index.html', join(__dirname, 'public'));
     });
 
     await this.app.register(fastifyWebsocket);

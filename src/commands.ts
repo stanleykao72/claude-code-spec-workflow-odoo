@@ -1,3 +1,15 @@
+/**
+ * Generates the complete spec-create command markdown content.
+ * This command handles the full spec workflow: Requirements → Design → Tasks → Implementation.
+ * 
+ * @returns Markdown string containing the complete spec-create command
+ * 
+ * @example
+ * ```typescript
+ * const command = getSpecCreateCommand();
+ * await fs.writeFile('.claude/commands/spec-create.md', command);
+ * ```
+ */
 export function getSpecCreateCommand(): string {
   return `# Spec Create Command
 

@@ -67,7 +67,7 @@ export interface WebSocketEventHandlers {
   /** Called when connection is established */
   onOpen?: () => void;
   /** Called when connection is closed */
-  onClose?: (_event: globalThis.CloseEvent) => void;
+  onClose?: (_event: CloseEvent) => void;
   /** Called when an error occurs */
   onError?: (_error: globalThis.Event) => void;
   /** Called when connection state changes */
@@ -490,10 +490,15 @@ export class TypedWebSocketClient {
  * Factory function to create a WebSocket client for the dashboard
  */
 export function createDashboardWebSocketClient(options?: WebSocketClientOptions): TypedWebSocketClient {
-  const protocol = globalThis.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const wsUrl = `${protocol}//${globalThis.location.host}/ws`;
+  // Check if running in browser environment
+  if (typeof window !== 'undefined' && window.location) {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    return new TypedWebSocketClient(wsUrl, options);
+  }
   
-  return new TypedWebSocketClient(wsUrl, options);
+  // Fallback for non-browser environments (tests)
+  return new TypedWebSocketClient('ws://localhost:3000/ws', options);
 }
 
 /**

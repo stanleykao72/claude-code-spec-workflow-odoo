@@ -1,3 +1,15 @@
+/**
+ * Generates the requirements document template with EARS format acceptance criteria.
+ * Includes user stories and product vision alignment sections.
+ * 
+ * @returns Markdown template string for requirements documents
+ * 
+ * @example
+ * ```typescript
+ * const template = getRequirementsTemplate();
+ * await fs.writeFile('.claude/templates/requirements-template.md', template);
+ * ```
+ */
 export function getRequirementsTemplate(): string {
   return `# Requirements Document
 
@@ -46,6 +58,18 @@ export function getRequirementsTemplate(): string {
 `;
 }
 
+/**
+ * Generates the design document template with architecture and code reuse analysis.
+ * Includes technical architecture, components, data models, and testing strategy.
+ * 
+ * @returns Markdown template string for design documents
+ * 
+ * @example
+ * ```typescript
+ * const template = getDesignTemplate();
+ * await fs.writeFile('.claude/templates/design-template.md', template);
+ * ```
+ */
 export function getDesignTemplate(): string {
   return `# Design Document
 
@@ -140,6 +164,18 @@ graph TD
 `;
 }
 
+/**
+ * Generates the tasks document template with atomic implementation tasks.
+ * Includes task breakdown with requirement traceability and leverage references.
+ * 
+ * @returns Markdown template string for task documents
+ * 
+ * @example
+ * ```typescript
+ * const template = getTasksTemplate();
+ * await fs.writeFile('.claude/templates/tasks-template.md', template);
+ * ```
+ */
 export function getTasksTemplate(): string {
   return `# Implementation Plan
 
@@ -302,6 +338,18 @@ export function getTasksTemplate(): string {
 `;
 }
 
+/**
+ * Generates the product steering document template.
+ * Defines product vision, goals, target users, and success metrics.
+ * 
+ * @returns Markdown template string for product steering document
+ * 
+ * @example
+ * ```typescript
+ * const template = getProductTemplate();
+ * await fs.writeFile('.claude/steering/product.md', template);
+ * ```
+ */
 export function getProductTemplate(): string {
   return `# Product Overview
 
@@ -357,6 +405,18 @@ export function getProductTemplate(): string {
 `;
 }
 
+/**
+ * Generates the technology steering document template.
+ * Defines tech stack, tools, practices, and constraints.
+ * 
+ * @returns Markdown template string for technology steering document
+ * 
+ * @example
+ * ```typescript
+ * const template = getTechTemplate();
+ * await fs.writeFile('.claude/steering/tech.md', template);
+ * ```
+ */
 export function getTechTemplate(): string {
   return `# Technology Stack
 
@@ -460,6 +520,18 @@ export function getTechTemplate(): string {
 `;
 }
 
+/**
+ * Generates the structure steering document template.
+ * Defines file organization, naming conventions, and code patterns.
+ * 
+ * @returns Markdown template string for structure steering document
+ * 
+ * @example
+ * ```typescript
+ * const template = getStructureTemplate();
+ * await fs.writeFile('.claude/steering/structure.md', template);
+ * ```
+ */
 export function getStructureTemplate(): string {
   return `# Project Structure
 

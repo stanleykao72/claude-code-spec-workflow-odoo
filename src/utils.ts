@@ -6,6 +6,19 @@ import { createServer } from 'net';
 
 const execAsync = promisify(exec);
 
+/**
+ * Detects project type(s) based on files present in the project directory.
+ * Supports multiple project types including Node.js, Python, Java, C#, Go, Rust, PHP, and Ruby.
+ * 
+ * @param projectPath - Path to the project directory to analyze
+ * @returns Promise resolving to array of detected project type names
+ * 
+ * @example
+ * ```typescript
+ * const types = await detectProjectType('/path/to/project');
+ * console.log(types); // ['Node.js', 'TypeScript']
+ * ```
+ */
 export async function detectProjectType(projectPath: string): Promise<string[]> {
   const indicators = {
     'Node.js': ['package.json', 'node_modules'],
@@ -45,6 +58,19 @@ export async function detectProjectType(projectPath: string): Promise<string[]> 
   return detected;
 }
 
+/**
+ * Validates that Claude Code CLI is installed and accessible.
+ * 
+ * @returns Promise resolving to true if Claude Code is available, false otherwise
+ * 
+ * @example
+ * ```typescript
+ * const isInstalled = await validateClaudeCode();
+ * if (!isInstalled) {
+ *   console.log('Please install Claude Code first');
+ * }
+ * ```
+ */
 export async function validateClaudeCode(): Promise<boolean> {
   try {
     await execAsync('claude --version');
@@ -54,6 +80,20 @@ export async function validateClaudeCode(): Promise<boolean> {
   }
 }
 
+/**
+ * Checks if a file exists at the given path.
+ * 
+ * @param filePath - Path to the file to check
+ * @returns Promise resolving to true if file exists, false otherwise
+ * 
+ * @example
+ * ```typescript
+ * const exists = await fileExists('package.json');
+ * if (exists) {
+ *   console.log('Found package.json');
+ * }
+ * ```
+ */
 export async function fileExists(filePath: string): Promise<boolean> {
   try {
     await fs.access(filePath);
@@ -63,6 +103,18 @@ export async function fileExists(filePath: string): Promise<boolean> {
   }
 }
 
+/**
+ * Ensures a directory exists by creating it recursively if needed.
+ * 
+ * @param dirPath - Path to the directory to create
+ * @throws Error if directory creation fails for reasons other than already existing
+ * 
+ * @example
+ * ```typescript
+ * await ensureDirectory('.claude/specs/my-feature');
+ * // Directory structure is now guaranteed to exist
+ * ```
+ */
 export async function ensureDirectory(dirPath: string): Promise<void> {
   try {
     await fs.mkdir(dirPath, { recursive: true });
