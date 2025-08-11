@@ -6,7 +6,7 @@
   "build": {
     "frontendDist": "..",
     "devUrl": "http://localhost:8247",
-    "beforeDevCommand": "pnpm run dev:dashboard --multi --ngrok --port 8247",
+    "beforeDevCommand": "pnpm run dev:dashboard:tauri",
     "beforeBuildCommand": "pnpm build"
   },
   "app": {
