@@ -35,7 +35,7 @@ This task list breaks down the TypeScript frontend conversion into atomic, execu
 
 ### Phase 2: Single Dashboard Removal
 
-- [ ] 4. Remove single-project dashboard files
+- [x] 4. Remove single-project dashboard files
   - Delete `src/dashboard/public/app.js` (423 lines)
   - Delete `src/dashboard/public/index.html`
   - Update .gitignore if needed
