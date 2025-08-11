@@ -138,12 +138,12 @@ This task list breaks down the TypeScript frontend conversion into atomic, execu
 
 ### Phase 6: Dead Code Removal
 
-- [x] 16. Remove unused bug tracking code
-  - Identify and remove unused bug-related functions
-  - Clean up bug state management if not needed
-  - Remove bug-related UI components if unused
-  - Update types to make bugs optional if keeping
-  - _Leverage: src/dashboard/public/multi-app.js (bug sections)_
+- [x] 16. Fix bug tracking functionality
+  - Make bug count badges clickable to show bugs
+  - Add separate click handler for bug count in project tabs
+  - Ensure bug display section works properly
+  - Add scroll-to-bug functionality when bug badge clicked
+  - _Leverage: src/dashboard/client/multi-app.ts (selectProject methods)_
   - _Requirements: 4.1, 4.2, 4.4_
 
 - [ ] 17. Clean up duplicate utilities

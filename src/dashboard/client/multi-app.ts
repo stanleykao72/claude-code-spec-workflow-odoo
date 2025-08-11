@@ -185,6 +185,7 @@ interface MultiAppState extends AppState {
   handleWebSocketMessage(message: WebSocketMessage): void;
   switchTab(tab: 'active' | 'projects'): void;
   selectProject(project: Project | null): void;
+  selectProjectAndShowBugs(project: Project | null): void;
   selectProjectFromSession(session: ActiveSession): void;
   selectProjectFromTask(projectPath: string, itemName: string, sessionType?: 'spec' | 'bug'): void;
 
@@ -998,6 +999,22 @@ function initApp(): void {
       this.selectedProject = project;
       this.activeTab = 'projects';
       this.updateURL();
+    },
+
+    selectProjectAndShowBugs(project: Project | null): void {
+      this.selectedProject = project;
+      this.activeTab = 'projects';
+      this.updateURL();
+      
+      // Scroll to bug section after a short delay to allow DOM update
+      if (project && this.getOpenBugsCount(project) > 0) {
+        setTimeout(() => {
+          const bugSection = document.querySelector('[data-bug-section]');
+          if (bugSection) {
+            bugSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
+      }
     },
 
     selectProjectFromSession(session: ActiveSession): void {

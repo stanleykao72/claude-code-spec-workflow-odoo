@@ -696,10 +696,9 @@
 
           <!-- Project Tabs -->
           <div class="flex overflow-x-auto">
-            <button
+            <div
               v-for="(project, index) in projectTabsData"
               :key="project.path"
-              @click="selectProject(project)"
               class="py-2 text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-1 relative"
               :style="getProjectTabStyles(project)"
               :class="[
@@ -711,34 +710,42 @@
                 index > 0 && project.level === 0 && project.isPrevNested ? 'ml-1' : ''
               ]"
             >
-              <!-- Improved tree connector for nested projects -->
-              <span v-if="project.level > 0" class="text-gray-400 text-xs mr-1">
-                <span v-if="project.level === 1">├─</span>
-                <span v-else-if="project.level === 2">&nbsp;&nbsp;└─</span>
-                <span v-else>&nbsp;&nbsp;&nbsp;&nbsp;└─</span>
-              </span>
+              <!-- Main project button -->
+              <button
+                @click="selectProject(project)"
+                class="flex items-center gap-1"
+              >
+                <!-- Improved tree connector for nested projects -->
+                <span v-if="project.level > 0" class="text-gray-400 text-xs mr-1">
+                  <span v-if="project.level === 1">├─</span>
+                  <span v-else-if="project.level === 2">&nbsp;&nbsp;└─</span>
+                  <span v-else>&nbsp;&nbsp;&nbsp;&nbsp;└─</span>
+                </span>
+                
+                <span
+                  v-if="project.hasActiveSession"
+                  class="w-2 h-2 rounded-full animate-pulse flex-shrink-0"
+                  :style="`background-color: ${getProjectColorValue(project.path)}`"
+                  title="Active Claude session"
+                ></span>
+                
+                <!-- Project name with better styling for nested projects -->
+                <span :class="project.level > 0 ? 'text-sm' : ''">
+                  {{ project.name }}
+                </span>
+              </button>
               
-              <span
-                v-if="project.hasActiveSession"
-                class="w-2 h-2 rounded-full animate-pulse flex-shrink-0"
-                :style="`background-color: ${getProjectColorValue(project.path)}`"
-                title="Active Claude session"
-              ></span>
-              
-              <!-- Project name with better styling for nested projects -->
-              <span :class="project.level > 0 ? 'text-sm' : ''">
-                {{ project.name }}
-              </span>
-              
-              <!-- Counts badge with better visibility -->
-              <span
+              <!-- Counts badge - clickable for bugs -->
+              <button
                 v-if="(getOpenSpecsCount(project) + getOpenBugsCount(project)) > 0"
-                class="ml-1 px-1.5 py-0.5 text-xs rounded-full"
+                @click="getOpenBugsCount(project) > 0 ? selectProjectAndShowBugs(project) : selectProject(project)"
+                class="ml-1 px-1.5 py-0.5 text-xs rounded-full hover:opacity-80 transition-opacity"
                 :style="getProjectBadgeStyles(project)"
+                :title="getOpenBugsCount(project) > 0 ? 'Click to view bugs' : 'Specs/Bugs count'"
               >
                 {{ getOpenSpecsCount(project) }}/{{ getOpenBugsCount(project) }}
-              </span>
-            </button>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -1473,6 +1480,7 @@
         <div
           v-if="activeTab === 'projects' && selectedProject && getVisibleBugs(selectedProject).length > 0"
           class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6"
+          data-bug-section
         >
           <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             <i class="fas fa-bug mr-2"></i>Bug Tracking
