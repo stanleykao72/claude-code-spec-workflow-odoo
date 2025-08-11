@@ -1294,10 +1294,8 @@ PetiteVue.createApp({
       }
       
       const data = await response.json();
-      console.log('Setting bug markdown preview content, data:', data);
       this.markdownPreview.content = data.content;
       this.markdownPreview.rawContent = data.content;  // Store raw markdown
-      console.log('markdownPreview.rawContent is now:', this.markdownPreview.rawContent?.substring(0, 100));
     } catch (error) {
       console.error(`Error fetching ${docType} content:`, error);
       this.markdownPreview.content = `# Error loading ${docType} content\n\n${error.message}`;

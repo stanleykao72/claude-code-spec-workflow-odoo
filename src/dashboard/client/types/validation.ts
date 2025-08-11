@@ -327,8 +327,7 @@ export function isProject(obj: unknown): obj is Project {
     isBoolean(obj.hasActiveSession) &&
     isArray(obj.specs) &&
     obj.specs.every(isSpec) &&
-    isArray(obj.bugs) &&
-    obj.bugs.every(isBug) &&
+    (obj.bugs === undefined || (isArray(obj.bugs) && obj.bugs.every(isBug))) &&
     (obj.steeringStatus === undefined || isSteeringStatus(obj.steeringStatus))
   );
 }
@@ -371,8 +370,7 @@ export function isInitialData(obj: unknown): obj is InitialData {
   return (
     isArray(obj.specs) &&
     obj.specs.every(isSpec) &&
-    isArray(obj.bugs) &&
-    obj.bugs.every(isBug) &&
+    (obj.bugs === undefined || (isArray(obj.bugs) && obj.bugs.every(isBug))) &&
     isTunnelStatus(obj.tunnelStatus)
   );
 }

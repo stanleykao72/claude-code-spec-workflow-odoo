@@ -957,7 +957,7 @@
                       <div class="flex items-center gap-2">
                         <span class="text-sm text-gray-600 dark:text-gray-400">Next:</span>
                         <button
-                          @click.stop="copyBugCommand(session.nextCommand, $event)"
+                          @click.stop="copyCommand(session.nextCommand, $event)"
                           class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
                           :title="`Copy command: ${session.nextCommand}`"
                         >

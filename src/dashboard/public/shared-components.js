@@ -334,9 +334,6 @@ const BaseAppState = {
     this.copyCommand.call(this, command, event);
   },
   
-  copyBugCommand(command, event) {
-    this.copyCommand.call(this, command, event);
-  },
   
   copyOrchestrationCommand(specName, taskId, event) {
     const command = `/spec-orchestrate ${specName} ${taskId}`;

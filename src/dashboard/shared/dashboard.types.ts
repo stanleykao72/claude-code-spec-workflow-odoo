@@ -49,8 +49,8 @@ export interface Project {
   hasActiveSession: boolean;
   /** All specifications found in this project */
   specs: Spec[];
-  /** All bugs found in this project */
-  bugs: Bug[];
+  /** All bugs found in this project (optional as not all projects have bugs) */
+  bugs?: Bug[];
   /** Steering document status (if available) */
   steeringStatus?: SteeringStatus;
 }
@@ -330,8 +330,8 @@ export interface ProjectTabData {
   isPrevNested: boolean;
   /** Project specs */
   specs: Spec[];
-  /** Project bugs */
-  bugs: Bug[];
+  /** Project bugs (optional as not all projects have bugs) */
+  bugs?: Bug[];
 }
 
 /**
