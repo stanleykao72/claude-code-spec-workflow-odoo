@@ -47,12 +47,26 @@ export class DashboardServer {
     // Register plugins
     await this.app.register(fastifyStatic, {
       root: join(__dirname, 'public'),
-      prefix: '/',
+      prefix: '/public/',
     });
 
     await this.app.register(fastifyWebsocket);
 
-    // WebSocket endpoint for real-time updates
+    // Serve multi-project dashboard as default route
+    this.app.get('/', async (request, reply) => {
+      return reply.sendFile('multi.html', join(__dirname, 'public'));
+    });
+
+    // Catch-all route for client-side routing - serve multi-project dashboard for any non-API route
+    this.app.get('/*', async (request, reply) => {
+      // Skip API routes and static files
+      if (request.url.startsWith('/api/') || request.url.startsWith('/public/') || request.url.startsWith('/ws')) {
+        return reply.code(404).send({ error: 'Not found' });
+      }
+      return reply.sendFile('multi.html', join(__dirname, 'public'));
+    });
+
+    // WebSocket endpoint for real-time updates (multi-project compatible)
     const self = this;
     this.app.register(async function (fastify) {
       fastify.get('/ws', { websocket: true }, (connection: WebSocketConnection) => {
