@@ -8,15 +8,34 @@ import type {
   SteeringStatus
 } from '../shared/dashboard.types';
 
+import type {
+  Result,
+  ValidationError
+} from './types/validation';
+
+import {
+  SafeParser,
+  ResultUtils
+} from './types/validation';
+
 // ============================================================================
 // Utility Functions
 // ============================================================================
 
 /**
  * Format a date string for display with relative time formatting
+ * Enhanced with safe parsing and error recovery
  */
 export function formatDate(dateString: string): string {
-  const date = new Date(dateString);
+  const dateResult = SafeParser.parseDate(dateString, new Date());
+  
+  if (!dateResult.success) {
+    const error = dateResult as { success: false; error: ValidationError };
+    console.warn('Invalid date string:', dateString, error.error.message);
+    return 'invalid date';
+  }
+  
+  const date = dateResult.data;
   const now = new Date();
   const diffTime = Math.abs(now.getTime() - date.getTime());
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
@@ -29,6 +48,33 @@ export function formatDate(dateString: string): string {
   if (diffDays < 7) return `${diffDays}d ago`;
 
   return date.toLocaleDateString();
+}
+
+/**
+ * Safe date formatting that returns a Result type
+ */
+export function safeFormatDate(dateString: string): Result<string> {
+  const dateResult = SafeParser.parseDate(dateString);
+  
+  if (!dateResult.success) {
+    const error = dateResult as { success: false; error: ValidationError };
+    return ResultUtils.error(error.error);
+  }
+  
+  return ResultUtils.map(dateResult, (date) => {
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+    const diffMinutes = Math.floor(diffTime / (1000 * 60));
+
+    if (diffMinutes < 1) return 'just now';
+    if (diffMinutes < 60) return `${diffMinutes}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+
+    return date.toLocaleDateString();
+  });
 }
 
 /**
@@ -368,6 +414,7 @@ export function SteeringWarningTemplate(steeringStatus: SteeringStatus | null): 
  */
 export interface DashboardShared {
   formatDate: typeof formatDate;
+  safeFormatDate: typeof safeFormatDate;
   getStatusClass: typeof getStatusClass;
   getStatusLabel: typeof getStatusLabel;
   copyCommand: typeof copyCommand;
@@ -377,11 +424,15 @@ export interface DashboardShared {
   StatusBadgeTemplate: typeof StatusBadgeTemplate;
   ProgressBarTemplate: typeof ProgressBarTemplate;
   SteeringWarningTemplate: typeof SteeringWarningTemplate;
+  // Utility exports for validation
+  SafeParser: typeof SafeParser;
+  ResultUtils: typeof ResultUtils;
 }
 
 // Export all utilities for use in other modules
 export const dashboardShared: DashboardShared = {
   formatDate,
+  safeFormatDate,
   getStatusClass,
   getStatusLabel,
   copyCommand,
@@ -390,7 +441,9 @@ export const dashboardShared: DashboardShared = {
   formatUserStory,
   StatusBadgeTemplate,
   ProgressBarTemplate,
-  SteeringWarningTemplate
+  SteeringWarningTemplate,
+  SafeParser,
+  ResultUtils
 };
 
 // Global window interface for browser access

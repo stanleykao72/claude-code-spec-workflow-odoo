@@ -30,6 +30,13 @@ import {
   isTunnelVisitorMessage
 } from '../shared/dashboard.types';
 
+import {
+  WebSocketMessageValidator,
+  Result,
+  ValidationError,
+  WebSocketValidationError
+} from './types/validation';
+
 /**
  * Connection state for the WebSocket client
  */
@@ -309,24 +316,68 @@ export class TypedWebSocketClient {
   }
 
   /**
-   * Handle incoming WebSocket messages with type safety
+   * Handle incoming WebSocket messages with enhanced validation and error recovery
    */
   private handleMessage(event: globalThis.MessageEvent): void {
-    try {
-      const rawData = JSON.parse(event.data);
+    // Use the enhanced WebSocket message validator with error recovery
+    const validationResult = WebSocketMessageValidator.safeParseMessage(event.data);
+    
+    if (!validationResult.success) {
+      const error = validationResult as { success: false; error: WebSocketValidationError };
+      // Log validation error with details for debugging
+      console.error('WebSocket message validation failed:', {
+        error: error.error.message,
+        code: error.error.code,
+        messageType: error.error.messageType,
+        timestamp: new Date().toISOString()
+      });
+
+      // Notify error handler with detailed error information
+      this.eventHandlers.onMessageError?.(error.error, error.error.rawMessage);
       
-      // Type guard validation
-      if (!isWebSocketMessage(rawData)) {
-        throw new Error('Received invalid WebSocket message format');
-      }
+      // Attempt graceful degradation based on error type
+      this.handleValidationError(error.error);
+      return;
+    }
 
-      const message = rawData as WebSocketMessage;
-      this.routeTypedMessage(message);
-
+    // Message is valid, route to appropriate handlers
+    try {
+      this.routeTypedMessage(validationResult.data);
     } catch (error) {
-      const err = error instanceof Error ? error : new Error('Unknown message parsing error');
-      console.error('Failed to handle WebSocket message:', err.message, event.data);
-      this.eventHandlers.onMessageError?.(err, event.data);
+      const err = error instanceof Error ? error : new Error('Unknown message routing error');
+      console.error('Failed to route WebSocket message:', err.message);
+      this.eventHandlers.onMessageError?.(err, validationResult.data);
+    }
+  }
+
+  /**
+   * Handle validation errors with graceful degradation
+   */
+  private handleValidationError(error: WebSocketValidationError): void {
+    switch (error.code) {
+      case 'JSON_PARSE_ERROR':
+        // Critical error - message is not valid JSON
+        console.warn('Received malformed JSON message, ignoring');
+        break;
+        
+      case 'WEBSOCKET_VALIDATION_ERROR':
+        // Message structure is invalid
+        if (error.messageType !== 'unknown') {
+          console.warn(`Received invalid ${error.messageType} message, attempting recovery`);
+          // Could attempt to extract partial data here if needed
+        } else {
+          console.warn('Received message with unknown type, ignoring');
+        }
+        break;
+        
+      default:
+        console.warn('Unknown validation error, attempting to continue:', error.message);
+    }
+
+    // Log error for debugging but don't disconnect unless it's critical
+    if (error.code === 'JSON_PARSE_ERROR') {
+      // JSON parse errors might indicate server issues
+      console.warn('Multiple JSON parse errors may indicate server issues');
     }
   }
 
