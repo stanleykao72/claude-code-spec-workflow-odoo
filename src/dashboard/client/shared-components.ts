@@ -1,6 +1,9 @@
 /**
  * Shared components and utilities for TypeScript dashboard frontend
  * Enhanced TypeScript implementation with type safety
+ * 
+ * This is the consolidated and cleaned version - duplicate utilities have been removed
+ * from the old JavaScript version in public/shared-components.js
  */
 
 import type { 
@@ -19,7 +22,7 @@ import {
 } from './types/validation';
 
 // ============================================================================
-// Utility Functions
+// Core Utility Functions (Consolidated from multiple sources)
 // ============================================================================
 
 /**

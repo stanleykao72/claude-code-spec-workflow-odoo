@@ -146,7 +146,7 @@ This task list breaks down the TypeScript frontend conversion into atomic, execu
   - _Leverage: src/dashboard/client/multi-app.ts (selectProject methods)_
   - _Requirements: 4.1, 4.2, 4.4_
 
-- [ ] 17. Clean up duplicate utilities
+- [x] 17. Clean up duplicate utilities
   - Identify duplicate functions between files
   - Consolidate into shared-components.ts
   - Remove commented-out code blocks

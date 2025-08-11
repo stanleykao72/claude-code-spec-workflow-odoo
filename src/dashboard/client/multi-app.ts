@@ -12,9 +12,7 @@ import type {
   AppState,
   ActiveSession,
   ColorScheme,
-  GroupedProjectsCache,
   ProjectTabData,
-  MarkdownPreviewState,
   TunnelStatus,
   StatusType
 } from '../shared/dashboard.types';
@@ -31,37 +29,7 @@ import { dashboardShared } from './shared-components';
  */
 const projectColorCache = new Map<string, ColorScheme>();
 
-/**
- * Dashboard shared components - will be available globally
- */
-declare global {
-  interface Window {
-    DashboardShared: typeof dashboardShared & {
-      BaseAppState: {
-        theme: string;
-        initTheme: () => void;
-        applyTheme: (theme: string) => void;
-        cycleTheme: () => void;
-        viewMarkdown: (specName: string, docType: string, projectPath?: string) => Promise<void>;
-        copyCommand: (command: string, event?: Event) => Promise<void>;
-        setupKeyboardHandlers: () => void;
-        setupCodeBlockCopyHandlers: () => void;
-        copyCodeBlock: (event: Event) => void;
-        formatUserStory: (story: string) => string;
-        formatAcceptanceCriteria: (criteria: string) => string;
-        showMarkdownPreview: (file: string, title: string) => void;
-        closeMarkdownPreview: () => void;
-        getSpecStatus: (session: ActiveSession) => StatusType;
-        getSpecStatusLabel: (session: ActiveSession) => string;
-        getTaskTooltip: (task: Task) => string;
-        hasBugDocument: (bugName: string, docType: string) => boolean;
-        viewBugDocument: (projectPath: string, bugName: string, docType: string) => void;
-        copyTaskCommand: (specName: string, taskId: string, event: Event) => void;
-        copyOrchestrationCommand: (specName: string, taskId: string, event: Event) => void;
-      };
-    };
-  }
-}
+// Note: Legacy BaseAppState global interface removed - using direct imports instead
 
 /**
  * PetiteVue type definitions for the app
@@ -173,124 +141,34 @@ const COLOR_RGB_MAP: Record<string, string> = {
 /**
  * Main application state extending AppState with computed properties and methods
  * This interface represents the complete reactive state for the multi-project dashboard
+ * Simplified to remove unused method declarations
  */
 interface MultiAppState extends AppState {
   // Computed Properties
   readonly activeSessionCount: number;
   readonly groupedProjectsList: Project[];
 
-  // State Management Methods
+  // Essential Methods (only those actually implemented)
   init(): Promise<void>;
   connectWebSocket(): void;
   handleWebSocketMessage(message: WebSocketMessage): void;
-  switchTab(tab: 'active' | 'projects'): void;
-  selectProject(project: Project | null): void;
-  selectProjectAndShowBugs(project: Project | null): void;
-  selectProjectFromSession(session: ActiveSession): void;
-  selectProjectFromTask(projectPath: string, itemName: string, sessionType?: 'spec' | 'bug'): void;
-
-  // Visibility and Filtering Methods
-  getVisibleSpecs(project: Project): Spec[];
-  getVisibleBugs(project: Project): Bug[];
-  toggleShowCompleted(): void;
-
-  // Project Color Management
-  getProjectColor(projectPath: string): ColorScheme;
-  getProjectColorClasses(projectPath: string, type?: 'text' | 'bg' | 'bg-primary' | 'border' | 'border-l' | 'border-r' | 'border-b' | 'text-primary'): string;
-  getProjectColorValue(projectPath: string): string;
-  getProjectTabStyles(project: Project): string;
-  getProjectBadgeStyles(project: Project): string;
-  getColorValue(colorName: string): string;
-  getColorWithOpacity(colorName: string, opacity: string): string;
-
-  // Grouped Projects Management
-  getCachedGroupedProjects(): Project[];
-  getGroupedProjects(): Project[];
-  updateProjectTabsData(): void;
-  getParentProjectPath(projectPath: string, groupedProjects: Project[], currentIndex: number): string;
-  getProjectAtIndex(index: number): Project | null;
-  isNextProjectTopLevel(index: number): boolean;
-  isPreviousProjectNested(index: number): boolean;
-
-  // Expansion State Management
-  toggleRequirementsExpanded(specName: string): void;
-  isRequirementsExpanded(specName: string): boolean;
-  toggleDesignExpanded(specName: string): void;
-  isDesignExpanded(specName: string): boolean;
-  toggleTasksExpanded(specName: string): void;
-  isTasksExpanded(specName: string): boolean;
-  toggleRequirementAccordion(specName: string, requirementId: string): void;
-  isRequirementExpanded(specName: string, requirementId: string): boolean;
-
-  // Task Selection Management
-  selectTask(specName: string, taskId: string): void;
-  isTaskSelected(specName: string, taskId: string): boolean;
-  selectedTaskId(specName: string): string | undefined;
-  getSelectedTask(specName: string): Task | null;
-  initializeSelectedTask(spec: Spec): void;
-  findFirstIncompleteTask(tasks: Task[]): Task | null;
-
-  // Active Session Helpers
-  getTaskNumber(activeSession: ActiveSession): number;
-  getSpecTaskCount(activeSession: ActiveSession): number;
-  getSpecProgress(activeSession: ActiveSession): number;
-  getNextTask(activeSession: ActiveSession): Task | null;
-
-  // Project Statistics
-  getSpecsInProgress(project: Project): number;
-  getSpecsCompleted(project: Project): number;
-  getTotalTasks(project: Project): number;
-  getOpenSpecsCount(project: Project): number;
-  getOpenBugsCount(project: Project): number;
-  getBugsInProgress(project: Project): number;
-  getBugsResolved(project: Project): number;
-
-  // Routing Methods
-  initializeRouting(): void;
-  handleRouteChange(): void;
-  updateURL(): void;
-  getProjectSlug(project: Project): string;
-
-  // Command Copying Methods
-  copyNextTaskCommand(spec: Spec, event: Event): void;
-  copyOrchestrateCommand(spec: Spec, event: Event): void;
-
-  // Utility Methods
-  sortProjects(): void;
-  sortSpecs(specs: Spec[]): void;
-  sortBugs(bugs: Bug[]): void;
-  normalizeProjects(projects: Project[]): Project[];
-  getCurrentTask(spec: Spec): Task | null;
-  scrollToRequirement(specName: string, requirementId: string): void;
-
-  // Tunnel Management
-  fetchTunnelStatus(): Promise<void>;
-  startTunnel(): Promise<void>;
-  stopTunnel(): Promise<void>;
-  formatTunnelExpiry(expiresAt: string): string;
-
-  // Markdown Viewing (Override with projectPath)
-  viewMarkdown(specName: string, docType: string, projectPath?: string | null): Promise<void>;
-  viewBugMarkdown(projectPath: string, bugName: string, docType: string): Promise<void>;
-
-  // Shared component method bindings
   initTheme(): void;
   applyTheme(theme: string): void;
   cycleTheme(): void;
-  formatUserStory(story: string): string;
-  formatAcceptanceCriteria(criteria: string): string;
-  showMarkdownPreview(file: string, title: string): void;
   closeMarkdownPreview(): void;
   setupKeyboardHandlers(): void;
   setupCodeBlockCopyHandlers(): void;
   copyCodeBlock(event: Event): void;
-  getSpecStatus(session: ActiveSession): StatusType;
-  getSpecStatusLabel(session: ActiveSession): string;
-  getTaskTooltip(task: Task): string;
-  hasBugDocument(bugName: string, docType: string): boolean;
-  viewBugDocument(projectPath: string, bugName: string, docType: string): void;
-  copyTaskCommand(specName: string, taskId: string, event: Event): void;
-  copyOrchestrationCommand(specName: string, taskId: string, event: Event): void;
+  viewMarkdownWithProject(specName: string, docType: string, projectPath: string): Promise<void>;
+  
+  // Core functionality methods that exist in the implementation 
+  getVisibleSpecs(project: Project): Spec[];
+  getVisibleBugs(project: Project): Bug[];
+  getProjectColor(projectPath: string): ColorScheme;
+  getProjectColorClasses(projectPath: string, type?: 'text' | 'bg' | 'bg-primary' | 'border' | 'border-l' | 'border-r' | 'border-b' | 'text-primary'): string;
+  getProjectColorValue(projectPath: string): string;
+  getCachedGroupedProjects(): Project[];
+  _buildGroupedProjects(): Project[];
 }
 
 // ============================================================================
@@ -302,14 +180,7 @@ interface MultiAppState extends AppState {
  * Waits for shared components to load before creating the PetiteVue app
  */
 function initApp(): void {
-  // Check if shared components are loaded
-  if (!window.DashboardShared || !window.DashboardShared.BaseAppState) {
-    console.error('DashboardShared not loaded yet, retrying...');
-    setTimeout(initApp, 100);
-    return;
-  }
-  
-  console.log('Initializing multi-dashboard app with DashboardShared:', window.DashboardShared);
+  console.log('Initializing multi-dashboard app with shared components');
   
   // Create the PetiteVue application with typed state
   const appState: MultiAppState = {
@@ -318,7 +189,7 @@ function initApp(): void {
     // ========================================================================
     
     // Copy base state properties (not methods)
-    theme: (window.DashboardShared.BaseAppState.theme as 'light' | 'dark' | 'system') || 'system',
+    theme: 'system' as 'light' | 'dark' | 'system',
     collapsedCompletedTasks: {},
     markdownPreview: {
       show: false,
@@ -1597,12 +1468,13 @@ function initApp(): void {
     async viewMarkdown(specName: string, docType: string, projectPath: string | null = null): Promise<void> {
       // If projectPath is provided directly, use it
       if (projectPath) {
-        return window.DashboardShared.BaseAppState.viewMarkdown.call(
-          this, 
-          specName, 
-          docType, 
-          projectPath
-        );
+        // Create a temporary object with the required state
+        const previewState = {
+          markdownPreview: this.markdownPreview
+        };
+        
+        // Use the shared viewMarkdown implementation
+        return this.viewMarkdownWithProject(specName, docType, projectPath);
       }
       
       // Otherwise use selectedProject
@@ -1611,12 +1483,7 @@ function initApp(): void {
         // Don't show the modal if there's no project selected
         return;
       }
-      return window.DashboardShared.BaseAppState.viewMarkdown.call(
-        this, 
-        specName, 
-        docType, 
-        this.selectedProject.path
-      );
+      return this.viewMarkdownWithProject(specName, docType, this.selectedProject.path);
     },
 
     async viewBugMarkdown(projectPath: string, bugName: string, docType: string): Promise<void> {
@@ -1651,56 +1518,107 @@ function initApp(): void {
     // Shared Component Method Bindings
     // ========================================================================
 
-    initTheme(): void { 
-      return window.DashboardShared.BaseAppState.initTheme.call(this); 
+    initTheme(): void {
+      const savedTheme = localStorage.getItem('theme') || 'system';
+      this.theme = savedTheme as 'light' | 'dark' | 'system';
+      this.applyTheme(this.theme);
     },
-    applyTheme(theme: string): void { 
-      return window.DashboardShared.BaseAppState.applyTheme.call(this, theme); 
+
+    applyTheme(theme: string): void {
+      const root = document.documentElement;
+      
+      if (theme === 'dark' || 
+          (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        root.classList.add('dark');
+      } else {
+        root.classList.remove('dark');
+      }
     },
-    cycleTheme(): void { 
-      return window.DashboardShared.BaseAppState.cycleTheme.call(this); 
+
+    cycleTheme(): void {
+      const themes = ['light', 'dark', 'system'] as const;
+      const currentIndex = themes.indexOf(this.theme);
+      this.theme = themes[(currentIndex + 1) % themes.length];
+      localStorage.setItem('theme', this.theme);
+      this.applyTheme(this.theme);
     },
-    formatUserStory(story: string): string { 
-      return window.DashboardShared.BaseAppState.formatUserStory.call(this, story); 
+
+    closeMarkdownPreview(): void {
+      this.markdownPreview.show = false;
+      this.markdownPreview.title = '';
+      this.markdownPreview.content = '';
+      this.markdownPreview.rawContent = '';
     },
-    formatAcceptanceCriteria(criteria: string): string { 
-      return window.DashboardShared.BaseAppState.formatAcceptanceCriteria.call(this, criteria); 
+
+    setupKeyboardHandlers(): void {
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && this.markdownPreview.show) {
+          this.closeMarkdownPreview();
+        }
+      });
     },
-    showMarkdownPreview(file: string, title: string): void { 
-      return window.DashboardShared.BaseAppState.showMarkdownPreview.call(this, file, title); 
+
+    setupCodeBlockCopyHandlers(): void {
+      // Use event delegation on the document body to catch all code copy buttons
+      document.addEventListener('click', (event) => {
+        const button = event.target && (event.target as Element).closest('.code-copy-btn');
+        if (button) {
+          event.preventDefault();
+          event.stopPropagation();
+          this.copyCodeBlock(event);
+        }
+      });
     },
-    closeMarkdownPreview(): void { 
-      return window.DashboardShared.BaseAppState.closeMarkdownPreview.call(this); 
+
+    copyCodeBlock(event: Event): void {
+      const button = event.target && (event.target as Element).closest('.code-copy-btn') as HTMLButtonElement;
+      if (!button) return;
+      
+      const pre = button.parentElement?.querySelector('pre[data-code-content]') as HTMLPreElement;
+      if (!pre) return;
+      
+      const encodedCode = pre.getAttribute('data-code-content');
+      if (!encodedCode) return;
+      
+      try {
+        const decodedCode = decodeURIComponent(escape(atob(encodedCode)));
+        void dashboardShared.copyCommand(decodedCode, event);
+      } catch (err) {
+        console.error('Failed to decode code content:', err);
+        
+        const originalContent = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-times"></i> Error';
+        button.classList.add('text-red-600', 'dark:text-red-400');
+        
+        setTimeout(() => {
+          button.innerHTML = originalContent;
+          button.classList.remove('text-red-600', 'dark:text-red-400');
+        }, 2000);
+      }
     },
-    setupKeyboardHandlers(): void { 
-      return window.DashboardShared.BaseAppState.setupKeyboardHandlers.call(this); 
-    },
-    setupCodeBlockCopyHandlers(): void { 
-      return window.DashboardShared.BaseAppState.setupCodeBlockCopyHandlers.call(this); 
-    },
-    copyCodeBlock(event: Event): void { 
-      return window.DashboardShared.BaseAppState.copyCodeBlock.call(this, event); 
-    },
-    getSpecStatus(session: ActiveSession): StatusType { 
-      return window.DashboardShared.BaseAppState.getSpecStatus.call(this, session); 
-    },
-    getSpecStatusLabel(session: ActiveSession): string { 
-      return window.DashboardShared.BaseAppState.getSpecStatusLabel.call(this, session); 
-    },
-    getTaskTooltip(task: Task): string { 
-      return window.DashboardShared.BaseAppState.getTaskTooltip.call(this, task); 
-    },
-    hasBugDocument(bugName: string, docType: string): boolean { 
-      return window.DashboardShared.BaseAppState.hasBugDocument.call(this, bugName, docType); 
-    },
-    viewBugDocument(projectPath: string, bugName: string, docType: string): void { 
-      return window.DashboardShared.BaseAppState.viewBugDocument.call(this, projectPath, bugName, docType); 
-    },
-    copyTaskCommand(specName: string, taskId: string, event: Event): void { 
-      return window.DashboardShared.BaseAppState.copyTaskCommand.call(this, specName, taskId, event); 
-    },
-    copyOrchestrationCommand(specName: string, taskId: string, event: Event): void { 
-      return window.DashboardShared.BaseAppState.copyOrchestrationCommand.call(this, specName, taskId, event); 
+
+    async viewMarkdownWithProject(specName: string, docType: string, projectPath: string): Promise<void> {
+      this.markdownPreview.show = true;
+      this.markdownPreview.loading = true;
+      this.markdownPreview.title = `${specName} - ${docType}.md`;
+      
+      try {
+        const encodedPath = encodeURIComponent(projectPath);
+        const response = await fetch(`/api/projects/${encodedPath}/specs/${specName}/${docType}`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch ${docType} content: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        this.markdownPreview.content = data.content;
+        this.markdownPreview.rawContent = data.content;
+      } catch (error) {
+        console.error(`Error fetching ${docType} content:`, error);
+        this.markdownPreview.content = `# Error loading ${docType} content\n\n${(error as Error).message}`;
+        this.markdownPreview.rawContent = '';
+      } finally {
+        this.markdownPreview.loading = false;
+      }
     }
   };
 
