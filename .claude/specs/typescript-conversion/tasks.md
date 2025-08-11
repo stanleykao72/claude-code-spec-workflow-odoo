@@ -85,7 +85,7 @@ This task list breaks down the TypeScript frontend conversion into atomic, execu
 
 ### Phase 4: Core Component Conversion
 
-- [ ] 10. Convert shared components to TypeScript
+- [x] 10. Convert shared components to TypeScript
   - Enhance existing `src/dashboard/client/shared-components.ts`
   - Add type annotations to all utility functions
   - Type formatDate, getStatusClass, copyCommand functions
@@ -93,7 +93,7 @@ This task list breaks down the TypeScript frontend conversion into atomic, execu
   - _Leverage: src/dashboard/public/shared-components.js, src/dashboard/client/shared-components.ts_
   - _Requirements: 2.1, 6.1, 6.3_
 
-- [ ] 11. Convert multi-app.js to TypeScript
+- [x] 11. Convert multi-app.js to TypeScript
   - Create `src/dashboard/client/multi-app.ts`
   - Import and use shared type definitions
   - Type all reactive state properties
@@ -102,7 +102,7 @@ This task list breaks down the TypeScript frontend conversion into atomic, execu
   - _Leverage: src/dashboard/public/multi-app.js, projectColorCache pattern_
   - _Requirements: 2.3, 6.1, 6.4_
 
-- [ ] 12. Implement typed WebSocket client
+- [x] 12. Implement typed WebSocket client
   - Create `src/dashboard/client/websocket.ts`
   - Implement strongly typed message handlers
   - Add automatic reconnection with exponential backoff
