@@ -192,48 +192,237 @@ export interface ErrorData {
 
 /**
  * Application state interface for reactive frontend state
+ * Comprehensive state management for the multi-project dashboard
  */
 export interface AppState {
+  // Core Data State
   /** All projects loaded in the dashboard */
   projects: Project[];
   /** Currently selected project (null if none) */
   selectedProject: Project | null;
   /** Currently selected specification (null if none) */
   selectedSpec: Spec | null;
-  /** Current UI theme */
-  theme: 'light' | 'dark' | 'system';
+  /** List of active sessions (specs/bugs being worked on) */
+  activeSessions: ActiveSession[];
+  
+  // Connection State
   /** WebSocket connection status */
   connected: boolean;
+  /** WebSocket instance (null if not connected) */
+  ws: globalThis.WebSocket | null;
   /** Current tunnel status (null if no tunnel) */
   tunnelStatus: TunnelStatus | null;
   
-  // UI State
+  // UI Theme and User State
+  /** Current UI theme */
+  theme: 'light' | 'dark' | 'system';
+  /** Username for the current session */
+  username: string;
+  
+  // Navigation State
   /** Active tab in the dashboard */
   activeTab: 'active' | 'projects';
   /** Whether to show completed specs/tasks */
   showCompleted: boolean;
+  /** Pending project route (when projects haven't loaded yet) */
+  pendingProjectRoute: string | null;
+  
+  // Expansion State Management
   /** Expanded state for requirements sections (spec name -> expanded) */
   expandedRequirements: Record<string, boolean>;
   /** Expanded state for design sections (spec name -> expanded) */
   expandedDesigns: Record<string, boolean>;
   /** Expanded state for task sections (spec name -> expanded) */
   expandedTasks: Record<string, boolean>;
+  /** Expanded state for requirement accordions (specName-reqId -> expanded) */
+  expandedRequirementAccordions: Record<string, boolean>;
+  
+  // Selection State Management
   /** Selected task IDs (spec name -> task ID) */
   selectedTasks: Record<string, string>;
+  
+  // Task Collapse State
+  /** Collapsed state for completed tasks (spec name -> collapsed) */
+  collapsedCompletedTasks: Record<string, boolean>;
+  
+  // Markdown Preview State
+  /** Markdown preview modal state */
+  markdownPreview: MarkdownPreviewState;
+  
+  // Cache Management (Non-reactive)
+  /** Cache for grouped projects (invalidated when projects change) */
+  _groupedProjectsCache: GroupedProjectsCache | null;
+  /** Cache for computed color values */
+  _colorValueCache: Record<string, string>;
+  /** Pre-computed data for project tabs to avoid reactivity issues */
+  projectTabsData: ProjectTabData[];
+}
+
+/**
+ * Active session representing a spec or bug being worked on
+ */
+export interface ActiveSession {
+  /** Type of session - spec or bug */
+  type: 'spec' | 'bug';
+  /** Path to the project containing this item */
+  projectPath: string;
+  /** Name of the spec */
+  specName?: string;
+  /** Name of the bug */
+  bugName?: string;
+  /** Current task ID being worked on (for specs) */
+  currentTaskId?: string;
+  /** Total number of tasks (for specs) */
+  totalTasks?: number;
+  /** Progress percentage (0-100) */
+  progress?: number;
+  /** Pre-computed project color value for performance */
+  projectColorValue?: string;
+}
+
+/**
+ * Markdown preview modal state
+ */
+export interface MarkdownPreviewState {
+  /** Whether the preview is visible */
+  show: boolean;
+  /** Title of the preview modal */
+  title: string;
+  /** Rendered HTML content */
+  content: string;
+  /** Raw markdown content */
+  rawContent: string;
+  /** Whether content is currently loading */
+  loading: boolean;
+}
+
+/**
+ * Cache for grouped projects to avoid expensive re-computation
+ */
+export interface GroupedProjectsCache {
+  /** Number of projects when cache was created */
+  projectsCount: number;
+  /** Hash of project paths for cache invalidation */
+  projectsHash: string;
+  /** Cached grouped project data */
+  data: Project[];
+}
+
+/**
+ * Pre-computed project tab data for performance
+ */
+export interface ProjectTabData {
+  /** Project path */
+  path: string;
+  /** Display name */
+  name: string;
+  /** Hierarchy level */
+  level: number;
+  /** Whether project has an active session */
+  hasActiveSession: boolean;
+  /** Pre-computed color value */
+  colorValue: string;
+  /** Primary color class name */
+  colorPrimary: string;
+  /** Whether next project is top-level */
+  isNextTopLevel: boolean;
+  /** Whether previous project is nested */
+  isPrevNested: boolean;
+  /** Project specs */
+  specs: Spec[];
+  /** Project bugs */
+  bugs: Bug[];
+}
+
+/**
+ * UI-specific state management types
+ * These types represent different aspects of the user interface state
+ */
+
+/**
+ * Expanded state management for different UI sections
+ */
+export interface ExpandedStates {
+  /** Requirements sections (spec name -> expanded state) */
+  requirements: Record<string, boolean>;
+  /** Design sections (spec name -> expanded state) */
+  designs: Record<string, boolean>;
+  /** Task sections (spec name -> expanded state) */
+  tasks: Record<string, boolean>;
+  /** Requirement accordions (specName-reqId -> expanded state) */
+  requirementAccordions: Record<string, boolean>;
+  /** Completed task sections (spec name -> collapsed state) */
+  collapsedCompletedTasks: Record<string, boolean>;
+}
+
+/**
+ * Selection state management for interactive elements
+ */
+export interface SelectedItems {
+  /** Selected project (null if none) */
+  project: Project | null;
+  /** Selected specification (null if none) */
+  spec: Spec | null;
+  /** Selected tasks per spec (spec name -> task ID) */
+  tasks: Record<string, string>;
+  /** Currently active tab */
+  activeTab: 'active' | 'projects';
+}
+
+/**
+ * Cache management interfaces for performance optimization
+ */
+export interface CacheManagement {
+  /** Grouped projects cache with invalidation data */
+  groupedProjects: GroupedProjectsCache | null;
+  /** Color value cache for projects (path -> RGB string) */
+  colorValues: Record<string, string>;
+  /** Pre-computed project tabs data */
+  projectTabsData: ProjectTabData[];
+}
+
+/**
+ * Navigation state for routing and history management
+ */
+export interface NavigationState {
+  /** Current active tab */
+  activeTab: 'active' | 'projects';
+  /** Pending project route when projects haven't loaded */
+  pendingProjectRoute: string | null;
+  /** Whether to show completed items */
+  showCompleted: boolean;
+}
+
+/**
+ * Theme and user preference state
+ */
+export interface UserPreferences {
+  /** Current theme setting */
+  theme: 'light' | 'dark' | 'system';
+  /** Username for display */
+  username: string;
+  /** Show/hide completed items preference */
+  showCompleted: boolean;
 }
 
 /**
  * Color scheme for project visualization
+ * Extended to include dark mode variants
  */
 export interface ColorScheme {
-  /** Background color */
-  bg: string;
-  /** Text color */
-  text: string;
-  /** Border color */
-  border: string;
-  /** Accent color */
-  accent: string;
+  /** Primary color (e.g., 'indigo-600') */
+  primary: string;
+  /** Light background color (e.g., 'indigo-100') */
+  light: string;
+  /** Ring/focus color (e.g., 'indigo-500') */
+  ring: string;
+  /** Dark mode variant */
+  dark?: {
+    /** Primary color for dark mode */
+    primary: string;
+    /** Light background for dark mode */
+    light: string;
+  };
 }
 
 /**
@@ -415,6 +604,166 @@ export function isTunnelMetricsMessage(msg: WebSocketMessage): msg is TunnelMetr
 
 export function isTunnelVisitorMessage(msg: WebSocketMessage): msg is TunnelVisitorMessage {
   return msg.type === 'tunnel:visitor:new';
+}
+
+/**
+ * State mutation methods interface
+ * Defines method signatures for managing application state
+ */
+export interface AppStateMethods {
+  // Navigation Methods
+  /** Switch between 'active' and 'projects' tabs */
+  switchTab(_tab: 'active' | 'projects'): void;
+  /** Select a project and switch to projects tab */
+  selectProject(_project: Project | null): void;
+  /** Select a project from an active session */
+  selectProjectFromSession(_session: ActiveSession): void;
+  /** Select a project from a task link */
+  selectProjectFromTask(_projectPath: string, _itemName: string, _sessionType?: 'spec' | 'bug'): void;
+
+  // Expansion State Methods
+  /** Toggle requirements section expansion for a spec */
+  toggleRequirementsExpanded(_specName: string): void;
+  /** Check if requirements section is expanded for a spec */
+  isRequirementsExpanded(_specName: string): boolean;
+  /** Toggle design section expansion for a spec */
+  toggleDesignExpanded(_specName: string): void;
+  /** Check if design section is expanded for a spec */
+  isDesignExpanded(_specName: string): boolean;
+  /** Toggle tasks section expansion for a spec */
+  toggleTasksExpanded(_specName: string): void;
+  /** Check if tasks section is expanded for a spec */
+  isTasksExpanded(_specName: string): boolean;
+  /** Toggle requirement accordion expansion */
+  toggleRequirementAccordion(_specName: string, _requirementId: string): void;
+  /** Check if requirement accordion is expanded */
+  isRequirementExpanded(_specName: string, _requirementId: string): boolean;
+
+  // Task Selection Methods  
+  /** Select a task for a spec */
+  selectTask(_specName: string, _taskId: string): void;
+  /** Check if a task is selected for a spec */
+  isTaskSelected(_specName: string, _taskId: string): boolean;
+  /** Get the selected task ID for a spec */
+  selectedTaskId(_specName: string): string | undefined;
+  /** Get the selected task object for a spec */
+  getSelectedTask(_specName: string): Task | null;
+  /** Initialize selected task for a spec (first incomplete task) */
+  initializeSelectedTask(_spec: Spec): void;
+
+  // WebSocket Connection Methods
+  /** Connect to WebSocket server */
+  connectWebSocket(): void;
+  /** Handle incoming WebSocket messages */
+  handleWebSocketMessage(_message: WebSocketMessage): void;
+
+  // Project Display Methods
+  /** Get visible specs for a project (filtered by showCompleted) */
+  getVisibleSpecs(_project: Project): Spec[];
+  /** Get visible bugs for a project (filtered by showCompleted) */
+  getVisibleBugs(_project: Project): Bug[];
+  /** Toggle show/hide completed items */
+  toggleShowCompleted(): void;
+
+  // Cache Management Methods
+  /** Get cached grouped projects, rebuilding if necessary */
+  getCachedGroupedProjects(): Project[];
+  /** Get grouped projects for template use */
+  getGroupedProjects(): Project[];
+  /** Update pre-computed project tabs data */
+  updateProjectTabsData(): void;
+
+  // Color Management Methods
+  /** Get color scheme for a project path */
+  getProjectColor(_projectPath: string): ColorScheme;
+  /** Get CSS classes for project color */
+  getProjectColorClasses(_projectPath: string, _type?: 'text' | 'bg' | 'bg-primary' | 'border' | 'border-l' | 'border-r'): string;
+  /** Get project color value (RGB string) */
+  getProjectColorValue(_projectPath: string): string;
+  /** Get project tab styles for a project */
+  getProjectTabStyles(_project: Project): string[];
+  /** Get project badge styles */
+  getProjectBadgeStyles(_project: Project): string[];
+
+  // Project Statistics Methods
+  /** Get number of specs in progress for a project */
+  getSpecsInProgress(_project: Project): number;
+  /** Get number of completed specs for a project */
+  getSpecsCompleted(_project: Project): number;
+  /** Get total number of tasks for a project */
+  getTotalTasks(_project: Project): number;
+  /** Get number of open specs for a project */
+  getOpenSpecsCount(_project: Project): number;
+  /** Get number of open bugs for a project */
+  getOpenBugsCount(_project: Project): number;
+  /** Get number of bugs in progress for a project */
+  getBugsInProgress(_project: Project): number;
+  /** Get number of resolved bugs for a project */
+  getBugsResolved(_project: Project): number;
+
+  // Active Session Methods
+  /** Get task number for an active session */
+  getTaskNumber(_activeSession: ActiveSession): number;
+  /** Get total task count for a spec session */
+  getSpecTaskCount(_activeSession: ActiveSession): number;
+  /** Get progress percentage for a spec session */
+  getSpecProgress(_activeSession: ActiveSession): number;
+  /** Get next incomplete task for a spec session */
+  getNextTask(_activeSession: ActiveSession): Task | null;
+  /** Get current task for a spec */
+  getCurrentTask(_spec: Spec): Task | null;
+
+  // Routing Methods
+  /** Initialize browser routing */
+  initializeRouting(): void;
+  /** Handle route changes */
+  handleRouteChange(): void;
+  /** Update browser URL based on current state */
+  updateURL(): void;
+  /** Convert project to URL-friendly slug */
+  getProjectSlug(_project: Project): string;
+
+  // Command Copying Methods
+  /** Copy next task command to clipboard */
+  copyNextTaskCommand(_spec: Spec, _event: Event): void;
+  /** Copy orchestrate command to clipboard */
+  copyOrchestrateCommand(_spec: Spec, _event: Event): void;
+
+  // Utility Methods
+  /** Sort projects by name */
+  sortProjects(): void;
+  /** Sort specs by status and name */
+  sortSpecs(_specs: Spec[]): void;
+  /** Sort bugs by status and creation date */
+  sortBugs(_bugs: Bug[]): void;
+  /** Normalize projects data from server */
+  normalizeProjects(_projects: Project[]): Project[];
+  /** Find first incomplete task in a task list */
+  findFirstIncompleteTask(_tasks: Task[]): Task | null;
+  /** Scroll to a specific requirement element */
+  scrollToRequirement(_specName: string, _requirementId: string): void;
+
+  // Tunnel Management Methods
+  /** Check current tunnel status */
+  checkTunnelStatus(): Promise<void>;
+  /** Start tunnel for sharing dashboard */
+  startTunnel(): Promise<void>;
+  /** Stop active tunnel */
+  stopTunnel(): Promise<void>;
+  /** Format tunnel expiry time */
+  formatTunnelExpiry(_expiresAt: string): string;
+}
+
+/**
+ * Complete application state interface including methods
+ * Combines reactive state properties with state mutation methods
+ */
+export interface CompleteAppState extends AppState, AppStateMethods {
+  // Computed properties
+  /** Number of projects with active sessions */
+  readonly activeSessionCount: number;
+  /** Grouped projects list for template use */
+  readonly groupedProjectsList: Project[];
 }
 
 /**
