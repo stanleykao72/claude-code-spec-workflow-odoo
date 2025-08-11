@@ -120,7 +120,7 @@ This task list breaks down the TypeScript frontend conversion into atomic, execu
   - _Leverage: src/dashboard/parser.ts (error handling patterns)_
   - _Requirements: 5.4, 6.4, 9.2_
 
-- [ ] 14. Implement strict null checking
+- [x] 14. Implement strict null checking
   - Enable strictNullChecks in frontend tsconfig
   - Add null checks to all data access
   - Use optional chaining for nested properties

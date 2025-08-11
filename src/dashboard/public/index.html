@@ -833,7 +833,7 @@
                         class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
                         :class="session.task.approved ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200'"
                       >
-                        <i class="fas mr-1" :class="session.task.approved ? 'fa-check' : 'fa-clock'"></i>
+                        <span class="mr-1 text-sm">{{ session.task.approved ? '✅' : '⏰' }}</span>
                         {{ session.task.approved ? 'Approved' : 'Approval Required' }}
                       </span>
                       <button
@@ -1026,14 +1026,14 @@
                 <div class="ml-4 flex items-center gap-3">
                   <!-- Stage indicators matching project tabs style -->
                   <div v-if="session.type === 'spec' && !session.isAdHoc" class="flex items-center gap-2">
-                    <span v-if="session.requirements" class="text-xs" :title="session.requirements.approved ? 'Requirements Approved' : 'Requirements Pending'">
-                      <i class="fas fa-clipboard-list" :class="session.requirements.approved ? 'text-green-500' : 'text-yellow-500'"></i>
+                    <span v-if="session.requirements" class="text-sm" :title="session.requirements.approved ? 'Requirements Approved' : 'Requirements Pending'">
+                      {{ session.requirements.approved ? '✅' : '📋' }}
                     </span>
-                    <span v-if="session.design" class="text-xs" :title="session.design.approved ? 'Design Approved' : 'Design Pending'">
-                      <i class="fas fa-code" :class="session.design.approved ? 'text-green-500' : 'text-yellow-500'"></i>
+                    <span v-if="session.design" class="text-sm" :title="session.design.approved ? 'Design Approved' : 'Design Pending'">
+                      {{ session.design.approved ? '✅' : '🎨' }}
                     </span>
-                    <span v-if="session.tasks" class="text-xs" :title="session.tasks.approved ? 'Tasks Approved' : 'Tasks Pending'">
-                      <i class="fas fa-tasks" :class="session.tasks.approved ? 'text-green-500' : 'text-yellow-500'"></i>
+                    <span v-if="session.tasks" class="text-sm" :title="session.tasks.approved ? 'Tasks Approved' : 'Tasks Pending'">
+                      {{ session.tasks.approved ? '✅' : '📝' }}
                     </span>
                     <!-- Orchestration Indicator -->
                     <span v-if="session.requirements?.approved && session.design?.approved && session.tasks?.approved" class="text-xs" title="Orchestration Available - All docs approved">
@@ -1246,14 +1246,14 @@
                     </span>
                     <!-- Acceptance Status Indicators -->
                     <div class="flex items-center gap-2">
-                      <span v-if="spec.requirements" class="text-xs" :title="spec.requirements.approved ? 'Requirements Approved' : 'Requirements Pending'">
-                        <i class="fas fa-clipboard-list" :class="spec.requirements.approved ? 'text-green-500' : 'text-yellow-500'"></i>
+                      <span v-if="spec.requirements" class="text-sm" :title="spec.requirements.approved ? 'Requirements Approved' : 'Requirements Pending'">
+                        {{ spec.requirements.approved ? '✅' : '📋' }}
                       </span>
-                      <span v-if="spec.design" class="text-xs" :title="spec.design.approved ? 'Design Approved' : 'Design Pending'">
-                        <i class="fas fa-drafting-compass" :class="spec.design.approved ? 'text-green-500' : 'text-yellow-500'"></i>
+                      <span v-if="spec.design" class="text-sm" :title="spec.design.approved ? 'Design Approved' : 'Design Pending'">
+                        {{ spec.design.approved ? '✅' : '🎨' }}
                       </span>
-                      <span v-if="spec.tasks" class="text-xs" :title="spec.tasks.approved ? 'Tasks Approved' : 'Tasks Pending'">
-                        <i class="fas fa-tasks" :class="spec.tasks.approved ? 'text-green-500' : 'text-yellow-500'"></i>
+                      <span v-if="spec.tasks" class="text-sm" :title="spec.tasks.approved ? 'Tasks Approved' : 'Tasks Pending'">
+                        {{ spec.tasks.approved ? '✅' : '📝' }}
                       </span>
                       <!-- Orchestration Indicator -->
                       <span v-if="spec.requirements?.approved && spec.design?.approved && spec.tasks?.approved" class="text-xs" title="Orchestration Available - All docs approved">
@@ -1306,7 +1306,7 @@
                             {{ spec.requirements?.content?.length || 0 }} Requirements
                           </span>
                           <span v-if="spec.requirements?.approved" class="flex items-center gap-1">
-                            <i class="fas fa-check text-green-500 text-xs" title="Approved"></i>
+                            <span class="text-sm" title="Approved">✅</span>
                             <span class="text-xs text-green-600 dark:text-green-400">Approved</span>
                           </span>
                         </div>
@@ -1357,7 +1357,7 @@
                             Design
                           </span>
                           <span v-if="spec.design?.approved" class="flex items-center gap-1">
-                            <i class="fas fa-check text-green-500 text-xs" title="Approved"></i>
+                            <span class="text-sm" title="Approved">✅</span>
                             <span class="text-xs text-green-600 dark:text-green-400">Approved</span>
                           </span>
                           <i v-if="spec.design?.hasCodeReuseAnalysis" class="fas fa-recycle text-blue-500 text-xs" title="Has code reuse analysis"></i>
@@ -1401,7 +1401,7 @@
                             {{ spec.tasks?.total || 0 }} Tasks
                           </span>
                           <span v-if="spec.tasks?.approved" class="flex items-center gap-1">
-                            <i class="fas fa-check text-green-500 text-xs" title="Approved"></i>
+                            <span class="text-sm" title="Approved">✅</span>
                             <span class="text-xs text-green-600 dark:text-green-400">Approved</span>
                           </span>
                           <span v-if="spec.tasks?.completed > 0" class="text-xs text-gray-500 dark:text-gray-400">({{ spec.tasks.completed }} done)</span>
@@ -1427,7 +1427,7 @@
                             <div v-for="(task, index) in spec.tasks.taskList" :key="task.id" class="border border-gray-200 dark:border-gray-700">
                               <!-- Task Header -->
                               <div class="flex items-start gap-2 p-2 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800" :class="selectedTaskId(spec.name) === task.id ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-800' : ''" @click="selectTask(spec.name, task.id)">
-                                <i class="fas mt-1" :class="task.completed ? 'fa-check-square text-green-500' : 'fa-square text-gray-400'"></i>
+                                <span class="mt-1 text-lg">{{ task.completed ? '✅' : '🔲' }}</span>
                                 <div class="flex-1">
                                   <div class="text-sm text-gray-900 dark:text-gray-100" :class="{ 'line-through text-gray-500 dark:text-gray-400': task.completed }">
                                     <span class="font-medium">Task {{ task.id }}:</span> {{ task.description }}
