@@ -25,7 +25,7 @@
     "dev:dashboard": "concurrently \"npm run watch:frontend\" \"ts-node src/dashboard/cli.ts\" --names \"frontend,backend\" --prefix-colors \"blue,green\" --kill-others-on-fail",
     "dev:dashboard:backend-only": "ts-node src/dashboard/cli.ts",
     "test": "jest",
-    "lint": "eslint src --ext .ts",
+    "lint": "eslint src --ext .ts --fix",
     "format": "prettier --write src"
   },
   "keywords": [
@@ -89,6 +89,7 @@
     "cpy-cli": "^5.0.0",
     "esbuild": "^0.25.8",
     "eslint": "^9.17.0",
+    "eslint-plugin-import": "^2.32.0",
     "jest": "^29.7.0",
     "prettier": "^3.4.2",
     "ts-jest": "^29.2.5",
