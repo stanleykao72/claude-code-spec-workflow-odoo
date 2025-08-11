@@ -235,9 +235,9 @@ export class SpecParser {
       const content = await readFile(requirementsPath, 'utf-8');
 
       // Try to extract title from the first heading
-      // Handle formats like "# Requirements: Feature Name", "# Requirements - Feature Name", or "# Feature Name Requirements"
-      const titleMatch = content.match(/^#\s+(?:Requirements\s*[-:]\s+)?(.+?)(?:\s+Requirements)?$/m);
-      if (titleMatch && titleMatch[1].trim() && titleMatch[1].trim().toLowerCase() !== 'requirements') {
+      // Handle formats like "# Requirements: Feature Name", "# Requirements - Feature Name", "# Requirements Document - Feature Name", or "# Feature Name Requirements"
+      const titleMatch = content.match(/^#\s+(?:Requirements(?:\s+Document)?\s*[-:]\s+)?(.+?)(?:\s+Requirements)?$/m);
+      if (titleMatch && titleMatch[1] && titleMatch[1].trim() && titleMatch[1].trim().toLowerCase() !== 'requirements' && titleMatch[1].trim().toLowerCase() !== 'document') {
         spec.displayName = titleMatch[1].trim();
       }
 
@@ -369,8 +369,9 @@ export class SpecParser {
       const content = await readFile(reportPath, 'utf-8');
 
       // Try to extract title from the first heading
-      const titleMatch = content.match(/^#\s+(?:Bug Report\s*[-:]\s+)?(.+?)(?:\s+Bug Report)?$/m);
-      if (titleMatch && titleMatch[1].trim() && titleMatch[1].trim().toLowerCase() !== 'bug report') {
+      // Handle formats like "# Bug Report: Title", "# Bug Report - Title", "# Bug Report Document - Title"
+      const titleMatch = content.match(/^#\s+(?:Bug Report(?:\s+Document)?\s*[-:]\s+)?(.+?)(?:\s+Bug Report)?$/m);
+      if (titleMatch && titleMatch[1] && titleMatch[1].trim() && titleMatch[1].trim().toLowerCase() !== 'bug report' && titleMatch[1].trim().toLowerCase() !== 'document') {
         bug.displayName = titleMatch[1].trim();
       }
 
