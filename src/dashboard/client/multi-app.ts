@@ -1631,8 +1631,19 @@ function initApp(): void {
 // ============================================================================
 
 // Start initialization
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initApp);
-} else {
-  initApp();
+function startApp() {
+  // Wait for PetiteVue to be available
+  if (typeof PetiteVue === 'undefined') {
+    console.log('Waiting for PetiteVue to load...');
+    setTimeout(startApp, 10);
+    return;
+  }
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+  } else {
+    initApp();
+  }
 }
+
+startApp();
