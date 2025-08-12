@@ -1177,7 +1177,10 @@ export class SpecParser {
             !trimmed.startsWith('[') && // Skip template placeholders like [Description]
             !trimmed.match(/^\[.*\]$/) && // Skip full line placeholders
             !trimmed.match(/^<.*>$/) && // Skip placeholder tags
-            !trimmed.match(/^\{.*\}$/)) { // Skip template variables
+            !trimmed.match(/^\{.*\}$/) && // Skip template variables
+            !trimmed.includes('To be determined') && // Skip template placeholder text
+            !trimmed.includes('This file will be populated') && // Skip template headers
+            !trimmed.startsWith('- To be')) { // Skip template list items
           hasContent = true;
           break;
         }
@@ -1228,7 +1231,9 @@ export class SpecParser {
             !trimmed.match(/^\{.*\}$/) && // Skip template variables
             !trimmed.match(/^[-*]\s*\[/) && // Skip any checkbox line
             !trimmed.match(/^\*.*\*$/) && // Skip italic placeholder text
-            !trimmed.includes('To be completed')) { // Skip common template text
+            !trimmed.includes('To be completed') && // Skip common template text
+            !trimmed.includes('To be determined') && // Skip template placeholder
+            !trimmed.includes('This file will be populated')) { // Skip template header
           hasContent = true;
           break;
         }
