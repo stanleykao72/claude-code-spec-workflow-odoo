@@ -268,7 +268,10 @@ export class SpecParser {
       if (spec.displayName === this.formatDisplayName(name)) {
         // Handle formats like "# Design: Feature Name", "# Design - Feature Name", or "# Feature Name Design"
         const titleMatch = content.match(/^#\s+(?:Design\s*[-:]\s+)?(.+?)(?:\s+Design(?:\s+Document)?)?$/m);
-        if (titleMatch && titleMatch[1].trim() && titleMatch[1].trim().toLowerCase() !== 'design') {
+        if (titleMatch && titleMatch[1].trim() && 
+            titleMatch[1].trim().toLowerCase() !== 'design' &&
+            !titleMatch[1].toLowerCase().includes('placeholder') &&
+            !titleMatch[1].toLowerCase().includes('will be populated')) {
           spec.displayName = titleMatch[1].trim();
         }
       }
@@ -307,7 +310,9 @@ export class SpecParser {
         const titleMatch = content.match(/^#\s+(?:(?:Tasks|Implementation Plan)\s*[-:]\s+)?(.+?)(?:\s+(?:Tasks|Plan))?$/m);
         if (titleMatch && titleMatch[1].trim() && 
             titleMatch[1].trim().toLowerCase() !== 'tasks' && 
-            titleMatch[1].trim().toLowerCase() !== 'implementation plan') {
+            titleMatch[1].trim().toLowerCase() !== 'implementation plan' &&
+            !titleMatch[1].toLowerCase().includes('placeholder') &&
+            !titleMatch[1].toLowerCase().includes('will be populated')) {
           spec.displayName = titleMatch[1].trim();
         }
       }
