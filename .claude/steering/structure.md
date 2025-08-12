@@ -16,15 +16,15 @@ src/
 ├── git.ts              # Git integration
 ├── claude-md.ts        # CLAUDE.md content
 ├── scripts.ts          # Script generation (deprecated)
-└── dashboard/          # Dashboard subsystem
+└── dashboard/          # Unified dashboard subsystem
     ├── cli.ts          # Dashboard CLI entry
-    ├── server.ts       # Fastify server
-    ├── multi-server.ts # Multi-project server
+    ├── multi-server.ts # Main server (handles all projects)
     ├── watcher.ts      # File system monitoring
     ├── parser.ts       # Spec file parsing
     ├── logger.ts       # Logging utilities
-    ├── project-discovery.ts # Project finder
+    ├── project-discovery.ts # Auto-discovers projects
     └── public/         # Static web assets
+        └── multi.html  # Main dashboard interface
 ```
 
 ### Generated Structure (`.claude/`)
@@ -95,11 +95,12 @@ import type { Task } from './types';
 - `templates.ts`: Contains all document templates
 - `steering.ts`: Manages steering documents
 
-### Dashboard Subsystem
+### Dashboard Subsystem (Unified)
 - Self-contained in `dashboard/` directory
-- Own CLI entry point
-- Minimal dependencies on core
-- Can be used independently
+- Single unified dashboard handles all scenarios
+- Multi-project dashboard (`multi-server.ts`) is the ONLY active implementation
+- Automatically discovers and monitors all projects with `.claude` directories
+- WebSocket support for real-time updates across all projects
 
 ### Shared Utilities
 - `utils.ts`: Generic helper functions
