@@ -54,7 +54,7 @@ export class DashboardServer {
 
     // Serve multi-project dashboard as default route
     this.app.get('/', async (request, reply) => {
-      return reply.sendFile('multi.html', join(__dirname, 'public'));
+      return reply.sendFile('index.html', join(__dirname, 'public'));
     });
 
     // Catch-all route for client-side routing - serve multi-project dashboard for any non-API route
@@ -63,7 +63,7 @@ export class DashboardServer {
       if (request.url.startsWith('/api/') || request.url.startsWith('/public/') || request.url.startsWith('/ws')) {
         return reply.code(404).send({ error: 'Not found' });
       }
-      return reply.sendFile('multi.html', join(__dirname, 'public'));
+      return reply.sendFile('index.html', join(__dirname, 'public'));
     });
 
     // WebSocket endpoint for real-time updates (multi-project compatible)

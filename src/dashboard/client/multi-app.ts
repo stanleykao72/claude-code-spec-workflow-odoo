@@ -256,7 +256,8 @@ interface MultiAppState extends AppState {
  * Waits for shared components to load before creating the PetiteVue app
  */
 function initApp(): void {
-  console.log('Initializing multi-dashboard app with shared components');
+  console.log('initApp called - Initializing multi-dashboard app with shared components');
+  console.log('Creating appState object...');
   
   // Create the PetiteVue application with typed state
   const appState: MultiAppState = {
@@ -267,6 +268,7 @@ function initApp(): void {
     // Copy base state properties (not methods)
     theme: 'system' as 'light' | 'dark' | 'system',
     collapsedCompletedTasks: {},
+    // Keep the original structure that was working
     markdownPreview: {
       show: false,
       title: '',
@@ -1569,9 +1571,14 @@ function initApp(): void {
     },
 
     async viewBugMarkdown(projectPath: string, bugName: string, docType: string): Promise<void> {
-      this.markdownPreview.show = true;
-      this.markdownPreview.loading = true;
-      this.markdownPreview.title = `${bugName} - ${docType}.md`;
+      // Replace entire object for PetiteVue reactivity
+      this.markdownPreview = {
+        show: true,
+        loading: true,
+        title: `${bugName} - ${docType}.md`,
+        content: '',
+        rawContent: ''
+      };
       
       try {
         const encodedPath = encodeURIComponent(projectPath);
@@ -1718,6 +1725,17 @@ function initApp(): void {
       this.applyTheme(this.theme);
     },
 
+    showModal(specName: string, docType: string): void {
+      // Replace the entire object to ensure PetiteVue detects the change
+      this.markdownPreview = {
+        show: true,
+        loading: true,
+        title: `${specName} - ${docType}.md`,
+        content: this.markdownPreview.content || '',
+        rawContent: this.markdownPreview.rawContent || ''
+      };
+    },
+    
     closeMarkdownPreview(): void {
       this.markdownPreview.show = false;
       this.markdownPreview.title = '';
@@ -1774,11 +1792,13 @@ function initApp(): void {
 
     async viewMarkdownWithProject(specName: string, docType: string, projectPath: string): Promise<void> {
       console.log('viewMarkdownWithProject called:', { specName, docType, projectPath });
-      console.log('Setting markdownPreview.show to true');
+      
+      // Update the state properly for PetiteVue
       this.markdownPreview.show = true;
       this.markdownPreview.loading = true;
       this.markdownPreview.title = `${specName} - ${docType}.md`;
-      console.log('markdownPreview state:', this.markdownPreview);
+      this.markdownPreview.content = '';
+      this.markdownPreview.rawContent = '';
       
       try {
         const encodedPath = encodeURIComponent(projectPath);
@@ -1799,7 +1819,7 @@ function initApp(): void {
         this.markdownPreview.rawContent = '';
       } finally {
         this.markdownPreview.loading = false;
-        console.log('Final markdownPreview state:', this.markdownPreview);
+        console.log('Final markdown state:', { show: this.markdownPreview.show, title: this.markdownPreview.title, hasContent: !!this.markdownPreview.content });
       }
     },
 
@@ -1816,8 +1836,50 @@ function initApp(): void {
     formatUserStory: dashboardShared.formatUserStory
   };
 
-  // Mount the PetiteVue application
-  PetiteVue.createApp(appState as any).mount('#app');
+  console.log('appState created, mounting PetiteVue app...');
+  console.log('appState.viewMarkdown:', typeof appState.viewMarkdown);
+  console.log('appState.viewBugDocument:', typeof appState.viewBugDocument);
+  
+  // Check if #app element exists
+  const appElement = document.getElementById('app');
+  console.log('App element found:', appElement);
+  if (!appElement) {
+    console.error('ERROR: #app element not found in DOM!');
+    return;
+  }
+  
+  // Mount the PetiteVue application to body to include the modal
+  const app = PetiteVue.createApp(appState);
+  console.log('PetiteVue app created, mounting to body...');
+  app.mount(); // Mount to entire document body
+  console.log('PetiteVue app mounted successfully');
+  
+  // Debug: Check if modal is processed by PetiteVue
+  setTimeout(() => {
+    const modal = document.querySelector('.markdown-modal');
+    if (modal) {
+      const hasVueData = modal.hasAttribute('data-v-scope');
+      console.log('Modal has PetiteVue data-v-scope?', hasVueData);
+      console.log('Modal innerHTML sample:', modal.innerHTML.substring(0, 200));
+    }
+  }, 500);
+  
+  // Test that the app is working by checking the markdown state
+  console.log('Testing app state after mount - markdownPreview:', appState.markdownPreview);
+  
+  // Also check if the modal element exists in DOM
+  setTimeout(() => {
+    const modal = document.querySelector('.markdown-modal');
+    console.log('Modal element found:', !!modal);
+    if (modal) {
+      console.log('Modal classes:', modal.className);
+      console.log('Modal computed style display:', window.getComputedStyle(modal).display);
+    }
+  }, 100);
+  
+  // Also expose appState globally for debugging
+  (window as any).debugAppState = appState;
+  console.log('App state exposed as window.debugAppState for debugging');
 }
 
 // ============================================================================
@@ -1826,6 +1888,7 @@ function initApp(): void {
 
 // Start initialization
 function startApp() {
+  console.log('startApp called, PetiteVue:', typeof PetiteVue);
   // Wait for PetiteVue to be available
   if (typeof PetiteVue === 'undefined') {
     console.log('Waiting for PetiteVue to load...');
@@ -1833,11 +1896,14 @@ function startApp() {
     return;
   }
   
+  console.log('PetiteVue is available, checking document ready state:', document.readyState);
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initApp);
   } else {
+    console.log('Document ready, calling initApp');
     initApp();
   }
 }
 
+console.log('multi-app.ts loaded, calling startApp');
 startApp();

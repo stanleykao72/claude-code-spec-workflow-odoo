@@ -6,7 +6,7 @@ const baseConfig = {
   bundle: true,
   outfile: path.resolve(__dirname, 'src/dashboard/public/dist/app.js'),
   target: 'es2020',
-  format: 'esm',
+  format: 'iife',
   external: ['petite-vue'],
   color: true,
   logLevel: 'info',
