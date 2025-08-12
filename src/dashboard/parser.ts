@@ -485,8 +485,8 @@ export class SpecParser {
             implemented: content.includes('✅') || content.includes('implemented') || content.includes('complete'),
           };
         } else {
-          // Fix file exists but is just template, status = 'fixing'
-          bug.status = 'fixing';
+          // Fix file exists but is just template
+          // Don't set to 'fixing' yet - need to check if analysis is done first
         }
       }
     }
@@ -525,7 +525,7 @@ export class SpecParser {
           };
         } else {
           // Analysis file exists but is just template
-          bug.status = 'analyzing';
+          // Don't change status - leave as 'reported'
         }
       }
     }
