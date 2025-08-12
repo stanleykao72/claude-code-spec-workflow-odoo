@@ -513,8 +513,17 @@ export class SpecParser {
             bug.status = 'analyzing';
           }
           
-          const rootCause = this.extractSection(content, 'Root Cause');
-          const proposedFix = this.extractSection(content, 'Proposed Fix');
+          // Try multiple possible section names for root cause
+          const rootCause = this.extractSection(content, 'Root Cause') || 
+                           this.extractSection(content, 'Root Cause Analysis') ||
+                           this.extractSection(content, 'Investigation Summary');
+          
+          // Try multiple possible section names for proposed fix
+          const proposedFix = this.extractSection(content, 'Proposed Fix') ||
+                             this.extractSection(content, 'Fix Strategy') ||
+                             this.extractSection(content, 'Solution Approach') ||
+                             this.extractSection(content, 'Implementation Plan');
+          
           const filesAffected = this.extractFilesAffected(content);
           
           bug.analysis = {
@@ -1132,20 +1141,32 @@ export class SpecParser {
     const lines = content.split('\n');
     let inSection = false;
     let sectionContent = '';
+    let sectionLevel = 0;
 
     for (const line of lines) {
+      // Check if this line starts our target section
       if (line.includes(`## ${sectionName}`) || line.includes(`### ${sectionName}`)) {
         inSection = true;
+        sectionLevel = line.startsWith('##') && !line.startsWith('###') ? 2 : 3;
         continue;
       }
 
       if (inSection) {
-        // Stop at next section
-        if (line.startsWith('## ') || line.startsWith('### ')) {
-          break;
+        // Stop at next section of same or higher level
+        if (line.startsWith('##')) {
+          const currentLevel = line.startsWith('###') ? 3 : 2;
+          if (currentLevel <= sectionLevel) {
+            // If we haven't collected any content yet, this might be a parent section
+            // with subsections, so continue collecting from subsections
+            if (!sectionContent.trim()) {
+              continue;
+            }
+            break;
+          }
         }
 
-        if (line.trim()) {
+        // Add non-header content
+        if (line.trim() && !line.startsWith('#')) {
           sectionContent += line.trim() + ' ';
         }
       }
