@@ -413,14 +413,14 @@ export class SpecParser {
     if (hasVerification) {
       const content = await readFile(verificationPath, 'utf-8');
       
-      // Check if there's actual verification content (not just template)
-      const hasTestResults = this.hasContentAfterSection(content, 'Test Results') ||
-                           this.hasContentAfterSection(content, 'Verification Steps') ||
-                           this.hasContentAfterSection(content, 'Fix Verification') ||
-                           this.hasContentAfterSection(content, 'Fix Implementation Summary');
-      const hasRegressionChecks = this.hasContentAfterSection(content, 'Regression Testing') ||
-                                this.hasContentAfterSection(content, 'Regression Checks') ||
-                                this.hasContentAfterSection(content, 'Side Effects Check');
+      // Check if there's actual verification content (not just template with unchecked boxes)
+      const hasTestResults = this.hasVerificationContent(content, 'Test Results') ||
+                           this.hasVerificationContent(content, 'Verification Steps') ||
+                           this.hasVerificationContent(content, 'Fix Verification') ||
+                           this.hasVerificationContent(content, 'Fix Implementation Summary');
+      const hasRegressionChecks = this.hasVerificationContent(content, 'Regression Testing') ||
+                                this.hasVerificationContent(content, 'Regression Checks') ||
+                                this.hasVerificationContent(content, 'Side Effects Check');
       
       if (hasTestResults || hasRegressionChecks) {
         // Has actual verification content
@@ -1172,6 +1172,57 @@ export class SpecParser {
             !trimmed.match(/^\[.*\]$/) && // Skip full line placeholders
             !trimmed.match(/^<.*>$/) && // Skip placeholder tags
             !trimmed.match(/^\{.*\}$/)) { // Skip template variables
+          hasContent = true;
+          break;
+        }
+      }
+    }
+
+    return hasContent;
+  }
+
+  private hasVerificationContent(content: string, sectionName: string): boolean {
+    const lines = content.split('\n');
+    let inSection = false;
+    let hasContent = false;
+
+    for (const line of lines) {
+      if (line.includes(`## ${sectionName}`) || line.includes(`### ${sectionName}`)) {
+        inSection = true;
+        continue;
+      }
+
+      if (inSection) {
+        // Stop at next section
+        if (line.startsWith('## ') || line.startsWith('### ')) {
+          break;
+        }
+
+        // For verification, only consider it has content if:
+        // 1. There are checked boxes [x]
+        // 2. There's actual text that's not a checkbox or template
+        const trimmed = line.trim();
+        
+        // Skip unchecked boxes and template content
+        if (trimmed.startsWith('- [ ]') || trimmed.startsWith('* [ ]')) {
+          continue; // Unchecked boxes are just template
+        }
+        
+        // Look for checked boxes
+        if (trimmed.match(/^[-*]\s*\[x\]/i)) {
+          hasContent = true;
+          break;
+        }
+        
+        // Look for actual content (not checkboxes, not placeholders)
+        if (trimmed && 
+            !trimmed.startsWith('[') && // Skip template placeholders
+            !trimmed.match(/^\[.*\]$/) && // Skip full line placeholders
+            !trimmed.match(/^<.*>$/) && // Skip placeholder tags
+            !trimmed.match(/^\{.*\}$/) && // Skip template variables
+            !trimmed.match(/^[-*]\s*\[/) && // Skip any checkbox line
+            !trimmed.match(/^\*.*\*$/) && // Skip italic placeholder text
+            !trimmed.includes('To be completed')) { // Skip common template text
           hasContent = true;
           break;
         }
