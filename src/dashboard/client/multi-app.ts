@@ -949,6 +949,44 @@ function initApp(): void {
           }
           break;
 
+        case 'project-update':
+          // Handle individual project updates from file watchers
+          const projectUpdate = message as any;
+          const projectPath = projectUpdate.projectPath;
+          const project = this.projects.find((p) => p.path === projectPath);
+          if (project && projectUpdate.data) {
+            // Update the specific spec/bug that changed
+            const updateEvent = projectUpdate.data;
+            if (updateEvent.type === 'added' || updateEvent.type === 'changed' || updateEvent.type === 'removed') {
+              // Refresh the project's data
+              // For now, we'll need to fetch the full project data
+              // In the future, we could update just the changed spec/bug
+              console.log(`Project update for ${project.name}:`, updateEvent);
+            }
+          }
+          break;
+
+        case 'active-sessions-update':
+          // Update the active sessions list
+          const sessions = (message as any).data;
+          if (Array.isArray(sessions)) {
+            this.activeSessions = sessions;
+            console.log('Active sessions updated:', sessions.length);
+          }
+          break;
+
+        case 'git-update':
+          // Handle git branch/commit updates
+          const gitUpdate = message as any;
+          const gitProjectPath = gitUpdate.projectPath;
+          const gitProject = this.projects.find((p) => p.path === gitProjectPath);
+          if (gitProject) {
+            gitProject.gitBranch = gitUpdate.gitBranch;
+            gitProject.gitCommit = gitUpdate.gitCommit;
+            console.log(`Git updated for ${gitProject.name}: ${gitUpdate.gitBranch} (${gitUpdate.gitCommit})`);
+          }
+          break;
+
         default:
           console.log('Unknown message type:', message.type);
       }
