@@ -1855,6 +1855,10 @@ function initApp(): void {
   app.mount('#app'); // Mount to app element
   console.log('PetiteVue app mounted successfully');
   
+  // Call init after mounting since PetiteVue doesn't support @mounted
+  console.log('Calling init() after mount...');
+  appState.init();
+  
   // Debug: Check if modal is processed by PetiteVue
   setTimeout(() => {
     const modal = document.querySelector('.markdown-modal');
