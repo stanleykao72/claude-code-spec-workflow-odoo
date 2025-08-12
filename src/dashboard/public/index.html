@@ -1,0 +1,1676 @@
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Real-time monitoring dashboard for Claude Code spec-driven development workflow" />
+    <title>Claude Spec Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      // Suppress Tailwind CDN production warning for development dashboard
+      if (typeof tailwind !== 'undefined') {
+        tailwind.config = { devtools: { enabled: false } };
+      }
+    </script>
+    <script src="https://unpkg.com/petite-vue@0.4.1/dist/petite-vue.iife.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+      [v-cloak] {
+        display: none !important;
+      }
+      /* Modal styles */
+      .markdown-modal {
+        display: none;
+      }
+      .markdown-modal.show {
+        display: flex;
+      }
+      /* Tab active styles are now handled dynamically with project colors */
+      
+      /* EARS keyword syntax highlighting */
+      .ears-keyword {
+        font-family: ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+        font-size: 0.875em;
+        font-weight: 500;
+        color: rgb(245 158 11);
+      }
+      .dark .ears-keyword {
+        color: rgb(251 191 36);
+      }
+      
+      /* Project color styles - pre-define all possible color combinations */
+      /* Cyan */
+      .text-cyan-600 { color: rgb(8 145 178); }
+      .bg-cyan-100 { background-color: rgb(207 250 254); }
+      .bg-cyan-600 { background-color: rgb(8 145 178); }
+      .border-cyan-600 { border-color: rgb(8 145 178); }
+      .border-l-cyan-600 { border-left-color: rgb(8 145 178); }
+      .border-r-cyan-600 { border-right-color: rgb(8 145 178); }
+      .border-b-cyan-600 { border-bottom-color: rgb(8 145 178); }
+      .dark .text-cyan-400 { color: rgb(34 211 238); }
+      .dark .bg-cyan-900 { background-color: rgb(22 78 99); }
+      
+      /* Violet */
+      .text-violet-600 { color: rgb(124 58 237); }
+      .bg-violet-100 { background-color: rgb(237 233 254); }
+      .bg-violet-600 { background-color: rgb(124 58 237); }
+      .border-violet-600 { border-color: rgb(124 58 237); }
+      .border-l-violet-600 { border-left-color: rgb(124 58 237); }
+      .border-r-violet-600 { border-right-color: rgb(124 58 237); }
+      .border-b-violet-600 { border-bottom-color: rgb(124 58 237); }
+      .dark .text-violet-400 { color: rgb(167 139 250); }
+      .dark .bg-violet-900 { background-color: rgb(76 29 149); }
+      
+      /* Rose */
+      .text-rose-600 { color: rgb(225 29 72); }
+      .bg-rose-100 { background-color: rgb(255 228 230); }
+      .bg-rose-600 { background-color: rgb(225 29 72); }
+      .border-rose-600 { border-color: rgb(225 29 72); }
+      .border-l-rose-600 { border-left-color: rgb(225 29 72); }
+      .border-r-rose-600 { border-right-color: rgb(225 29 72); }
+      .border-b-rose-600 { border-bottom-color: rgb(225 29 72); }
+      .dark .text-rose-400 { color: rgb(251 113 133); }
+      .dark .bg-rose-900 { background-color: rgb(136 19 55); }
+      
+      /* Amber */
+      .text-amber-600 { color: rgb(217 119 6); }
+      .bg-amber-100 { background-color: rgb(254 243 199); }
+      .bg-amber-600 { background-color: rgb(217 119 6); }
+      .border-amber-600 { border-color: rgb(217 119 6); }
+      .border-l-amber-600 { border-left-color: rgb(217 119 6); }
+      .border-r-amber-600 { border-right-color: rgb(217 119 6); }
+      .border-b-amber-600 { border-bottom-color: rgb(217 119 6); }
+      .dark .text-amber-400 { color: rgb(251 191 36); }
+      .dark .bg-amber-900 { background-color: rgb(120 53 15); }
+      
+      /* Emerald */
+      .text-emerald-600 { color: rgb(5 150 105); }
+      .bg-emerald-100 { background-color: rgb(209 250 229); }
+      .bg-emerald-600 { background-color: rgb(5 150 105); }
+      .border-emerald-600 { border-color: rgb(5 150 105); }
+      .border-l-emerald-600 { border-left-color: rgb(5 150 105); }
+      .border-r-emerald-600 { border-right-color: rgb(5 150 105); }
+      .border-b-emerald-600 { border-bottom-color: rgb(5 150 105); }
+      .dark .text-emerald-400 { color: rgb(52 211 153); }
+      .dark .bg-emerald-900 { background-color: rgb(6 78 59); }
+      
+      /* Fuchsia */
+      .text-fuchsia-600 { color: rgb(192 38 211); }
+      .bg-fuchsia-100 { background-color: rgb(250 232 255); }
+      .bg-fuchsia-600 { background-color: rgb(192 38 211); }
+      .border-fuchsia-600 { border-color: rgb(192 38 211); }
+      .border-l-fuchsia-600 { border-left-color: rgb(192 38 211); }
+      .border-r-fuchsia-600 { border-right-color: rgb(192 38 211); }
+      .border-b-fuchsia-600 { border-bottom-color: rgb(192 38 211); }
+      .dark .text-fuchsia-400 { color: rgb(232 121 249); }
+      .dark .bg-fuchsia-900 { background-color: rgb(112 26 117); }
+      
+      /* Orange */
+      .text-orange-600 { color: rgb(234 88 12); }
+      .bg-orange-100 { background-color: rgb(255 237 213); }
+      .bg-orange-600 { background-color: rgb(234 88 12); }
+      .border-orange-600 { border-color: rgb(234 88 12); }
+      .border-l-orange-600 { border-left-color: rgb(234 88 12); }
+      .border-r-orange-600 { border-right-color: rgb(234 88 12); }
+      .border-b-orange-600 { border-bottom-color: rgb(234 88 12); }
+      .dark .text-orange-400 { color: rgb(251 146 60); }
+      .dark .bg-orange-900 { background-color: rgb(124 45 18); }
+      
+      /* Teal */
+      .text-teal-600 { color: rgb(13 148 136); }
+      .bg-teal-100 { background-color: rgb(204 251 241); }
+      .bg-teal-600 { background-color: rgb(13 148 136); }
+      .border-teal-600 { border-color: rgb(13 148 136); }
+      .border-l-teal-600 { border-left-color: rgb(13 148 136); }
+      .border-r-teal-600 { border-right-color: rgb(13 148 136); }
+      .border-b-teal-600 { border-bottom-color: rgb(13 148 136); }
+      .dark .text-teal-400 { color: rgb(45 212 191); }
+      .dark .bg-teal-900 { background-color: rgb(19 78 74); }
+      
+      /* Indigo */
+      .text-indigo-600 { color: rgb(79 70 229); }
+      .bg-indigo-100 { background-color: rgb(224 231 255); }
+      .bg-indigo-600 { background-color: rgb(79 70 229); }
+      .border-indigo-600 { border-color: rgb(79 70 229); }
+      .border-l-indigo-600 { border-left-color: rgb(79 70 229); }
+      .border-r-indigo-600 { border-right-color: rgb(79 70 229); }
+      .border-b-indigo-600 { border-bottom-color: rgb(79 70 229); }
+      .dark .text-indigo-400 { color: rgb(129 140 248); }
+      .dark .bg-indigo-900 { background-color: rgb(49 46 129); }
+      
+      /* Lime */
+      .text-lime-600 { color: rgb(101 163 13); }
+      .bg-lime-100 { background-color: rgb(236 252 203); }
+      .bg-lime-600 { background-color: rgb(101 163 13); }
+      .border-lime-600 { border-color: rgb(101 163 13); }
+      .border-l-lime-600 { border-left-color: rgb(101 163 13); }
+      .border-r-lime-600 { border-right-color: rgb(101 163 13); }
+      .border-b-lime-600 { border-bottom-color: rgb(101 163 13); }
+      .dark .text-lime-400 { color: rgb(163 230 53); }
+      .dark .bg-lime-900 { background-color: rgb(54 83 20); }
+      
+      /* Sky */
+      .text-sky-600 { color: rgb(2 132 199); }
+      .bg-sky-100 { background-color: rgb(224 242 254); }
+      .bg-sky-600 { background-color: rgb(2 132 199); }
+      .border-sky-600 { border-color: rgb(2 132 199); }
+      .border-l-sky-600 { border-left-color: rgb(2 132 199); }
+      .border-r-sky-600 { border-right-color: rgb(2 132 199); }
+      .border-b-sky-600 { border-bottom-color: rgb(2 132 199); }
+      .dark .text-sky-400 { color: rgb(56 189 248); }
+      .dark .bg-sky-900 { background-color: rgb(12 74 110); }
+      
+      /* Pink */
+      .text-pink-600 { color: rgb(219 39 119); }
+      .bg-pink-100 { background-color: rgb(252 231 243); }
+      .bg-pink-600 { background-color: rgb(219 39 119); }
+      .border-pink-600 { border-color: rgb(219 39 119); }
+      .border-l-pink-600 { border-left-color: rgb(219 39 119); }
+      .border-r-pink-600 { border-right-color: rgb(219 39 119); }
+      .border-b-pink-600 { border-bottom-color: rgb(219 39 119); }
+      .dark .text-pink-400 { color: rgb(244 114 182); }
+      .dark .bg-pink-900 { background-color: rgb(131 24 67); }
+      
+      /* Red */
+      .text-red-600 { color: rgb(220 38 38); }
+      .bg-red-100 { background-color: rgb(254 226 226); }
+      .bg-red-600 { background-color: rgb(220 38 38); }
+      .border-red-600 { border-color: rgb(220 38 38); }
+      .border-l-red-600 { border-left-color: rgb(220 38 38); }
+      .border-r-red-600 { border-right-color: rgb(220 38 38); }
+      .border-b-red-600 { border-bottom-color: rgb(220 38 38); }
+      .dark .text-red-400 { color: rgb(248 113 113); }
+      .dark .bg-red-900 { background-color: rgb(127 29 29); }
+      
+      /* Green */
+      .text-green-600 { color: rgb(22 163 74); }
+      .bg-green-100 { background-color: rgb(220 252 231); }
+      .bg-green-600 { background-color: rgb(22 163 74); }
+      .border-green-600 { border-color: rgb(22 163 74); }
+      .border-l-green-600 { border-left-color: rgb(22 163 74); }
+      .border-r-green-600 { border-right-color: rgb(22 163 74); }
+      .border-b-green-600 { border-bottom-color: rgb(22 163 74); }
+      .dark .text-green-400 { color: rgb(74 222 128); }
+      .dark .bg-green-900 { background-color: rgb(20 83 45); }
+      
+      /* Blue */
+      .text-blue-600 { color: rgb(37 99 235); }
+      .bg-blue-100 { background-color: rgb(219 234 254); }
+      .bg-blue-600 { background-color: rgb(37 99 235); }
+      .border-blue-600 { border-color: rgb(37 99 235); }
+      .border-l-blue-600 { border-left-color: rgb(37 99 235); }
+      .border-r-blue-600 { border-right-color: rgb(37 99 235); }
+      .border-b-blue-600 { border-bottom-color: rgb(37 99 235); }
+      .dark .text-blue-400 { color: rgb(96 165 250); }
+      .dark .bg-blue-900 { background-color: rgb(30 58 138); }
+      
+      /* Remove focus ring from markdown preview buttons */
+      .markdown-preview-btn:focus {
+        outline: none;
+      }
+      
+      /* GitHub-style Markdown content */
+      .markdown-content {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+        font-size: 16px;
+        line-height: 1.5;
+        word-wrap: break-word;
+        color: #24292f;
+      }
+      
+      .dark .markdown-content {
+        color: #c9d1d9;
+      }
+      
+      .markdown-content h1,
+      .markdown-content h2,
+      .markdown-content h3,
+      .markdown-content h4,
+      .markdown-content h5,
+      .markdown-content h6 {
+        margin-top: 24px;
+        margin-bottom: 16px;
+        font-weight: 600;
+        line-height: 1.25;
+        color: #24292f;
+      }
+      
+      .dark .markdown-content h1,
+      .dark .markdown-content h2,
+      .dark .markdown-content h3,
+      .dark .markdown-content h4,
+      .dark .markdown-content h5,
+      .dark .markdown-content h6 {
+        color: #c9d1d9;
+      }
+      
+      .markdown-content h1 {
+        font-size: 2em;
+        padding-bottom: 0.3em;
+        border-bottom: 1px solid #d0d7de;
+      }
+      
+      .dark .markdown-content h1 {
+        border-bottom-color: #21262d;
+      }
+      
+      .markdown-content h2 {
+        font-size: 1.5em;
+        padding-bottom: 0.3em;
+        border-bottom: 1px solid #d0d7de;
+      }
+      
+      .dark .markdown-content h2 {
+        border-bottom-color: #21262d;
+      }
+      
+      .markdown-content h3 { font-size: 1.25em; }
+      .markdown-content h4 { font-size: 1em; }
+      .markdown-content h5 { font-size: 0.875em; }
+      .markdown-content h6 { font-size: 0.85em; color: #57606a; }
+      
+      .dark .markdown-content h6 { color: #8b949e; }
+      
+      .markdown-content p {
+        margin-top: 0;
+        margin-bottom: 16px;
+      }
+      
+      .markdown-content code {
+        padding: 0.2em 0.4em;
+        margin: 0;
+        font-size: 85%;
+        white-space: break-spaces;
+        background-color: rgba(175, 184, 193, 0.2);
+        border-radius: 6px;
+        font-family: ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+      }
+      
+      .dark .markdown-content code {
+        background-color: rgba(110, 118, 129, 0.4);
+      }
+      
+      .markdown-content pre {
+        padding: 16px;
+        overflow: auto;
+        font-size: 85%;
+        line-height: 1.45;
+        background-color: #f6f8fa;
+        border-radius: 6px;
+        margin-top: 0;
+        margin-bottom: 16px;
+      }
+      
+      .dark .markdown-content pre {
+        background-color: #161b22;
+      }
+      
+      .markdown-content pre code {
+        display: inline;
+        max-width: auto;
+        padding: 0;
+        margin: 0;
+        overflow: visible;
+        line-height: inherit;
+        word-wrap: normal;
+        background-color: transparent;
+        border: 0;
+        font-size: 100%;
+      }
+      
+      .markdown-content ul,
+      .markdown-content ol {
+        margin-top: 0;
+        margin-bottom: 16px;
+        padding-left: 2em;
+      }
+      
+      .markdown-content ul ul,
+      .markdown-content ul ol,
+      .markdown-content ol ol,
+      .markdown-content ol ul {
+        margin-bottom: 0;
+      }
+      
+      .markdown-content li {
+        margin-top: 0.25em;
+      }
+      
+      .markdown-content li + li {
+        margin-top: 0.25em;
+      }
+      
+      .markdown-content blockquote {
+        padding: 0 1em;
+        color: #57606a;
+        border-left: 0.25em solid #d0d7de;
+        margin: 0 0 16px 0;
+      }
+      
+      .dark .markdown-content blockquote {
+        color: #8b949e;
+        border-left-color: #3b434b;
+      }
+      
+      .markdown-content blockquote > :first-child {
+        margin-top: 0;
+      }
+      
+      .markdown-content blockquote > :last-child {
+        margin-bottom: 0;
+      }
+      
+      .markdown-content a {
+        color: #0969da;
+        text-decoration: none;
+        font-weight: 500;
+      }
+      
+      .dark .markdown-content a {
+        color: #58a6ff;
+      }
+      
+      .markdown-content a:hover {
+        text-decoration: underline;
+      }
+      
+      .markdown-content table {
+        display: block;
+        width: max-content;
+        max-width: 100%;
+        overflow: auto;
+        border-spacing: 0;
+        border-collapse: collapse;
+        margin-top: 0;
+        margin-bottom: 16px;
+      }
+      
+      .markdown-content table tr {
+        background-color: #ffffff;
+        border-top: 1px solid #d1d9e0;
+      }
+      
+      .dark .markdown-content table tr {
+        background-color: #0d1117;
+        border-top-color: #30363d;
+      }
+      
+      .markdown-content table tr:nth-child(2n) {
+        background-color: #f6f8fa;
+      }
+      
+      .dark .markdown-content table tr:nth-child(2n) {
+        background-color: #161b22;
+      }
+      
+      .markdown-content table th,
+      .markdown-content table td {
+        padding: 6px 13px;
+        border: 1px solid #d0d7de;
+      }
+      
+      .dark .markdown-content table th,
+      .dark .markdown-content table td {
+        border-color: #30363d;
+      }
+      
+      .markdown-content table th {
+        font-weight: 600;
+      }
+      
+      .markdown-content hr {
+        height: 0.25em;
+        padding: 0;
+        margin: 24px 0;
+        background-color: #d0d7de;
+        border: 0;
+      }
+      
+      .dark .markdown-content hr {
+        background-color: #21262d;
+      }
+      
+      .markdown-content img {
+        max-width: 100%;
+        box-sizing: content-box;
+        background-color: #ffffff;
+      }
+      
+      .dark .markdown-content img {
+        background-color: #0d1117;
+      }
+      
+      .markdown-content > *:first-child {
+        margin-top: 0 !important;
+      }
+      
+      .markdown-content > *:last-child {
+        margin-bottom: 0 !important;
+      }
+      
+      /* Code block copy button styles */
+      .code-block-wrapper {
+        position: relative;
+        margin: 1rem 0;
+      }
+      
+      /* Code copy button - hidden by default, shown on hover */
+      .code-copy-btn {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+        background-color: rgba(55, 65, 81, 0.9); /* gray-700 with opacity */
+        color: white;
+        border-radius: 0.25rem;
+        opacity: 0;
+        transition: opacity 200ms ease-in-out, background-color 150ms ease-in-out;
+        cursor: pointer;
+        border: none;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+      
+      /* Dark mode adjustments for code copy button */
+      .dark .code-copy-btn {
+        background-color: rgba(75, 85, 99, 0.9); /* gray-600 with opacity */
+      }
+      
+      /* Show copy button on code block hover */
+      .code-block-wrapper:hover .code-copy-btn,
+      .code-copy-btn:focus {
+        opacity: 1;
+      }
+      
+      /* Hover state for copy button */
+      .code-copy-btn:hover {
+        background-color: rgba(75, 85, 99, 1); /* gray-600 */
+      }
+      
+      .dark .code-copy-btn:hover {
+        background-color: rgba(107, 114, 128, 1); /* gray-500 */
+      }
+      
+      /* Ensure proper spacing for code blocks with copy buttons */
+      .code-block-wrapper pre {
+        margin: 0;
+        padding-right: 4rem; /* Make room for copy button */
+      }
+      
+      /* Modal header copy button styles */
+      .modal-copy-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.25rem 0.75rem;
+        color: rgb(156, 163, 175); /* gray-400 */
+        border-radius: 0.375rem;
+        transition: color 150ms ease-in-out, background-color 150ms ease-in-out;
+        background-color: transparent;
+        border: none;
+        cursor: pointer;
+        font-size: 0.875rem;
+      }
+      
+      .modal-copy-btn:hover {
+        color: rgb(107, 114, 128); /* gray-500 */
+        background-color: rgb(243, 244, 246); /* gray-100 */
+      }
+      
+      .dark .modal-copy-btn:hover {
+        color: rgb(209, 213, 219); /* gray-300 */
+        background-color: rgb(55, 65, 81); /* gray-700 */
+      }
+      
+      /* Focus styles for accessibility */
+      .code-copy-btn:focus,
+      .modal-copy-btn:focus {
+        outline: 2px solid rgb(99, 102, 241); /* indigo-500 */
+        outline-offset: 2px;
+      }
+      
+      /* Fix code block line-height to prevent striped effect */
+      .code-block-wrapper pre code {
+        line-height: 1.5 !important;
+        display: block !important;
+      }
+      
+    </style>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+      };
+    </script>
+  </head>
+  <body class="h-full bg-gray-50 dark:bg-gray-900 transition-colors">
+    <div id="app" class="h-full flex flex-col">
+      <!-- Markdown Preview Modal (moved to top for PetiteVue processing) -->
+      <div class="markdown-modal fixed inset-0 z-50 items-center justify-center p-4 bg-black bg-opacity-50" :class="{'show': markdownShow}" @click.self="closeMarkdownPreview()">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col" @click.stop>
+          <!-- Modal Header -->
+          <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+              <i class="fas fa-file-alt mr-2"></i>{{ markdownTitle }}
+            </h3>
+            <div class="flex items-center gap-2">
+              <button 
+                @click="copyCommand(markdownRawContent, $event)" 
+                class="modal-copy-btn"
+                title="Copy markdown"
+              >
+                <i class="fas fa-copy"></i>
+                <span>Copy</span>
+              </button>
+              <button 
+                @click="closeMarkdownPreview()" 
+                class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+              >
+                <i class="fas fa-times text-xl"></i>
+              </button>
+            </div>
+          </div>
+          
+          <!-- Modal Content -->
+          <div class="flex-1 overflow-y-auto p-6">
+            <div v-if="markdownLoading" class="flex items-center justify-center py-12">
+              <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
+            </div>
+            <div v-else class="prose dark:prose-invert max-w-none">
+              <div v-html="renderMarkdown(markdownContent)" class="markdown-content"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Header -->
+      <header
+        class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700"
+      >
+        <div class="max-w-full px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between items-center py-3">
+            <div class="flex items-center gap-4">
+              <div class="flex items-center">
+                <img src="/public/claude-icon.svg" alt="Claude" class="w-6 h-6 mr-2" />
+                <h1 class="text-xl font-bold text-gray-900 dark:text-white">
+                  {{ username }}'s Dashboard
+                </h1>
+              </div>
+              <!-- Tunnel Management Buttons -->
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  v-if="!tunnelStatus?.active"
+                  @click.prevent="startTunnel()"
+                  class="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  title="Start public tunnel"
+                >
+                  <i class="fas fa-play-circle mr-2"></i>
+                  <span>Share</span>
+                </button>
+                <button
+                  type="button"
+                  v-if="tunnelStatus?.active"
+                  @click="copyCommand(tunnelStatus.url || tunnelStatus.info?.url, $event)"
+                  class="inline-flex items-center px-3 py-1.5 border border-green-300 dark:border-green-600 text-sm font-medium rounded-md text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/50 hover:bg-green-100 dark:hover:bg-green-900/70 transition-colors"
+                  title="Copy tunnel URL"
+                >
+                  <i class="fas fa-globe mr-2"></i>
+                  <span>Share</span>
+                  <span v-if="tunnelStatus.viewers !== undefined" class="ml-1 text-xs opacity-75">({{ tunnelStatus.viewers }} viewers)</span>
+                </button>
+                <button
+                  type="button"
+                  v-if="tunnelStatus?.active"
+                  @click="stopTunnel()"
+                  class="inline-flex items-center px-2 py-1.5 border border-red-300 dark:border-red-600 text-sm font-medium rounded-md text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/50 hover:bg-red-100 dark:hover:bg-red-900/70 transition-colors"
+                  title="Stop sharing"
+                >
+                  <i class="fas fa-stop"></i>
+                </button>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <!-- Show/Hide Completed toggle -->
+              <button
+                @click="toggleShowCompleted"
+                class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2 text-sm"
+                :title="showCompleted ? 'Hide completed items' : 'Show completed items'"
+              >
+                <i
+                  class="fas text-gray-600 dark:text-gray-400"
+                  :class="showCompleted ? 'fa-toggle-on' : 'fa-toggle-off'"
+                ></i>
+                <span class="hidden sm:inline text-gray-600 dark:text-gray-400">
+                  {{ showCompleted ? 'Hide' : 'Show' }} Completed
+                </span>
+              </button>
+              <!-- Refresh button -->
+              <button
+                @click="location.reload()"
+                class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                title="Refresh dashboard"
+              >
+                <i class="fas fa-sync-alt text-gray-600 dark:text-gray-400"></i>
+              </button>
+              <!-- Theme toggle -->
+              <button
+                @click="cycleTheme"
+                class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                title="Toggle theme"
+              >
+                <svg
+                  v-if="theme === 'light'"
+                  class="w-5 h-5 text-gray-600 dark:text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                  ></path>
+                </svg>
+                <svg
+                  v-else-if="theme === 'dark'"
+                  class="w-5 h-5 text-gray-600 dark:text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                  ></path>
+                </svg>
+                <svg
+                  v-else
+                  class="w-5 h-5 text-gray-600 dark:text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  ></path>
+                </svg>
+              </button>
+              <i
+                class="fas fa-circle text-xs"
+                :class="connected ? 'text-green-500' : 'text-red-500'"
+                :title="connected ? 'Connected' : 'Disconnected'"
+              ></i>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Tab Navigation -->
+      <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div class="flex px-4 sm:px-6 lg:px-8">
+          <!-- Active Tasks Tab -->
+          <button
+            @click="switchTab('active')"
+            class="px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap flex items-center gap-2"
+            :class="activeTab === 'active' ? 'tab-active text-indigo-600 dark:text-indigo-400 border-indigo-600' : 'text-gray-600 dark:text-gray-400 border-transparent hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-gray-600'"
+          >
+            <i class="fas fa-bolt"></i>
+            Active Sessions
+            <span
+              v-if="activeSessionCount > 0"
+              class="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs px-2 py-0.5 rounded-full"
+              >{{ activeSessionCount }}</span
+            >
+          </button>
+
+          <!-- Project Tabs -->
+          <div class="flex overflow-x-auto">
+            <div
+              v-for="(project, index) in projectTabsData"
+              :key="project.path"
+              class="py-2 text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-1 relative"
+              :style="getProjectTabStyles(project)"
+              :class="[
+                activeTab === 'projects' && selectedProject?.path === project.path ? 'tab-active border-b-2' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white',
+                project.level > 0 ? 'pl-3 pr-2' : 'px-3',
+                // Add margin for last nested project in group
+                project.level > 0 && (index === projectTabsData.length - 1 || project.isNextTopLevel) ? 'mr-2' : '',
+                // Add spacing between groups
+                index > 0 && project.level === 0 && project.isPrevNested ? 'ml-1' : ''
+              ]"
+            >
+              <!-- Main project button -->
+              <button
+                @click="selectProject(project)"
+                class="flex items-center gap-1"
+              >
+                <!-- Improved tree connector for nested projects -->
+                <span v-if="project.level > 0" class="text-gray-400 text-xs mr-1">
+                  <span v-if="project.level === 1">├─</span>
+                  <span v-else-if="project.level === 2">&nbsp;&nbsp;└─</span>
+                  <span v-else>&nbsp;&nbsp;&nbsp;&nbsp;└─</span>
+                </span>
+                
+                <span
+                  v-if="project.hasActiveSession"
+                  class="w-2 h-2 rounded-full animate-pulse flex-shrink-0"
+                  :style="`background-color: ${getProjectColorValue(project.path)}`"
+                  title="Active Claude session"
+                ></span>
+                
+                <!-- Project name with better styling for nested projects -->
+                <span :class="project.level > 0 ? 'text-sm' : ''">
+                  {{ project.name }}
+                </span>
+              </button>
+              
+              <!-- Counts badge - clickable for bugs -->
+              <button
+                v-if="(getOpenSpecsCount(project) + getOpenBugsCount(project)) > 0"
+                @click="getOpenBugsCount(project) > 0 ? selectProjectAndShowBugs(project) : selectProject(project)"
+                class="ml-1 px-1.5 py-0.5 text-xs rounded-full hover:opacity-80 transition-opacity"
+                :style="getProjectBadgeStyles(project)"
+                :title="getOpenBugsCount(project) > 0 ? 'Click to view bugs' : 'Specs/Bugs count'"
+              >
+                {{ getOpenSpecsCount(project) }}/{{ getOpenBugsCount(project) }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main content -->
+      <main class="flex-1 overflow-y-auto">
+        <!-- Active Tasks View -->
+        <div v-if="activeTab === 'active'" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div v-if="activeSessions.length === 0" class="text-center py-12">
+            <i class="fas fa-bolt text-4xl text-gray-400 dark:text-gray-600 mb-4"></i>
+            <p class="text-gray-500 dark:text-gray-400">
+              No tasks currently being worked on in active Claude sessions
+            </p>
+            <p class="text-sm text-gray-400 dark:text-gray-500 mt-2">
+              Tasks marked as "In Progress" in active sessions will appear here
+            </p>
+          </div>
+
+          <div v-else class="space-y-6">
+            <div
+              v-for="session in activeSessions"
+              :key="session.type === 'spec' ? `${session.projectPath}-${session.specName}-${session.task.id}` : `${session.projectPath}-${session.bugName}`"
+              class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer border-l-4"
+              :style="`border-left-color: ${session.projectColorValue || 'rgb(79, 70, 229)'}`"
+              @click="selectProjectFromTask(session.projectPath, session.type === 'spec' ? session.specName : session.bugName, session.type)"
+            >
+              <div class="flex items-start justify-between">
+                <div class="flex-1">
+                  <!-- Project/Spec Names - Prominent -->
+                  <div class="mb-4">
+                    <div class="flex items-center gap-2 mb-2">
+                      <span
+                        v-if="session.isCurrentlyActive"
+                        class="w-3 h-3 rounded-full animate-pulse"
+                        :style="`background-color: ${getProjectColorValue(session.projectPath)}`"
+                        title="Currently active"
+                      ></span>
+                      <h2 class="text-xl font-bold text-gray-900 dark:text-white inline-flex items-center gap-2">
+                        <a
+                          @click="selectProjectFromTask(session.projectPath, session.type === 'spec' ? session.specName : session.bugName, session.type)"
+                          class="hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer"
+                        >
+                          {{ session.projectName }}: {{ session.displayName }}
+                        </a>
+                        
+                        <!-- Orchestrate copy button - after title like in project tabs -->
+                        <button
+                          v-if="session.type === 'spec' && !session.isAdHoc && session.requirements?.approved && session.design?.approved && session.tasks?.approved"
+                          @click.stop="copyCommand(`/spec-orchestrate ${session.specName}`, $event)"
+                          class="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 flex items-center gap-1"
+                          title="Copy orchestrate command (all docs approved)"
+                        >
+                          <i class="fas fa-robot mr-1"></i>
+                          <span>/spec-orchestrate</span>
+                          <i class="fas fa-copy opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                        </button>
+                      </h2>
+                    </div>
+                    <!-- Git info pills -->
+                    <div class="flex items-center gap-2 mt-2">
+                      <span
+                        v-if="session.gitBranch"
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+                      >
+                        <i class="fas fa-code-branch mr-1"></i>
+                        {{ session.gitBranch }}
+                      </span>
+                      <span
+                        v-if="session.gitCommit"
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+                      >
+                        <i class="fas fa-code-commit mr-1"></i>
+                        {{ session.gitCommit }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Current Task/Bug -->
+                  <div class="mb-4" v-if="session.type === 'spec'">
+                    <div class="flex items-center flex-wrap gap-2">
+                      <h4 class="text-lg font-medium text-gray-900 dark:text-white"
+                          :title="getTaskTooltip(session.task)"
+                          v-if="!session.isAdHoc">
+                        Task {{ session.task.id }}: {{ session.task.description }}
+                      </h4>
+                      <h4 class="text-lg font-medium text-gray-900 dark:text-white"
+                          v-else>
+                        No specific task or bug being worked on
+                      </h4>
+                      <!-- Approval status for active task -->
+                      <span v-if="!session.isAdHoc && (session.task.requiresApproval || session.task.approved)"
+                        class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+                        :class="session.task.approved ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200'"
+                      >
+                        <span class="mr-1 text-sm">{{ session.task.approved ? '✅' : '⏰' }}</span>
+                        {{ session.task.approved ? 'Approved' : 'Approval Required' }}
+                      </span>
+                      <button
+                        v-if="!session.isAdHoc"
+                        @click.stop="copyTaskCommand(session.specName, session.task.id, $event)"
+                        class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
+                        :title="`Copy command: /spec-execute ${session.specName} ${session.task.id}`"
+                      >
+                        <i class="fas fa-copy"></i>
+                        <span>/spec-execute</span>
+                      </button>
+                      <!-- Orchestration copy button for eligible tasks -->
+                      <button
+                        v-if="!session.isAdHoc && session.task.requiresOrchestration"
+                        @click.stop="copyOrchestrationCommand(session.specName, session.task.id, $event)"
+                        class="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 flex items-center gap-1"
+                        :title="`Copy command: /spec-orchestrate ${session.specName} ${session.task.id}`"
+                      >
+                        <i class="fas fa-robot"></i>
+                        <span>/spec-orchestrate</span>
+                      </button>
+                    </div>
+                    <!-- Task Details -->
+                    <div v-if="session.task.details && session.task.details.length > 0 || session.task.requirements && session.task.requirements.length > 0 || session.task.leverage" class="mt-2 pl-0">
+                      <div class="space-y-1">
+                        <!-- Task Steps -->
+                        <div v-if="session.task.details && session.task.details.length > 0" class="text-xs text-gray-600 dark:text-gray-400">
+                          <span class="font-semibold">Steps:</span>
+                          <ul class="mt-1 ml-4 space-y-0.5">
+                            <li v-for="(detail, idx) in session.task.details" :key="idx" class="flex items-start">
+                              <span class="mr-1">•</span>
+                              <span>{{ detail }}</span>
+                            </li>
+                          </ul>
+                        </div>
+                        <!-- Requirements and Leverage -->
+                        <div class="flex flex-wrap gap-3 text-xs">
+                          <span
+                            v-if="session.task.requirements && session.task.requirements.length > 0"
+                            class="text-gray-600 dark:text-gray-400"
+                          >
+                            <i class="fas fa-list-check mr-1"></i>
+                            Requirements: {{ session.task.requirements.join(', ') }}
+                          </span>
+                          <span
+                            v-if="session.task.leverage"
+                            class="text-gray-600 dark:text-gray-400"
+                          >
+                            <i class="fas fa-screwdriver mr-1"></i>
+                            Leverage: {{ session.task.leverage }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Bug Session Display -->
+                  <div class="mb-4" v-else-if="session.type === 'bug'">
+                    <div class="flex items-center flex-wrap gap-2">
+                      <h4 class="text-lg font-medium text-gray-900 dark:text-white">
+                        {{ session.bugName }}
+                      </h4>
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                        :class="{
+                          'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200': session.bugStatus === 'reported',
+                          'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200': session.bugStatus === 'analyzing',
+                          'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200': session.bugStatus === 'fixing',
+                          'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200': session.bugStatus === 'fixed',
+                          'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200': session.bugStatus === 'verifying',
+                          'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': session.bugStatus === 'resolved'
+                        }"
+                      >
+                        {{ session.bugStatus }}
+                      </span>
+                      <span v-if="session.bugSeverity"
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                        :class="{
+                          'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200': session.bugSeverity === 'critical',
+                          'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200': session.bugSeverity === 'high',
+                          'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200': session.bugSeverity === 'medium',
+                          'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200': session.bugSeverity === 'low'
+                        }"
+                      >
+                        <i class="fas fa-flag mr-1"></i>
+                        {{ session.bugSeverity }}
+                      </span>
+                      <!-- Doc viewer buttons for bug -->
+                      <div class="flex items-center gap-2">
+                        <button
+                          v-if="hasBugDocument(session.bugName, 'report')"
+                          @click.stop="viewBugDocument(session.projectPath, session.bugName, 'report')"
+                          class="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex items-center gap-1"
+                          title="View bug report"
+                        >
+                          <i class="fas fa-file-alt"></i>
+                          <span>Report</span>
+                        </button>
+                        <button
+                          v-if="hasBugDocument(session.bugName, 'analysis')"
+                          @click.stop="viewBugDocument(session.projectPath, session.bugName, 'analysis')"
+                          class="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex items-center gap-1"
+                          title="View analysis"
+                        >
+                          <i class="fas fa-microscope"></i>
+                          <span>Analysis</span>
+                        </button>
+                        <button
+                          v-if="hasBugDocument(session.bugName, 'fix')"
+                          @click.stop="viewBugDocument(session.projectPath, session.bugName, 'fix')"
+                          class="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex items-center gap-1"
+                          title="View fix documentation"
+                        >
+                          <i class="fas fa-wrench"></i>
+                          <span>Fix</span>
+                        </button>
+                      </div>
+                    </div>
+                    <!-- Next Command -->
+                    <div v-if="session.nextCommand" class="mt-2">
+                      <div class="flex items-center gap-2">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Next:</span>
+                        <button
+                          @click.stop="copyCommand(session.nextCommand, $event)"
+                          class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
+                          :title="`Copy command: ${session.nextCommand}`"
+                        >
+                          <i class="fas fa-copy"></i>
+                          <span>{{ session.nextCommand }}</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Task Progress (Spec Only - but not for ad-hoc sessions) -->
+                  <div v-if="session.type === 'spec' && !session.isAdHoc" class="mb-3">
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Task {{ getTaskNumber(session) }} of {{ getSpecTaskCount(session) }}
+                      </span>
+                      <span class="text-sm text-gray-500 dark:text-gray-400">
+                        {{ Math.round(getSpecProgress(session)) }}% complete
+                      </span>
+                    </div>
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                      <div
+                        class="bg-indigo-600 dark:bg-indigo-500 h-2.5 rounded-full transition-all duration-300"
+                        :style="`width: ${getSpecProgress(session)}%`"
+                      ></div>
+                    </div>
+                  </div>
+
+                  <!-- Next Task (Spec Only - but not for ad-hoc sessions) -->
+                  <div v-if="session.type === 'spec' && !session.isAdHoc && getNextTask(session)" class="mb-3">
+                    <div class="flex items-center flex-wrap gap-2">
+                      <span class="text-sm font-medium text-gray-700 dark:text-gray-300"
+                        >Next Up:</span
+                      >
+                      <span class="text-sm text-gray-600 dark:text-gray-400">
+                        Task {{ getNextTask(session).id }}: {{ getNextTask(session).description
+                        }}
+                      </span>
+                      <button
+                        @click.stop="copyTaskCommand(session.specName, getNextTask(session).id, $event)"
+                        class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
+                        :title="`Copy command: /spec-execute ${session.specName} ${getNextTask(session).id}`"
+                      >
+                        <i class="fas fa-copy"></i>
+                        <span>/spec-execute</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Task Details - Flattened on one line (Spec Only - but not for ad-hoc sessions) -->
+                  <div v-if="session.type === 'spec' && !session.isAdHoc" class="flex flex-wrap gap-4 text-sm">
+                    <span
+                      v-if="session.task.requirements && session.task.requirements.length > 0"
+                      class="text-gray-600 dark:text-gray-400"
+                    >
+                      <i class="fas fa-clipboard-check mr-1"></i>
+                      Req: {{ session.task.requirements.join(', ') }}
+                    </span>
+                    <span v-if="session.task.leverage" class="text-gray-600 dark:text-gray-400">
+                      <i class="fas fa-screwdriver mr-1"></i>
+                      Leverage: {{ session.task.leverage }}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="ml-4 flex items-center gap-3">
+                  <!-- Stage indicators matching project tabs style -->
+                  <div v-if="session.type === 'spec' && !session.isAdHoc" class="flex items-center gap-2">
+                    <span v-if="session.requirements" class="text-sm" :title="session.requirements.approved ? 'Requirements Approved' : 'Requirements Pending'">
+                      <i class="fas fa-clipboard-list" :class="session.requirements.approved ? 'text-green-500' : 'text-yellow-500'"></i>
+                    </span>
+                    <span v-if="session.design" class="text-sm" :title="session.design.approved ? 'Design Approved' : 'Design Pending'">
+                      <i class="fas fa-drafting-compass" :class="session.design.approved ? 'text-green-500' : 'text-yellow-500'"></i>
+                    </span>
+                    <span v-if="session.tasks" class="text-sm" :title="session.tasks.approved ? 'Tasks Approved' : 'Tasks Pending'">
+                      <i class="fas fa-tasks" :class="session.tasks.approved ? 'text-green-500' : 'text-yellow-500'"></i>
+                    </span>
+                    <!-- Orchestration Indicator -->
+                    <span v-if="session.requirements?.approved && session.design?.approved && session.tasks?.approved" class="text-xs" title="Orchestration Available - All docs approved">
+                      <i class="fas fa-robot text-green-500"></i>
+                    </span>
+                  </div>
+                  <!-- Stage indicator for specs -->
+                  <span v-if="session.type === 'spec' && getSpecStatus(session)" 
+                    class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
+                    :class="getStatusClass(getSpecStatus(session))"
+                  >
+                    {{ getStatusLabel(getSpecStatus(session)) }}
+                  </span>
+                  <!-- Stage indicator for bugs -->
+                  <span v-if="session.type === 'bug'" 
+                    class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
+                    :class="{
+                      'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200': session.bugStatus === 'reported',
+                      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200': session.bugStatus === 'analyzing',
+                      'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200': session.bugStatus === 'fixing',
+                      'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200': session.bugStatus === 'fixed',
+                      'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200': session.bugStatus === 'verifying',
+                      'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': session.bugStatus === 'resolved'
+                    }"
+                  >
+                    {{ session.bugStatus.charAt(0).toUpperCase() + session.bugStatus.slice(1) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Projects View -->
+        <div
+          v-if="activeTab === 'projects' && selectedProject"
+          class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6"
+        >
+          <!-- Project Info -->
+          <div class="mb-4 flex items-center justify-between">
+            <div>
+              <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                {{ selectedProject.name }}
+              </h2>
+              <p class="text-sm text-gray-600 dark:text-gray-400">{{ selectedProject.path }}</p>
+              <!-- Git info pills -->
+              <div class="flex items-center gap-2 mt-2">
+                <span
+                  v-if="selectedProject.gitBranch"
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+                >
+                  <i class="fas fa-code-branch mr-1"></i>
+                  {{ selectedProject.gitBranch }}
+                </span>
+                <span
+                  v-if="selectedProject.gitCommit"
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+                >
+                  <i class="fas fa-code-commit mr-1"></i>
+                  {{ selectedProject.gitCommit }}
+                </span>
+              </div>
+            </div>
+            <div class="flex items-center gap-4 text-sm">
+              <div class="flex items-center gap-1.5" 
+                   :title="selectedProject.steering && selectedProject.steering.exists ? (selectedProject.steering.hasProduct && selectedProject.steering.hasTech && selectedProject.steering.hasStructure ? 'Steering documents complete' : 'Steering documents incomplete') : 'No steering documents'">
+                <i class="fas fa-compass" 
+                   :class="selectedProject.steering && selectedProject.steering.hasProduct && selectedProject.steering.hasTech && selectedProject.steering.hasStructure ? 'text-green-500' : 'text-gray-400 dark:text-gray-500'"></i>
+                <span class="hidden md:inline text-gray-600 dark:text-gray-400">Steering:</span>
+                <i class="fas fa-sm"
+                   :class="selectedProject.steering && selectedProject.steering.hasProduct && selectedProject.steering.hasTech && selectedProject.steering.hasStructure ? 'fa-check text-green-600 dark:text-green-400' : 'fa-times text-red-500 dark:text-red-400'"></i>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <i class="fas fa-file-alt text-gray-400 dark:text-gray-500"></i>
+                <span class="hidden md:inline text-gray-600 dark:text-gray-400">Specs:</span>
+                <span class="font-semibold text-gray-900 dark:text-white"
+                  >{{ selectedProject.specs?.length || 0 }}</span
+                >
+              </div>
+              <div class="flex items-center gap-1.5">
+                <i class="fas fa-spinner text-indigo-400 dark:text-indigo-500"></i>
+                <span class="hidden md:inline text-gray-600 dark:text-gray-400">Active:</span>
+                <span class="font-semibold text-indigo-600 dark:text-indigo-400"
+                  >{{ getSpecsInProgress(selectedProject) }}</span
+                >
+              </div>
+              <div class="flex items-center gap-1.5">
+                <i class="fas fa-check-circle text-green-400 dark:text-green-500"></i>
+                <span class="hidden md:inline text-gray-600 dark:text-gray-400">Done:</span>
+                <span class="font-semibold text-green-600 dark:text-green-400"
+                  >{{ getSpecsCompleted(selectedProject) }}</span
+                >
+              </div>
+              <div class="flex items-center gap-1.5">
+                <i class="fas fa-tasks text-gray-400 dark:text-gray-500"></i>
+                <span class="hidden md:inline text-gray-600 dark:text-gray-400">Tasks:</span>
+                <span class="font-semibold text-gray-900 dark:text-white"
+                  >{{ getTotalTasks(selectedProject) }}</span
+                >
+              </div>
+              <div v-if="getOpenBugsCount(selectedProject) > 0" class="flex items-center gap-1.5">
+                <i class="fas fa-bug text-gray-400 dark:text-gray-500"></i>
+                <span class="hidden md:inline text-gray-600 dark:text-gray-400">Open:</span>
+                <span class="font-semibold text-gray-900 dark:text-white"
+                  >{{ getOpenBugsCount(selectedProject) }}</span
+                >
+              </div>
+              <div v-if="getBugsInProgress(selectedProject) > 0" class="flex items-center gap-1.5">
+                <span class="hidden md:inline text-gray-600 dark:text-gray-400"
+                  >Active:</span
+                >
+                <span class="font-semibold text-orange-600 dark:text-orange-400"
+                  >{{ getBugsInProgress(selectedProject) }}</span
+                >
+              </div>
+              <div v-if="getBugsResolved(selectedProject) > 0" class="flex items-center gap-1.5">
+                <span class="hidden md:inline text-gray-600 dark:text-gray-400"
+                  >Fixed:</span
+                >
+                <span class="font-semibold text-green-600 dark:text-green-400"
+                  >{{ getBugsResolved(selectedProject) }}</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Steering Documents Warning (Only shown when incomplete) -->
+          <div v-if="selectedProject.steering && (!selectedProject.steering.exists || !selectedProject.steering.hasProduct || !selectedProject.steering.hasTech || !selectedProject.steering.hasStructure)" 
+               class="mb-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+              </div>
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                  Steering Documents Incomplete
+                </h3>
+                <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
+                  <p>
+                    Run <button @click.stop="copyCommand('/spec-steering-setup', $event)" class="inline-flex items-center gap-1 bg-yellow-100 dark:bg-yellow-800 px-1.5 py-0.5 rounded text-xs font-mono hover:bg-yellow-200 dark:hover:bg-yellow-700 transition-colors"><i class="fas fa-copy"></i>/spec-steering-setup</button> to create missing steering documents:
+                  </p>
+                  <ul class="list-disc list-inside mt-1">
+                    <li v-if="!selectedProject.steering.hasProduct">Product vision and goals (product.md)</li>
+                    <li v-if="!selectedProject.steering.hasTech">Technology stack and architecture (tech.md)</li>
+                    <li v-if="!selectedProject.steering.hasStructure">Project structure and patterns (structure.md)</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Specs list -->
+          <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+            <div class="divide-y divide-gray-200 dark:divide-gray-700">
+              <div
+                v-for="spec in getVisibleSpecs(selectedProject)"
+                :key="spec.name"
+                class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all"
+                :class="spec.status === 'completed' ? 'opacity-75' : ''"
+              >
+                <div 
+                  class="flex items-center justify-between p-6 cursor-pointer"
+                  @click="selectedSpec = selectedSpec?.name === spec.name ? null : spec; console.log('selectedSpec:', selectedSpec, 'spec:', spec)"
+                >
+                  <div class="flex-1">
+                    <h3 class="text-lg font-medium transition-all inline-flex items-center gap-2"
+                      :class="spec.status === 'completed' ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-white'">
+                      {{ spec.displayName }}
+                      
+                      <!-- Action Buttons - Next to title -->
+                      <button
+                        v-if="spec.requirements?.approved && spec.design?.approved && spec.tasks?.approved"
+                        @click.stop="copyOrchestrateCommand(spec, $event)"
+                        class="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 flex items-center gap-1"
+                        title="Copy orchestrate command (all docs approved)"
+                      >
+                        <i class="fas fa-robot mr-1"></i>
+                        <span>/spec-orchestrate</span>
+                      </button>
+                      <!-- Next Phase button - Show when ready to move to next phase -->
+                      <button
+                        v-if="spec.requirements?.approved && (!spec.design?.approved)"
+                        @click.stop="copyCommand(`/spec-design ${spec.name}`, $event)"
+                        class="text-xs text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 flex items-center gap-1"
+                        title="Create design document"
+                      >
+                        <i class="fas fa-arrow-right mr-1"></i>
+                        <span>/spec-design</span>
+                      </button>
+                      <button
+                        v-if="spec.design?.approved && (!spec.tasks?.approved)"
+                        @click.stop="copyCommand(`/spec-tasks ${spec.name}`, $event)"
+                        class="text-xs text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 flex items-center gap-1"
+                        title="Create task breakdown"
+                      >
+                        <i class="fas fa-arrow-right mr-1"></i>
+                        <span>/spec-tasks</span>
+                      </button>
+                      <button
+                        v-if="spec.tasks && spec.tasks.taskList && spec.tasks.taskList.length > 0 && spec.tasks.completed < spec.tasks.total"
+                        @click.stop="copyNextTaskCommand(spec, $event)"
+                        class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1"
+                        title="Copy command for next task"
+                      >
+                        <i class="fas fa-play mr-1"></i>
+                        <span>/spec-execute</span>
+                      </button>
+                    </h3>
+                    <div
+                      class="mt-1 flex items-center space-x-4 text-sm"
+                      :class="spec.status === 'completed' ? 'text-gray-400 dark:text-gray-500' : 'text-gray-500 dark:text-gray-400'"
+                    >
+                      <span v-if="spec.status !== 'completed'">
+                        <i class="fas fa-clock mr-1"></i>
+                        {{ formatDate(spec.lastModified) }}
+                      </span>
+                      <span v-if="spec.tasks && spec.status !== 'completed'">
+                        <i class="fas fa-tasks mr-1"></i>
+                        {{ spec.tasks.completed }} / {{ spec.tasks.total }} tasks
+                      </span>
+                    </div>
+                  </div>
+                  <div class="ml-4 flex items-center gap-3">
+                    <span
+                      class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
+                      :class="getStatusClass(spec.status)"
+                    >
+                      {{ getStatusLabel(spec.status) }}
+                    </span>
+                    <!-- Acceptance Status Indicators -->
+                    <div class="flex items-center gap-2">
+                      <span v-if="spec.requirements" class="text-sm" :title="spec.requirements.approved ? 'Requirements Approved' : 'Requirements Pending'">
+                        <i class="fas fa-clipboard-list" :class="spec.requirements.approved ? 'text-green-500' : 'text-yellow-500'"></i>
+                      </span>
+                      <span v-if="spec.design" class="text-sm" :title="spec.design.approved ? 'Design Approved' : 'Design Pending'">
+                        <i class="fas fa-drafting-compass" :class="spec.design.approved ? 'text-green-500' : 'text-yellow-500'"></i>
+                      </span>
+                      <span v-if="spec.tasks" class="text-sm" :title="spec.tasks.approved ? 'Tasks Approved' : 'Tasks Pending'">
+                        <i class="fas fa-tasks" :class="spec.tasks.approved ? 'text-green-500' : 'text-yellow-500'"></i>
+                      </span>
+                      <!-- Orchestration Indicator -->
+                      <span v-if="spec.requirements?.approved && spec.design?.approved && spec.tasks?.approved" class="text-xs" title="Orchestration Available - All docs approved">
+                        <i class="fas fa-robot text-green-500"></i>
+                      </span>
+                    </div>
+                    <span v-if="spec.status === 'completed'" class="text-sm text-gray-500 dark:text-gray-400">
+                      <i class="fas fa-clock mr-1"></i>
+                      {{ formatDate(spec.lastModified) }}
+                    </span>
+                    <i 
+                      class="fas fa-chevron-down text-gray-400 transition-transform duration-200"
+                      :class="selectedSpec?.name === spec.name ? 'rotate-180' : ''"
+                    ></i>
+                  </div>
+                </div>
+
+                <!-- Progress bar with task counter (outside clickable area) -->
+                <div v-if="spec.tasks && spec.tasks.total > 0 && spec.status !== 'completed'" class="px-6 pb-3">
+                  <div class="flex items-center gap-3">
+                    <span class="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                      {{ spec.tasks.completed }}/{{ spec.tasks.total }}
+                    </span>
+                    <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div
+                        class="bg-indigo-600 dark:bg-indigo-500 h-2 rounded-full transition-all duration-300"
+                        :style="`width: ${(spec.tasks.completed / spec.tasks.total) * 100}%`"
+                      ></div>
+                    </div>
+                    <span class="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                      {{ Math.round((spec.tasks.completed / spec.tasks.total) * 100) }}%
+                    </span>
+                  </div>
+                </div>
+
+
+                <!-- Expanded details (outside clickable area) -->
+                <div
+                  v-if="selectedSpec?.name === spec.name"
+                  class="px-6 pb-6 pt-4 border-t border-gray-200 dark:border-gray-700"
+                  @vue:mounted="console.log('Expanded details mounted for', selectedSpec?.name, 'selectedSpec:', selectedSpec)"
+                >
+                  
+                    <div class="w-full flex flex-wrap gap-4 mb-4">
+                      <!-- Requirements -->
+                      <div :class="isRequirementsExpanded(spec.name) ? 'w-full' : 'flex-1'" class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded p-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" @click.stop="toggleRequirementsExpanded(spec.name)">
+                        <div class="flex items-center gap-2 text-sm">
+                          <span class="font-medium text-gray-900 dark:text-white">
+                            <i class="fas fa-clipboard-list text-gray-600 dark:text-gray-400 mr-2"></i>
+                            {{ spec.requirements?.content?.length || 0 }} Requirements
+                          </span>
+                          <span v-if="spec.requirements?.approved" class="flex items-center gap-1">
+                            <span class="text-sm" title="Approved">✅</span>
+                            <span class="text-xs text-green-600 dark:text-green-400">Approved</span>
+                          </span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <button
+                            v-if="spec.requirements"
+                            @click.stop="viewMarkdown(spec.name, 'requirements', selectedProject.path)"
+                            class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
+                            title="View source"
+                          >
+                            <i class="fas fa-search"></i> <span class="font-mono text-[10px] opacity-75">.md</span>
+                          </button>
+                          <i class="fas text-xs text-gray-400" :class="isRequirementsExpanded(spec.name) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                        </div>
+                      </div>
+                      
+                      <!-- Requirements Expanded Content - Accordion -->
+                      <div v-if="isRequirementsExpanded(spec.name)" class="w-full bg-white dark:bg-gray-900 rounded-b p-3 -mt-2 border-t border-gray-200 dark:border-gray-700">
+                        <div v-if="spec.requirements && spec.requirements.content && spec.requirements.content.length > 0">
+                          <div v-for="(requirement, index) in spec.requirements.content" :key="requirement.id || index" class="border border-gray-200 dark:border-gray-700">
+                            <!-- Requirement Header -->
+                            <div class="p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" @click="toggleRequirementAccordion(spec.name, requirement.id || index)">
+                              <div class="flex items-center justify-between">
+                                <div class="text-sm font-medium text-gray-900 dark:text-white">{{ requirement.id }}: {{ requirement.title || 'No title' }}</div>
+                                <i class="fas fa-chevron-down text-gray-400 transition-transform duration-200" :class="isRequirementExpanded(spec.name, requirement.id || index) ? 'rotate-180' : ''"></i>
+                              </div>
+                              <div v-if="requirement.userStory" class="text-xs text-blue-600 dark:text-blue-400 mt-1" v-html="formatUserStory(requirement.userStory)"></div>
+                            </div>
+                            <!-- Acceptance Criteria -->
+                            <div v-if="isRequirementExpanded(spec.name, requirement.id || index) && requirement.acceptanceCriteria" class="px-3 pb-3 border-t border-gray-100 dark:border-gray-700">
+                              <div class="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 pt-2">Acceptance Criteria:</div>
+                              <ul class="space-y-1">
+                                <li v-for="criteria in requirement.acceptanceCriteria" :key="criteria" class="text-xs text-gray-600 dark:text-gray-400">
+                                  <span v-html="formatAcceptanceCriteria(criteria)"></span>
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                        <p v-else class="text-sm text-gray-500 dark:text-gray-400">No requirements content available</p>
+                      </div>
+                      
+                      <!-- Design -->
+                      <div :class="isDesignExpanded(spec.name) ? 'w-full' : 'flex-1'" class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded p-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" @click.stop="toggleDesignExpanded(spec.name)">
+                        <div class="flex items-center gap-2 text-sm">
+                          <span class="font-medium text-gray-900 dark:text-white">
+                            <i class="fas fa-drafting-compass text-gray-600 dark:text-gray-400 mr-2"></i>
+                            Design
+                          </span>
+                          <span v-if="spec.design?.approved" class="flex items-center gap-1">
+                            <span class="text-sm" title="Approved">✅</span>
+                            <span class="text-xs text-green-600 dark:text-green-400">Approved</span>
+                          </span>
+                          <i v-if="spec.design?.hasCodeReuseAnalysis" class="fas fa-recycle text-blue-500 text-xs" title="Has code reuse analysis"></i>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <button
+                            v-if="spec.design"
+                            @click.stop="viewMarkdown(spec.name, 'design', selectedProject.path)"
+                            class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
+                            title="View source"
+                          >
+                            <i class="fas fa-search"></i> <span class="font-mono text-[10px] opacity-75">.md</span>
+                          </button>
+                          <i class="fas text-xs text-gray-400" :class="isDesignExpanded(spec.name) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                        </div>
+                      </div>
+                      
+                      <!-- Design Expanded Content -->
+                      <div v-if="isDesignExpanded(spec.name)" class="w-full bg-gray-50 dark:bg-gray-800 rounded-b p-3 -mt-2">
+                        <div v-if="spec.design" class="text-sm text-gray-600 dark:text-gray-400">
+                          <div v-if="spec.design.codeReuseContent && spec.design.codeReuseContent.length > 0" class="space-y-2">
+                            <div v-for="category in spec.design.codeReuseContent" :key="category.title" class="bg-green-50 dark:bg-green-900/20 rounded p-2">
+                              <h6 class="text-xs font-medium text-green-700 dark:text-green-300 mb-1">{{ category.title }}</h6>
+                              <ul class="text-xs text-green-600 dark:text-green-400 space-y-1">
+                                <li v-for="item in category.items" :key="item" class="flex items-start">
+                                  <span class="mr-1.5 mt-1 w-1 h-1 bg-green-500 rounded-full flex-shrink-0"></span>
+                                  <span>{{ item }}</span>
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                        <p v-else class="text-sm text-gray-500">No design content available</p>
+                      </div>
+                      
+                      <!-- Tasks -->
+                      <div :class="isTasksExpanded(spec.name) ? 'w-full' : 'flex-1'" class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded p-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" @click.stop="toggleTasksExpanded(spec.name)">
+                        <div class="flex items-center gap-2 text-sm">
+                          <span class="font-medium text-gray-900 dark:text-white">
+                            <i class="fas fa-tasks text-gray-600 dark:text-gray-400 mr-2"></i>
+                            {{ spec.tasks?.total || 0 }} Tasks
+                          </span>
+                          <span v-if="spec.tasks?.approved" class="flex items-center gap-1">
+                            <span class="text-sm" title="Approved">✅</span>
+                            <span class="text-xs text-green-600 dark:text-green-400">Approved</span>
+                          </span>
+                          <span v-if="spec.tasks?.completed > 0" class="text-xs text-gray-500 dark:text-gray-400">({{ spec.tasks.completed }} done)</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <button
+                            v-if="spec.tasks"
+                            @click.stop="viewMarkdown(spec.name, 'tasks', selectedProject.path)"
+                            class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
+                            title="View source"
+                          >
+                            <i class="fas fa-search"></i> <span class="font-mono text-[10px] opacity-75">.md</span>
+                          </button>
+                          <i class="fas text-xs text-gray-400" :class="isTasksExpanded(spec.name) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                        </div>
+                      </div>
+                      
+                      <!-- Tasks Expanded Content - Accordion with task details -->
+                      <div v-if="isTasksExpanded(spec.name)" class="w-full bg-white dark:bg-gray-900 rounded-b p-3 -mt-2 border-t border-gray-200 dark:border-gray-700">
+                        <div v-if="spec.tasks && spec.tasks.taskList && spec.tasks.taskList.length > 0">
+                          <!-- Task List -->
+                          <div class="mb-4">
+                            <div v-for="(task, index) in spec.tasks.taskList" :key="task.id" class="border border-gray-200 dark:border-gray-700">
+                              <!-- Task Header -->
+                              <div class="flex items-start gap-2 p-2 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800" :class="selectedTaskId(spec.name) === task.id ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-800' : ''" @click="selectTask(spec.name, task.id)">
+                                <span class="mt-1 text-lg">{{ task.completed ? '✅' : '🔲' }}</span>
+                                <div class="flex-1">
+                                  <div class="text-sm text-gray-900 dark:text-gray-100" :class="{ 'line-through text-gray-500 dark:text-gray-400': task.completed }">
+                                    <span class="font-medium">Task {{ task.id }}:</span> {{ task.description }}
+                                  </div>
+                                </div>
+                                <i class="fas fa-chevron-right text-gray-400 text-xs transition-transform duration-200" :class="selectedTaskId(spec.name) === task.id ? 'rotate-90' : ''"></i>
+                              </div>
+                              
+                              <!-- Task Details (inline) -->
+                              <div v-if="selectedTaskId(spec.name) === task.id" class="px-3 pb-3 border-t border-gray-100 dark:border-gray-700">
+                                <div class="bg-gray-50 dark:bg-gray-800 rounded p-3 mt-2">
+                                  <div class="space-y-2 text-xs">
+                                    <div v-if="task.requirements && task.requirements.length > 0" class="text-gray-600 dark:text-gray-400">
+                                      <i class="fas fa-list-check mr-1"></i>
+                                      <span class="font-medium">Requirements:</span> {{ task.requirements.join(', ') }}
+                                    </div>
+                                    <div v-if="task.leverage" class="text-gray-600 dark:text-gray-400">
+                                      <i class="fas fa-screwdriver mr-1"></i>
+                                      <span class="font-medium">Leverage:</span> {{ task.leverage }}
+                                    </div>
+                                    <div v-if="task.details && task.details.length > 0" class="text-gray-600 dark:text-gray-400">
+                                      <span class="font-medium">Details:</span>
+                                      <ul class="mt-1 ml-4 space-y-1">
+                                        <li v-for="(detail, detailIndex) in task.details" :key="detailIndex" class="text-gray-600 dark:text-gray-400">• {{ detail }}</li>
+                                      </ul>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <p v-else class="text-sm text-gray-500 dark:text-gray-400">No tasks available</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        <!-- Bugs Section -->
+        <div
+          v-if="activeTab === 'projects' && selectedProject && getVisibleBugs(selectedProject).length > 0"
+          class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6"
+          data-bug-section
+        >
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            <i class="fas fa-bug mr-2"></i>Bug Tracking
+          </h2>
+            <div class="bg-white dark:bg-gray-800 shadow rounded-lg transition-colors">
+              <div class="divide-y divide-gray-200 dark:divide-gray-700">
+                <div
+                  v-for="bug in getVisibleBugs(selectedProject)"
+                  :key="bug.name"
+                  :data-bug-name="bug.name"
+                  class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all p-4"
+                >
+                  <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                      <h3 class="text-base font-medium text-gray-900 dark:text-white">
+                        {{ bug.displayName }}
+                      </h3>
+                      
+                      <!-- Bug Details - Show only for non-resolved bugs -->
+                      <div v-if="bug.status !== 'resolved'">
+                        <!-- Bug Severity -->
+                        <div class="mt-2 flex items-center gap-4 text-sm">
+                          <span v-if="bug.report?.severity" 
+                            class="inline-flex items-center text-xs"
+                            :class="{
+                              'text-red-600 dark:text-red-400': bug.report.severity === 'critical',
+                              'text-orange-600 dark:text-orange-400': bug.report.severity === 'high',
+                              'text-yellow-600 dark:text-yellow-400': bug.report.severity === 'medium',
+                              'text-gray-600 dark:text-gray-400': bug.report.severity === 'low'
+                            }"
+                          >
+                            <i class="fas fa-exclamation-circle mr-1"></i>
+                            {{ bug.report.severity }}
+                          </span>
+                        </div>
+                        
+                        <!-- Bug Documents -->
+                        <div class="mt-3 flex items-center gap-3">
+                          <button
+                            v-if="bug.report?.exists"
+                            @click="viewBugMarkdown(selectedProject.path, bug.name, 'report')"
+                            class="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                          >
+                            <i class="fas fa-file-alt mr-1"></i>Report
+                          </button>
+                          
+                          <button
+                            v-if="bug.analysis?.exists"
+                            @click="viewBugMarkdown(selectedProject.path, bug.name, 'analysis')"
+                            class="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                          >
+                            <i class="fas fa-search mr-1"></i>Analysis
+                          </button>
+                          
+                          <button
+                            v-if="bug.fix?.exists"
+                            @click="viewBugMarkdown(selectedProject.path, bug.name, 'fix')"
+                            class="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                          >
+                            <i class="fas fa-wrench mr-1"></i>Fix
+                          </button>
+                          
+                          <button
+                            v-if="bug.verification?.exists"
+                            @click="viewBugMarkdown(selectedProject.path, bug.name, 'verification')"
+                            class="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                          >
+                            <i class="fas fa-check-circle mr-1"></i>Verification
+                          </button>
+                        </div>
+                        
+                        <!-- Next Bug Command -->
+                        <div class="mt-3">
+                          <button
+                            v-if="bug.status === 'reported'"
+                            @click.stop="copyCommand(`/bug-analyze ${bug.name}`, $event)"
+                            class="inline-flex items-center gap-1 text-xs font-medium text-yellow-600 dark:text-yellow-400 hover:text-yellow-800 dark:hover:text-yellow-300"
+                            :title="`Copy command: /bug-analyze ${bug.name}`"
+                          >
+                            <i class="fas fa-copy"></i>
+                            <span>Next: /bug-analyze {{ bug.name }}</span>
+                          </button>
+                          
+                          <button
+                            v-if="bug.status === 'analyzing'"
+                            @click.stop="copyCommand(`/bug-fix ${bug.name}`, $event)"
+                            class="inline-flex items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                            :title="`Copy command: /bug-fix ${bug.name}`"
+                          >
+                            <i class="fas fa-copy"></i>
+                            <span>Next: /bug-fix {{ bug.name }}</span>
+                          </button>
+                          
+                          <button
+                            v-if="bug.status === 'fixing' || bug.status === 'fixed'"
+                            @click.stop="copyCommand(`/bug-verify ${bug.name}`, $event)"
+                            class="inline-flex items-center gap-1 text-xs font-medium text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300"
+                            :title="`Copy command: /bug-verify ${bug.name}`"
+                          >
+                            <i class="fas fa-copy"></i>
+                            <span>Next: /bug-verify {{ bug.name }}</span>
+                          </button>
+                        </div>
+                      </div>
+                      
+                    </div>
+                    
+                    <!-- Bug Status Pill -->
+                    <span 
+                      class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
+                      :class="{
+                        'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200': bug.status === 'reported',
+                        'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200': bug.status === 'analyzing',
+                        'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200': bug.status === 'fixing',
+                        'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200': bug.status === 'fixed',
+                        'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200': bug.status === 'verifying',
+                        'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': bug.status === 'resolved'
+                      }"
+                    >
+                      {{ bug.status.charAt(0).toUpperCase() + bug.status.slice(1) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div> <!-- End of #app -->
+
+    <script src="/public/dist/app.js"></script>
+  </body>
+</html>

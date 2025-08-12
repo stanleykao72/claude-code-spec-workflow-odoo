@@ -24,7 +24,7 @@ src/
     ├── logger.ts       # Logging utilities
     ├── project-discovery.ts # Auto-discovers projects
     └── public/         # Static web assets
-        └── multi.html  # Main dashboard interface
+        └── index.html  # Main dashboard interface
 ```
 
 ### Generated Structure (`.claude/`)
