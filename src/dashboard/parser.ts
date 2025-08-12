@@ -432,7 +432,9 @@ export class SpecParser {
                                         content.includes('successfully verified') ||
                                         content.includes('verification complete') ||
                                         content.includes('bug is resolved') ||
-                                        content.includes('fix confirmed');
+                                        content.includes('fix confirmed') ||
+                                        content.includes('Bug verified as FIXED') ||
+                                        content.includes('verified as FIXED');
         
         // Consider it resolved if it has checked boxes showing verification was done
         // or explicit verification statements
