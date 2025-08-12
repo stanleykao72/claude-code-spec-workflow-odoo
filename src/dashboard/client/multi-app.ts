@@ -929,10 +929,9 @@ function initApp(): void {
           } as any; // Using any to add extra url property
           console.log('Tunnel started:', this.tunnelStatus);
           
-          // Automatically copy tunnel URL to clipboard
-          if (tunnelData && tunnelData.url) {
-            void dashboardShared.copyCommand(tunnelData.url);
-          }
+          // Note: We cannot automatically copy to clipboard from WebSocket handler
+          // due to browser security restrictions (requires user interaction)
+          // User must click the copy button manually
           break;
 
         case 'tunnel:stopped':

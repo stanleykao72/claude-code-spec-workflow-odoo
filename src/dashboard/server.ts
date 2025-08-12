@@ -201,6 +201,25 @@ export class DashboardServer {
       return status;
     });
 
+    this.app.post('/api/tunnel/start', async (request, reply) => {
+      if (!this.tunnelManager) {
+        reply.code(404).send({ error: 'No tunnel manager available' });
+        return;
+      }
+      
+      try {
+        const tunnelInfo = await this.tunnelManager.startTunnel();
+        
+        // The tunnel:started event is already broadcast by the tunnel manager
+        // via the event listener set up in setupTunnelManager()
+        
+        return { success: true, info: tunnelInfo };
+      } catch (error) {
+        console.error('Error starting tunnel:', error);
+        reply.code(500).send({ error: 'Failed to start tunnel' });
+      }
+    });
+
     this.app.post('/api/tunnel/stop', async (request, reply) => {
       if (!this.tunnelManager) {
         reply.code(404).send({ error: 'No tunnel manager available' });
