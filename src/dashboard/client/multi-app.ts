@@ -277,6 +277,22 @@ function initApp(): void {
       rawContent: '',
       loading: false
     },
+    // Add direct properties for PetiteVue reactivity
+    get markdownShow() {
+      return this.markdownPreview.show;
+    },
+    get markdownTitle() {
+      return this.markdownPreview.title;
+    },
+    get markdownContent() {
+      return this.markdownPreview.content;
+    },
+    get markdownRawContent() {
+      return this.markdownPreview.rawContent;
+    },
+    get markdownLoading() {
+      return this.markdownPreview.loading;
+    },
 
     // Multi dashboard specific state
     projects: [],
@@ -1553,6 +1569,7 @@ function initApp(): void {
 
     async viewMarkdown(specName: string, docType: string, projectPath: string | null = null): Promise<void> {
       console.log('viewMarkdown called:', { specName, docType, projectPath });
+      console.log('Current markdownPreview state:', JSON.parse(JSON.stringify(this.markdownPreview)));
       
       // If projectPath is provided directly, use it
       if (projectPath) {
@@ -1795,11 +1812,25 @@ function initApp(): void {
       console.log('viewMarkdownWithProject called:', { specName, docType, projectPath });
       
       // Update the state properly for PetiteVue
+      console.log('Setting markdownPreview.show to true');
       this.markdownPreview.show = true;
       this.markdownPreview.loading = true;
       this.markdownPreview.title = `${specName} - ${docType}.md`;
       this.markdownPreview.content = '';
       this.markdownPreview.rawContent = '';
+      
+      console.log('After setting show=true, markdownPreview state:', JSON.parse(JSON.stringify(this.markdownPreview)));
+      
+      // Force a check of the modal element
+      setTimeout(() => {
+        const modal = document.querySelector('.markdown-modal');
+        console.log('Modal element found:', !!modal);
+        if (modal) {
+          console.log('Modal classes:', modal.className);
+          console.log('Modal computed style display:', window.getComputedStyle(modal).display);
+          console.log('Modal has "show" class:', modal.classList.contains('show'));
+        }
+      }, 10);
       
       try {
         const encodedPath = encodeURIComponent(projectPath);
