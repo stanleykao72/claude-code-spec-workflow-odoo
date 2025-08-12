@@ -53,6 +53,10 @@ export interface Project {
   bugs?: Bug[];
   /** Steering document status (if available) */
   steeringStatus?: SteeringStatus;
+  /** Current git branch (if git repo) */
+  gitBranch?: string;
+  /** Current git commit hash (if git repo) */
+  gitCommit?: string;
 }
 
 /**
@@ -68,7 +72,10 @@ export type WebSocketMessage =
   | TunnelStartedMessage
   | TunnelStoppedMessage
   | TunnelMetricsMessage
-  | TunnelVisitorMessage;
+  | TunnelVisitorMessage
+  | ProjectUpdateMessage
+  | ActiveSessionsUpdateMessage
+  | GitUpdateMessage;
 
 export interface InitialDataMessage {
   type: 'initial';
@@ -113,6 +120,24 @@ export interface TunnelMetricsMessage {
 export interface TunnelVisitorMessage {
   type: 'tunnel:visitor:new';
   data: TunnelVisitor;
+}
+
+export interface ProjectUpdateMessage {
+  type: 'project-update';
+  projectPath: string;
+  data: any; // TODO: Add proper typing for project update events
+}
+
+export interface ActiveSessionsUpdateMessage {
+  type: 'active-sessions-update';
+  data: ActiveSession[];
+}
+
+export interface GitUpdateMessage {
+  type: 'git-update';
+  projectPath: string;
+  gitBranch: string;
+  gitCommit: string;
 }
 
 /**
@@ -604,6 +629,18 @@ export function isTunnelMetricsMessage(msg: WebSocketMessage): msg is TunnelMetr
 
 export function isTunnelVisitorMessage(msg: WebSocketMessage): msg is TunnelVisitorMessage {
   return msg.type === 'tunnel:visitor:new';
+}
+
+export function isProjectUpdateMessage(msg: WebSocketMessage): msg is ProjectUpdateMessage {
+  return msg.type === 'project-update';
+}
+
+export function isActiveSessionsUpdateMessage(msg: WebSocketMessage): msg is ActiveSessionsUpdateMessage {
+  return msg.type === 'active-sessions-update';
+}
+
+export function isGitUpdateMessage(msg: WebSocketMessage): msg is GitUpdateMessage {
+  return msg.type === 'git-update';
 }
 
 /**

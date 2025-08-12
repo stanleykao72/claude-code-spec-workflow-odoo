@@ -24,7 +24,7 @@
     "dev": "ts-node src/cli.ts",
     "dev:dashboard": "concurrently \"npm run watch:frontend\" \"ts-node src/dashboard/cli.ts\" --names \"frontend,backend\" --prefix-colors \"blue,green\" --kill-others-on-fail",
     "dev:dashboard:backend-only": "ts-node src/dashboard/cli.ts",
-    "dev:dashboard:tauri": "ts-node src/dashboard/cli.ts --port 8247",
+    "dev:dashboard:tauri": "CLAUDE_SPEC_DEBUG=true ts-node src/dashboard/cli.ts --port 8247",
     "test": "jest",
     "lint": "eslint src --ext .ts --fix",
     "format": "prettier --write src"

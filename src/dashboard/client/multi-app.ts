@@ -277,22 +277,6 @@ function initApp(): void {
       rawContent: '',
       loading: false
     },
-    // Add direct properties for PetiteVue reactivity
-    get markdownShow() {
-      return this.markdownPreview.show;
-    },
-    get markdownTitle() {
-      return this.markdownPreview.title;
-    },
-    get markdownContent() {
-      return this.markdownPreview.content;
-    },
-    get markdownRawContent() {
-      return this.markdownPreview.rawContent;
-    },
-    get markdownLoading() {
-      return this.markdownPreview.loading;
-    },
 
     // Multi dashboard specific state
     projects: [],
@@ -955,13 +939,24 @@ function initApp(): void {
           const projectPath = projectUpdate.projectPath;
           const project = this.projects.find((p) => p.path === projectPath);
           if (project && projectUpdate.data) {
-            // Update the specific spec/bug that changed
             const updateEvent = projectUpdate.data;
-            if (updateEvent.type === 'added' || updateEvent.type === 'changed' || updateEvent.type === 'removed') {
-              // Refresh the project's data
-              // For now, we'll need to fetch the full project data
-              // In the future, we could update just the changed spec/bug
-              console.log(`Project update for ${project.name}:`, updateEvent);
+            console.log(`Project update for ${project.name}:`, updateEvent);
+            
+            // Handle spec updates
+            if (updateEvent.type === 'spec-update' && updateEvent.spec && updateEvent.data) {
+              const specIndex = project.specs.findIndex(s => s.name === updateEvent.spec);
+              if (specIndex !== -1) {
+                // Update existing spec
+                project.specs[specIndex] = updateEvent.data;
+                console.log(`Updated spec ${updateEvent.spec} for project ${project.name}`);
+              } else {
+                // Add new spec
+                project.specs.push(updateEvent.data);
+                console.log(`Added new spec ${updateEvent.spec} for project ${project.name}`);
+              }
+            } else if (updateEvent.type === 'added' || updateEvent.type === 'changed' || updateEvent.type === 'removed') {
+              // Handle other event types if needed
+              console.log(`Other event type ${updateEvent.type} for ${project.name}`);
             }
           }
           break;
@@ -984,6 +979,35 @@ function initApp(): void {
             gitProject.gitBranch = gitUpdate.gitBranch;
             gitProject.gitCommit = gitUpdate.gitCommit;
             console.log(`Git updated for ${gitProject.name}: ${gitUpdate.gitBranch} (${gitUpdate.gitCommit})`);
+          }
+          break;
+
+        case 'bug-update':
+          // Handle bug updates from file watchers
+          const bugUpdate = message as any;
+          const bugProjectPath = bugUpdate.projectPath;
+          const bugProject = this.projects.find((p) => p.path === bugProjectPath);
+          if (bugProject && bugUpdate.data) {
+            const bugEvent = bugUpdate.data;
+            console.log(`Bug update for ${bugProject.name}:`, bugEvent);
+            
+            // Handle bug updates
+            if (bugEvent.bug && bugEvent.data && bugProject.bugs) {
+              const bugIndex = bugProject.bugs.findIndex(b => b.name === bugEvent.bug);
+              if (bugIndex !== -1) {
+                // Update existing bug
+                bugProject.bugs[bugIndex] = bugEvent.data;
+                console.log(`Updated bug ${bugEvent.bug} for project ${bugProject.name}`);
+              } else {
+                // Add new bug
+                bugProject.bugs.push(bugEvent.data);
+                console.log(`Added new bug ${bugEvent.bug} for project ${bugProject.name}`);
+              }
+            } else if (bugEvent.bug && bugEvent.data && !bugProject.bugs) {
+              // Initialize bugs array if it doesn't exist
+              bugProject.bugs = [bugEvent.data];
+              console.log(`Initialized bugs array and added bug ${bugEvent.bug} for project ${bugProject.name}`);
+            }
           }
           break;
 

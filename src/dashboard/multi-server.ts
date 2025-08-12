@@ -97,7 +97,14 @@ export class MultiProjectDashboardServer {
     for (const project of discoveredProjects) {
       debug(`Initializing project ${project.name} at ${project.path}`);
       await this.initializeProject(project);
+      debug(`Project ${project.name} initialized and added to projects Map`);
     }
+    
+    // Log all projects in the Map
+    debug(`Total projects in Map: ${this.projects.size}`);
+    this.projects.forEach((state, path) => {
+      debug(`  - ${state.project.name}: ${path}`);
+    });
 
     // Register plugins
     await this.app.register(fastifyStatic, {
@@ -381,6 +388,7 @@ export class MultiProjectDashboardServer {
 
     // Set up watcher events
     watcher.on('change', async (event) => {
+      debug(`[Multi-server] Watcher change event received for project ${project.name}:`, event);
       // Transform the watcher event into the format expected by the client
       const projectUpdateEvent = {
         type: 'spec-update',
@@ -397,11 +405,19 @@ export class MultiProjectDashboardServer {
       });
 
       debug(`[Multi-server] Sending spec update for ${project.name}/${event.spec} to ${this.clients.size} clients`);
+      let sentCount = 0;
       this.clients.forEach((client) => {
         if (client.readyState === 1) {
           client.send(message);
+          sentCount++;
+          debug(`[Multi-server] Sent update to client ${sentCount}`);
+        } else {
+          debug(`[Multi-server] Client has readyState ${client.readyState}, skipping`);
         }
       });
+      if (sentCount === 0) {
+        debug(`[Multi-server] WARNING: No clients received the update!`);
+      }
 
       // Also send updated active sessions
       const activeSessions = await this.collectActiveSessions();
@@ -481,7 +497,9 @@ export class MultiProjectDashboardServer {
       });
     });
 
+    debug(`[Multi-server] Starting watcher for project ${project.name} at path: ${project.path}`);
     await watcher.start();
+    debug(`[Multi-server] Watcher started successfully for ${project.name}`);
 
     this.projects.set(project.path, {
       project,

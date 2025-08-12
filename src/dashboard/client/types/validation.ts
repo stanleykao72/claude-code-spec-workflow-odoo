@@ -577,15 +577,19 @@ export class WebSocketMessageValidator {
 
       case 'project-update':
       case 'active-sessions-update':
-      case 'git-update':
         // These messages have flexible data structures for now
         // TODO: Add proper validation for these message types
-        if (message.data === undefined && message.type !== 'git-update') {
+        if (!('data' in message)) {
           return {
             success: false,
             error: new ValidationError('Missing data in update message', 'MISSING_UPDATE_DATA')
           };
         }
+        break;
+        
+      case 'git-update':
+        // Git update message doesn't require data property
+        // It has gitBranch and gitCommit directly
         break;
 
       default:
