@@ -384,13 +384,18 @@ export class SpecParser {
                               this.hasContentAfterSection(content, 'Expected Behavior');
 
       if (hasReportContent) {
+        const severity = this.extractBugSeverity(content);
+        const expectedBehavior = this.extractSection(content, 'Expected Behavior');
+        const actualBehavior = this.extractSection(content, 'Actual Behavior');
+        const impact = this.extractSection(content, 'Impact');
+        
         bug.report = {
           exists: true,
-          severity: this.extractBugSeverity(content),
+          ...(severity && { severity }),
           reproductionSteps: this.extractReproductionSteps(content),
-          expectedBehavior: this.extractSection(content, 'Expected Behavior'),
-          actualBehavior: this.extractSection(content, 'Actual Behavior'),
-          impact: this.extractSection(content, 'Impact'),
+          ...(expectedBehavior && { expectedBehavior }),
+          ...(actualBehavior && { actualBehavior }),
+          ...(impact && { impact }),
         };
       }
     }
@@ -433,11 +438,14 @@ export class SpecParser {
         // or explicit verification statements
         const isVerified = hasCheckedBoxes || hasVerificationStatement;
         
+        const testsPassed = this.extractTestStatus(content);
+        const regressionChecks = this.extractRegressionChecks(content);
+        
         bug.verification = {
           exists: true,
           verified: isVerified,
-          testsPassed: this.extractTestStatus(content),
-          regressionChecks: this.extractRegressionChecks(content),
+          ...(testsPassed !== undefined && { testsPassed }),
+          ...(regressionChecks.length > 0 && { regressionChecks }),
         };
         
         if (isVerified) {
@@ -445,86 +453,74 @@ export class SpecParser {
         } else {
           bug.status = 'verifying';
         }
-      } else {
-        // Verification file exists but is just template, check if we should be in fixing status
-        if (hasFix) {
-          const fixContent = await readFile(fixPath, 'utf-8');
-          const hasFixContent = this.hasContentAfterSection(fixContent, 'Fix Summary') ||
-                               this.hasContentAfterSection(fixContent, 'Implementation Details') ||
-                               this.hasContentAfterSection(fixContent, 'Changes Made') ||
-                               this.hasContentAfterSection(fixContent, 'Code Changes');
-          if (hasFixContent) {
-            bug.status = 'fixed';
-          } else {
-            bug.status = 'fixing';
-          }
-        } else if (hasAnalysis) {
-          bug.status = 'analyzing';
+      }
+      // If verification file exists but is just template, continue checking other files
+    }
+    
+    // Check fix if status not yet determined
+    if (!bug.status || bug.status === 'reported') {
+      if (hasFix) {
+        const content = await readFile(fixPath, 'utf-8');
+        
+        // Check if fix has actual content (not just template)
+        const hasFixContent = this.hasContentAfterSection(content, 'Fix Summary') ||
+                             this.hasContentAfterSection(content, 'Implementation Details') ||
+                             this.hasContentAfterSection(content, 'Changes Made') ||
+                             this.hasContentAfterSection(content, 'Code Changes');
+        
+        if (hasFixContent) {
+          bug.status = 'fixed';
+          
+          // Add fix information to bug object
+          const summary = this.extractSection(content, 'Fix Summary');
+          bug.fix = {
+            exists: true,
+            ...(summary && { summary }),
+            implemented: content.includes('✅') || content.includes('implemented') || content.includes('complete'),
+          };
+        } else {
+          // Fix file exists but is just template, status = 'fixing'
+          bug.status = 'fixing';
         }
       }
     }
     
-    // Check fix if not already in verification/resolved status
-    else if (hasFix) {
-      const content = await readFile(fixPath, 'utf-8');
-      
-      // Check if fix has actual content (not just template)
-      const hasFixContent = this.hasContentAfterSection(content, 'Fix Summary') ||
-                           this.hasContentAfterSection(content, 'Implementation Details') ||
-                           this.hasContentAfterSection(content, 'Changes Made') ||
-                           this.hasContentAfterSection(content, 'Code Changes');
-      
-      if (hasFixContent) {
-        bug.status = 'fixed';
+    // Check analysis if status still not determined
+    if (!bug.status || bug.status === 'reported') {
+      if (hasAnalysis) {
+        const content = await readFile(analysisPath, 'utf-8');
         
-        // Add fix information to bug object
-        bug.fix = {
-          exists: true,
-          summary: this.extractSection(content, 'Fix Summary'),
-          implemented: content.includes('✅') || content.includes('implemented') || content.includes('complete'),
-        };
-      } else {
-        // Fix file exists but is just template
-        if (hasAnalysis) {
-          const analysisContent = await readFile(analysisPath, 'utf-8');
-          const hasAnalysisContent = this.hasContentAfterSection(analysisContent, 'Root Cause Analysis') ||
-                                   this.hasContentAfterSection(analysisContent, 'Investigation Summary') ||
-                                   this.hasContentAfterSection(analysisContent, 'Root Cause');
-          if (hasAnalysisContent) {
+        // Check for content in the actual analysis sections (not just headers)
+        const hasRootCauseContent = this.hasContentAfterSection(content, 'Root Cause Analysis') ||
+                                  this.hasContentAfterSection(content, 'Investigation Summary') ||
+                                  this.hasContentAfterSection(content, 'Root Cause');
+        const hasImplementationPlan = this.hasContentAfterSection(content, 'Implementation Plan') ||
+                                    this.hasContentAfterSection(content, 'Changes Required') ||
+                                    this.hasContentAfterSection(content, 'Proposed Fix');
+        
+        if (hasRootCauseContent || hasImplementationPlan) {
+          // If fix file exists but is empty template, we're in 'fixing' state
+          // Otherwise we're still 'analyzing'
+          if (hasFix) {
             bug.status = 'fixing';
           } else {
             bug.status = 'analyzing';
           }
+          
+          const rootCause = this.extractSection(content, 'Root Cause');
+          const proposedFix = this.extractSection(content, 'Proposed Fix');
+          const filesAffected = this.extractFilesAffected(content);
+          
+          bug.analysis = {
+            exists: true,
+            ...(rootCause && { rootCause }),
+            ...(proposedFix && { proposedFix }),
+            ...(filesAffected.length > 0 && { filesAffected }),
+          };
         } else {
-          bug.status = 'reported';
+          // Analysis file exists but is just template
+          bug.status = 'analyzing';
         }
-      }
-    }
-    
-    // Check analysis if not already in a more advanced status
-    else if (hasAnalysis) {
-      const content = await readFile(analysisPath, 'utf-8');
-      
-      // Check for content in the actual analysis sections (not just headers)
-      const hasRootCauseContent = this.hasContentAfterSection(content, 'Root Cause Analysis') ||
-                                this.hasContentAfterSection(content, 'Investigation Summary') ||
-                                this.hasContentAfterSection(content, 'Root Cause');
-      const hasImplementationPlan = this.hasContentAfterSection(content, 'Implementation Plan') ||
-                                  this.hasContentAfterSection(content, 'Changes Required') ||
-                                  this.hasContentAfterSection(content, 'Proposed Fix');
-      
-      if (hasRootCauseContent || hasImplementationPlan) {
-        bug.status = 'analyzing';
-        
-        bug.analysis = {
-          exists: true,
-          rootCause: this.extractSection(content, 'Root Cause'),
-          proposedFix: this.extractSection(content, 'Proposed Fix'),
-          filesAffected: this.extractFilesAffected(content),
-        };
-      } else {
-        // Analysis file exists but is just template
-        bug.status = 'reported';
       }
     }
 

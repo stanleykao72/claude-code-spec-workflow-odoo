@@ -155,6 +155,7 @@ interface MultiAppState extends AppState {
   initTheme(): void;
   applyTheme(theme: string): void;
   cycleTheme(): void;
+  showModal(specName: string, docType: string): void;
   closeMarkdownPreview(): void;
   setupKeyboardHandlers(): void;
   setupCodeBlockCopyHandlers(): void;
@@ -1849,9 +1850,9 @@ function initApp(): void {
   }
   
   // Mount the PetiteVue application to body to include the modal
-  const app = PetiteVue.createApp(appState);
+  const app = PetiteVue.createApp(appState as unknown as Record<string, unknown>);
   console.log('PetiteVue app created, mounting to body...');
-  app.mount(); // Mount to entire document body
+  app.mount('#app'); // Mount to app element
   console.log('PetiteVue app mounted successfully');
   
   // Debug: Check if modal is processed by PetiteVue
