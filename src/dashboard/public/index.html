@@ -1320,7 +1320,7 @@
                         <div class="flex items-center gap-2">
                           <button
                             v-if="spec.requirements"
-                            @click.stop="viewMarkdown(spec.name, 'requirements', selectedProject?.path)"
+                            @click.stop="viewMarkdown(spec.name, 'requirements', selectedProject.path)"
                             class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
                             title="View source"
                           >
@@ -1372,7 +1372,7 @@
                         <div class="flex items-center gap-2">
                           <button
                             v-if="spec.design"
-                            @click.stop="viewMarkdown(spec.name, 'design', selectedProject?.path)"
+                            @click.stop="viewMarkdown(spec.name, 'design', selectedProject.path)"
                             class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
                             title="View source"
                           >
@@ -1416,7 +1416,7 @@
                         <div class="flex items-center gap-2">
                           <button
                             v-if="spec.tasks"
-                            @click.stop="viewMarkdown(spec.name, 'tasks', selectedProject?.path)"
+                            @click.stop="viewMarkdown(spec.name, 'tasks', selectedProject.path)"
                             class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
                             title="View source"
                           >
