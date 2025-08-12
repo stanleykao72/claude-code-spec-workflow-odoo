@@ -1549,13 +1549,11 @@ function initApp(): void {
     // ========================================================================
 
     async viewMarkdown(specName: string, docType: string, projectPath: string | null = null): Promise<void> {
+      console.log('viewMarkdown called:', { specName, docType, projectPath });
+      
       // If projectPath is provided directly, use it
       if (projectPath) {
-        // Create a temporary object with the required state
-        const previewState = {
-          markdownPreview: this.markdownPreview
-        };
-        
+        console.log('Using provided projectPath:', projectPath);
         // Use the shared viewMarkdown implementation
         return this.viewMarkdownWithProject(specName, docType, projectPath);
       }
@@ -1566,6 +1564,7 @@ function initApp(): void {
         // Don't show the modal if there's no project selected
         return;
       }
+      console.log('Using selectedProject.path:', this.selectedProject.path);
       return this.viewMarkdownWithProject(specName, docType, this.selectedProject.path);
     },
 
@@ -1774,18 +1773,24 @@ function initApp(): void {
     },
 
     async viewMarkdownWithProject(specName: string, docType: string, projectPath: string): Promise<void> {
+      console.log('viewMarkdownWithProject called:', { specName, docType, projectPath });
+      console.log('Setting markdownPreview.show to true');
       this.markdownPreview.show = true;
       this.markdownPreview.loading = true;
       this.markdownPreview.title = `${specName} - ${docType}.md`;
+      console.log('markdownPreview state:', this.markdownPreview);
       
       try {
         const encodedPath = encodeURIComponent(projectPath);
-        const response = await fetch(`/api/projects/${encodedPath}/specs/${specName}/${docType}`);
+        const url = `/api/projects/${encodedPath}/specs/${specName}/${docType}`;
+        console.log('Fetching:', url);
+        const response = await fetch(url);
         if (!response.ok) {
           throw new Error(`Failed to fetch ${docType} content: ${response.status}`);
         }
         
         const data = await response.json();
+        console.log('Received data, setting content');
         this.markdownPreview.content = data.content;
         this.markdownPreview.rawContent = data.content;
       } catch (error) {
@@ -1794,6 +1799,7 @@ function initApp(): void {
         this.markdownPreview.rawContent = '';
       } finally {
         this.markdownPreview.loading = false;
+        console.log('Final markdownPreview state:', this.markdownPreview);
       }
     },
 
