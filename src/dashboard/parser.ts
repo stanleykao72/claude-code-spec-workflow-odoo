@@ -468,7 +468,11 @@ export class SpecParser {
         const hasFixContent = this.hasContentAfterSection(content, 'Fix Summary') ||
                              this.hasContentAfterSection(content, 'Implementation Details') ||
                              this.hasContentAfterSection(content, 'Changes Made') ||
-                             this.hasContentAfterSection(content, 'Code Changes');
+                             this.hasContentAfterSection(content, 'Code Changes') ||
+                             this.hasContentAfterSection(content, 'Solution') ||
+                             this.hasContentAfterSection(content, 'Files Modified') ||
+                             this.hasContentAfterSection(content, 'Root Cause') ||
+                             this.hasContentAfterSection(content, 'Technical Details');
         
         if (hasFixContent) {
           bug.status = 'fixed';
