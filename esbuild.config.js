@@ -32,8 +32,8 @@ const productionConfig = {
   treeShaking: true,
   // Advanced production optimizations
   legalComments: 'none',
-  drop: ['console', 'debugger'],
-  pure: ['console.log', 'console.warn', 'console.info'],
+  drop: ['debugger'], // Keep console for debugging
+  // pure: ['console.log', 'console.warn', 'console.info'], // Commented out to keep console statements
   // Mangling options for better compression
   mangleProps: /^_/,
   keepNames: false,
