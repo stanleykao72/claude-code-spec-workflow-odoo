@@ -93,21 +93,34 @@ export class SpecWatcher extends EventEmitter {
       .on('addDir', (path) => {
         debug(`[Watcher] Directory added: ${path}`);
         // When a new directory is added, we should check for .md files in it
-        if (path && !path.includes('/')) {
-          // This is a top-level directory (spec directory)
-          this.checkNewSpecDirectory(path);
+        if (path) {
+          // Check if this is a valid spec directory (top-level, alphanumeric with dashes)
+          const parts = path.split(/[\/]/);
+          if (parts.length === 1 && /^[a-z0-9-]+$/.test(parts[0])) {
+            debug(`[Watcher] Valid spec directory detected: ${path}`);
+            this.checkNewSpecDirectory(path);
+          } else {
+            debug(`[Watcher] Skipping non-spec directory: ${path}`);
+          }
         }
       })
       .on('unlinkDir', (path) => {
         debug(`[Watcher] Directory removed: ${path}`);
         // Emit a remove event for the spec
-        if (path && !path.includes('/')) {
-          this.emit('change', {
-            type: 'removed',
-            spec: path,
-            file: 'directory',
-            data: null,
-          } as SpecChangeEvent);
+        if (path) {
+          // Check if this is a valid spec directory (top-level, alphanumeric with dashes)
+          const parts = path.split(/[\/]/);
+          if (parts.length === 1 && /^[a-z0-9-]+$/.test(parts[0])) {
+            debug(`[Watcher] Valid spec directory removal detected: ${path}`);
+            this.emit('change', {
+              type: 'removed',
+              spec: path,
+              file: 'directory',
+              data: null,
+            } as SpecChangeEvent);
+          } else {
+            debug(`[Watcher] Skipping non-spec directory removal: ${path}`);
+          }
         }
       })
       .on('ready', () => debug('[Watcher] Initial scan complete. Ready for changes.'))
@@ -147,18 +160,32 @@ export class SpecWatcher extends EventEmitter {
       })
       .on('addDir', (path) => {
         debug(`[BugWatcher] Directory added: ${path}`);
-        if (path && !path.includes('/')) {
-          this.checkNewBugDirectory(path);
+        if (path) {
+          // Check if this is a valid bug directory (top-level, alphanumeric with dashes)
+          const parts = path.split(/[\/]/);
+          if (parts.length === 1 && /^[a-z0-9-]+$/.test(parts[0])) {
+            debug(`[BugWatcher] Valid bug directory detected: ${path}`);
+            this.checkNewBugDirectory(path);
+          } else {
+            debug(`[BugWatcher] Skipping non-bug directory: ${path}`);
+          }
         }
       })
       .on('unlinkDir', (path) => {
         debug(`[BugWatcher] Directory removed: ${path}`);
-        if (path && !path.includes('/')) {
-          this.emit('bug-change', {
-            type: 'removed',
-            bug: path,
-            file: 'directory',
-          } as BugChangeEvent);
+        if (path) {
+          // Check if this is a valid bug directory (top-level, alphanumeric with dashes)
+          const parts = path.split(/[\/]/);
+          if (parts.length === 1 && /^[a-z0-9-]+$/.test(parts[0])) {
+            debug(`[BugWatcher] Valid bug directory removal detected: ${path}`);
+            this.emit('bug-change', {
+              type: 'removed',
+              bug: path,
+              file: 'directory',
+            } as BugChangeEvent);
+          } else {
+            debug(`[BugWatcher] Skipping non-bug directory removal: ${path}`);
+          }
         }
       })
       .on('ready', () => debug('[BugWatcher] Initial scan complete. Ready for changes.'))
