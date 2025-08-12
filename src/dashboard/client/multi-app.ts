@@ -231,6 +231,10 @@ interface MultiAppState extends AppState {
   viewBugMarkdown(projectPath: string, bugName: string, docType: string): Promise<void>;
   hasBugDocument(bugName: string, docType: string): boolean;
   viewBugDocument(projectPath: string, bugName: string, docType: string): Promise<void>;
+  getSpecStatus(session: ActiveSession): StatusType | null;
+  getTaskTooltip(task: any): string;
+  copyTaskCommand(specName: string, taskId: string, event: Event): void;
+  copyOrchestrationCommand(specName: string, taskId: string, event: Event): void;
   formatTunnelExpiry(expiresAt: string): string;
   
   // Shared utility methods from dashboardShared
@@ -1636,6 +1640,54 @@ function initApp(): void {
     async viewBugDocument(projectPath: string, bugName: string, docType: string): Promise<void> {
       // Use the existing viewBugMarkdown method to display the document
       await this.viewBugMarkdown(projectPath, bugName, docType);
+    },
+
+    getSpecStatus(session: ActiveSession): StatusType | null {
+      if (session.type !== 'spec') return null;
+      
+      const project = this.projects.find(p => p.path === session.projectPath);
+      if (!project || !project.specs) return null;
+      
+      const spec = project.specs.find(s => s.name === session.specName);
+      return spec?.status || null;
+    },
+
+    getTaskTooltip(task: any): string {
+      if (!task) return '';
+      
+      const parts: string[] = [];
+      
+      if (task.description) {
+        parts.push(`Task ${task.id}: ${task.description}`);
+      }
+      
+      if (task.completed) {
+        parts.push('Status: Completed ✅');
+      } else if (task.inProgress) {
+        parts.push('Status: In Progress');
+      } else {
+        parts.push('Status: Not Started');
+      }
+      
+      if (task.requirements && task.requirements.length > 0) {
+        parts.push(`Requirements: ${task.requirements.join(', ')}`);
+      }
+      
+      if (task.leverage) {
+        parts.push(`Leverage: ${task.leverage}`);
+      }
+      
+      return parts.join('\n');
+    },
+
+    copyTaskCommand(specName: string, taskId: string, event: Event): void {
+      const command = `/spec-execute ${specName} ${taskId}`;
+      void dashboardShared.copyCommand(command, event);
+    },
+
+    copyOrchestrationCommand(specName: string, taskId: string, event: Event): void {
+      const command = `/spec-orchestrate ${specName} ${taskId}`;
+      void dashboardShared.copyCommand(command, event);
     },
 
     // ========================================================================
