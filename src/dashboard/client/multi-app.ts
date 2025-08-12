@@ -920,16 +920,18 @@ function initApp(): void {
           break;
 
         case 'tunnel:started':
+          const tunnelData = (message as any).data;
           this.tunnelStatus = {
             active: true,
-            info: (message as any).data,
+            info: tunnelData,
+            url: tunnelData?.url, // Store URL at top level for easy access
             viewers: 0
-          } as TunnelStatus;
+          } as any; // Using any to add extra url property
           console.log('Tunnel started:', this.tunnelStatus);
           
           // Automatically copy tunnel URL to clipboard
-          if ((message as any).data && (message as any).data.url) {
-            void dashboardShared.copyCommand((message as any).data.url);
+          if (tunnelData && tunnelData.url) {
+            void dashboardShared.copyCommand(tunnelData.url);
           }
           break;
 
