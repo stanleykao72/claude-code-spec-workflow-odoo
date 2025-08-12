@@ -1263,7 +1263,7 @@
                       </button>
                       <!-- Next Phase button - Show when ready to move to next phase -->
                       <button
-                        v-if="spec.requirements?.approved && !spec.design?.exists"
+                        v-if="spec.requirements?.approved && (!spec.design?.approved)"
                         @click.stop="copyCommand(`/spec-design ${spec.name}`, $event)"
                         class="text-xs text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 flex items-center gap-1"
                         title="Create design document"
@@ -1272,7 +1272,7 @@
                         <span>/spec-design</span>
                       </button>
                       <button
-                        v-if="spec.design?.approved && !spec.tasks?.exists"
+                        v-if="spec.design?.approved && (!spec.tasks?.approved)"
                         @click.stop="copyCommand(`/spec-tasks ${spec.name}`, $event)"
                         class="text-xs text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 flex items-center gap-1"
                         title="Create task breakdown"
