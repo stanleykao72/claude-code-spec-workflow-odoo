@@ -1079,26 +1079,31 @@ export class SpecParser {
 
   private async getSteeringStatus(): Promise<SteeringStatus> {
     const steeringPath = join(this.projectPath, '.claude', 'steering');
+    const claudePath = join(this.projectPath, '.claude');
     
-    try {
-      await access(steeringPath, constants.F_OK);
-      
-      const status: SteeringStatus = {
-        exists: true,
-        hasProduct: await this.fileExists(join(steeringPath, 'product.md')),
-        hasTech: await this.fileExists(join(steeringPath, 'tech.md')),
-        hasStructure: await this.fileExists(join(steeringPath, 'structure.md'))
-      };
-      
-      return status;
-    } catch {
-      return {
-        exists: false,
-        hasProduct: false,
-        hasTech: false,
-        hasStructure: false
-      };
-    }
+    // Check both .claude/steering/ and .claude/ for steering documents
+    // Some projects have them in .claude/ directly, others in .claude/steering/
+    const hasProductInSteering = await this.fileExists(join(steeringPath, 'product.md'));
+    const hasProductInClaude = await this.fileExists(join(claudePath, 'product.md'));
+    
+    const hasTechInSteering = await this.fileExists(join(steeringPath, 'tech.md'));
+    const hasTechInClaude = await this.fileExists(join(claudePath, 'tech.md'));
+    
+    const hasStructureInSteering = await this.fileExists(join(steeringPath, 'structure.md'));
+    const hasStructureInClaude = await this.fileExists(join(claudePath, 'structure.md'));
+    
+    const hasProduct = hasProductInSteering || hasProductInClaude;
+    const hasTech = hasTechInSteering || hasTechInClaude;
+    const hasStructure = hasStructureInSteering || hasStructureInClaude;
+    
+    const status: SteeringStatus = {
+      exists: hasProduct || hasTech || hasStructure,
+      hasProduct,
+      hasTech,
+      hasStructure
+    };
+    
+    return status;
   }
 
   private extractBugSeverity(content: string): 'critical' | 'high' | 'medium' | 'low' | undefined {

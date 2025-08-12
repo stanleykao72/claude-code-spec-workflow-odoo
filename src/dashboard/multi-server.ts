@@ -54,7 +54,7 @@ interface ActiveSpecSession extends BaseActiveSession {
 interface ActiveBugSession extends BaseActiveSession {
   type: 'bug';
   bugName: string;
-  bugStatus: 'analyzing' | 'fixing' | 'verifying';
+  bugStatus: 'reported' | 'analyzing' | 'fixing' | 'fixed' | 'verifying' | 'resolved';
   bugSeverity?: 'critical' | 'high' | 'medium' | 'low';
   nextCommand: string;  // e.g., '/bug-fix bug-name'
 }
@@ -671,9 +671,7 @@ export class MultiProjectDashboardServer {
             projectName: state.project.name,
             displayName: bug.displayName || bug.name,
             bugName: bug.name,
-            bugStatus: ['analyzing', 'fixing', 'verifying'].includes(bug.status) 
-              ? bug.status as 'analyzing' | 'fixing' | 'verifying'
-              : 'analyzing', // Default fallback
+            bugStatus: bug.status, // Use the actual bug status, including 'fixed' and 'resolved'
             bugSeverity: bug.report?.severity,
             nextCommand,
             lastModified: mostRecent.lastModified,
