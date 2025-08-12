@@ -1158,16 +1158,20 @@ export class SpecParser {
     const lines = content.split('\n');
     let inSection = false;
     let hasContent = false;
+    let sectionLevel = 0; // Track the level of the section we found
 
     for (const line of lines) {
       if (line.includes(`## ${sectionName}`) || line.includes(`### ${sectionName}`)) {
         inSection = true;
+        sectionLevel = line.includes(`## ${sectionName}`) ? 2 : 3;
         continue;
       }
 
       if (inSection) {
-        // Stop at next section
-        if (line.startsWith('## ') || line.startsWith('### ')) {
+        // Stop at next section of same or higher level
+        if (sectionLevel === 2 && line.startsWith('## ')) {
+          break;
+        } else if (sectionLevel === 3 && (line.startsWith('## ') || line.startsWith('### '))) {
           break;
         }
 
@@ -1194,16 +1198,20 @@ export class SpecParser {
     const lines = content.split('\n');
     let inSection = false;
     let hasContent = false;
+    let sectionLevel = 0; // Track the level of the section we found
 
     for (const line of lines) {
       if (line.includes(`## ${sectionName}`) || line.includes(`### ${sectionName}`)) {
         inSection = true;
+        sectionLevel = line.includes(`## ${sectionName}`) ? 2 : 3;
         continue;
       }
 
       if (inSection) {
-        // Stop at next section
-        if (line.startsWith('## ') || line.startsWith('### ')) {
+        // Stop at next section of same or higher level
+        if (sectionLevel === 2 && line.startsWith('## ')) {
+          break;
+        } else if (sectionLevel === 3 && (line.startsWith('## ') || line.startsWith('### '))) {
           break;
         }
 
