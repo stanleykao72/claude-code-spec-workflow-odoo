@@ -375,14 +375,24 @@ export class SpecParser {
         bug.displayName = titleMatch[1].trim();
       }
 
-      bug.report = {
-        exists: true,
-        severity: this.extractBugSeverity(content),
-        reproductionSteps: this.extractReproductionSteps(content),
-        expectedBehavior: this.extractSection(content, 'Expected Behavior'),
-        actualBehavior: this.extractSection(content, 'Actual Behavior'),
-        impact: this.extractSection(content, 'Impact'),
-      };
+      // Check if report has actual content (not just template)
+      const hasReportContent = this.hasContentAfterSection(content, 'Bug Summary') ||
+                              this.hasContentAfterSection(content, 'Description') ||
+                              this.hasContentAfterSection(content, 'Steps to Reproduce') ||
+                              this.hasContentAfterSection(content, 'Reproduction Steps') ||
+                              this.hasContentAfterSection(content, 'Actual Behavior') ||
+                              this.hasContentAfterSection(content, 'Expected Behavior');
+
+      if (hasReportContent) {
+        bug.report = {
+          exists: true,
+          severity: this.extractBugSeverity(content),
+          reproductionSteps: this.extractReproductionSteps(content),
+          expectedBehavior: this.extractSection(content, 'Expected Behavior'),
+          actualBehavior: this.extractSection(content, 'Actual Behavior'),
+          impact: this.extractSection(content, 'Impact'),
+        };
+      }
     }
 
     // Check all files first to determine the most advanced status
