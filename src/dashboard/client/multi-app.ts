@@ -229,6 +229,8 @@ interface MultiAppState extends AppState {
   stopTunnel(): Promise<void>;
   viewMarkdown(specName: string, docType: string, projectPath?: string | null): Promise<void>;
   viewBugMarkdown(projectPath: string, bugName: string, docType: string): Promise<void>;
+  hasBugDocument(bugName: string, docType: string): boolean;
+  viewBugDocument(projectPath: string, bugName: string, docType: string): Promise<void>;
   formatTunnelExpiry(expiresAt: string): string;
   
   // Shared utility methods from dashboardShared
@@ -1589,6 +1591,51 @@ function initApp(): void {
       } finally {
         this.markdownPreview.loading = false;
       }
+    },
+
+    hasBugDocument(bugName: string, docType: string): boolean {
+      // First try to find the bug in any active session
+      for (const session of this.activeSessions) {
+        if (session.type === 'bug' && session.bugName === bugName) {
+          // Find the project for this session
+          const project = this.projects.find(p => p.path === session.projectPath);
+          if (project && project.bugs) {
+            const bug = project.bugs.find(b => b.name === bugName);
+            if (bug) {
+              switch (docType) {
+                case 'report':
+                  return bug.report?.exists || false;
+                case 'analysis':
+                  return bug.analysis?.exists || false;
+                case 'fix':
+                  return bug.fix?.exists || false;
+              }
+            }
+          }
+        }
+      }
+      
+      // Fallback to selected project if not in active sessions
+      if (this.selectedProject && this.selectedProject.bugs) {
+        const bug = this.selectedProject.bugs.find(b => b.name === bugName);
+        if (bug) {
+          switch (docType) {
+            case 'report':
+              return bug.report?.exists || false;
+            case 'analysis':
+              return bug.analysis?.exists || false;
+            case 'fix':
+              return bug.fix?.exists || false;
+          }
+        }
+      }
+      
+      return false;
+    },
+
+    async viewBugDocument(projectPath: string, bugName: string, docType: string): Promise<void> {
+      // Use the existing viewBugMarkdown method to display the document
+      await this.viewBugMarkdown(projectPath, bugName, docType);
     },
 
     // ========================================================================
