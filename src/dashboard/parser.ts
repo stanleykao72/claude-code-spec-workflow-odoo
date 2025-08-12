@@ -307,14 +307,13 @@ export class SpecParser {
       // If we still haven't found a display name, try to extract from tasks
       if (spec.displayName === this.formatDisplayName(name)) {
         // Handle formats like "# Tasks: Feature Name", "# Tasks - Feature Name", or "# Implementation Plan: Feature Name"
-        const titleMatch = content.match(/^#\s+(?:(?:Tasks|Implementation Plan)\s*[-:]\s+)?(.+?)(?:\s+(?:Tasks|Plan))?$/m);
-        if (titleMatch && titleMatch[1].trim() && 
-            titleMatch[1].trim().toLowerCase() !== 'tasks' && 
-            titleMatch[1].trim().toLowerCase() !== 'implementation plan' &&
-            !titleMatch[1].toLowerCase().includes('placeholder') &&
-            !titleMatch[1].toLowerCase().includes('will be populated')) {
-          spec.displayName = titleMatch[1].trim();
+        // First check for titles with colons or dashes
+        const titleWithSeparatorMatch = content.match(/^#\s+(?:Tasks|Implementation Plan)\s*[-:]\s+(.+)$/m);
+        if (titleWithSeparatorMatch && titleWithSeparatorMatch[1].trim()) {
+          spec.displayName = titleWithSeparatorMatch[1].trim();
         }
+        // If no separator found and title is just "# Tasks" or "# Implementation Plan", keep the default display name
+        // This prevents "Implementation" from being extracted from "# Implementation Plan"
       }
 
       const taskList = this.parseTasks(content);
