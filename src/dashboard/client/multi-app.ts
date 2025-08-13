@@ -1385,6 +1385,11 @@ function initApp(): void {
       if (path === '/' || path === '/active' || path === '/dashboard' || path === '/dashboard/' || path.includes('/dashboard/public')) {
         this.activeTab = 'active';
         this.selectedProject = null;
+        
+        // If we're at root path, redirect to /active to maintain consistent URLs
+        if (path === '/') {
+          window.history.replaceState(null, '', '/active');
+        }
         return;
       }
       
