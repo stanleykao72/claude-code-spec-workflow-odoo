@@ -1441,7 +1441,10 @@ function initApp(): void {
     getProjectSlug(project: Project): string {
       // Convert project name to URL-friendly slug
       return (project?.name || '')
+        .trim()                       // Remove leading/trailing whitespace
         .toLowerCase()
+        .normalize('NFD')             // Unicode normalization (decomposed form)
+        .replace(/[\u0300-\u036f]/g, '') // Remove diacritics/accents
         .replace(/[^a-z0-9]+/g, '-')  // Replace non-alphanumeric with hyphens
         .replace(/^-+|-+$/g, '');     // Remove leading/trailing hyphens
     },
