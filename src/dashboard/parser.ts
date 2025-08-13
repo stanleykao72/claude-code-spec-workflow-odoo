@@ -424,11 +424,14 @@ export class SpecParser {
       
       // Check if there's actual verification content (not just template with unchecked boxes)
       const hasTestResults = this.hasVerificationContent(content, 'Test Results') ||
+                           this.hasVerificationContent(content, 'Test Execution') ||
+                           this.hasVerificationContent(content, 'Verification Summary') ||
                            this.hasVerificationContent(content, 'Verification Steps') ||
                            this.hasVerificationContent(content, 'Fix Verification') ||
                            this.hasVerificationContent(content, 'Fix Implementation Summary');
       const hasRegressionChecks = this.hasVerificationContent(content, 'Regression Testing') ||
                                 this.hasVerificationContent(content, 'Regression Checks') ||
+                                this.hasVerificationContent(content, 'Verification Results') ||
                                 this.hasVerificationContent(content, 'Side Effects Check');
       
       if (hasTestResults || hasRegressionChecks) {
@@ -436,6 +439,7 @@ export class SpecParser {
         // Check for completion markers - look for checked boxes or verification statements
         const hasCheckedBoxes = (content.match(/\[x\]/gi) || []).length > 0;
         const hasVerificationStatement = content.includes('✅ VERIFIED') || 
+                                        content.includes('✅ **VERIFIED**') ||
                                         content.includes('**Verified:** ✓') ||
                                         content.includes('**Production Verified**') ||
                                         content.includes('successfully verified') ||
