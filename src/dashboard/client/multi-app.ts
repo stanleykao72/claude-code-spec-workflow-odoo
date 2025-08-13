@@ -1419,6 +1419,9 @@ function initApp(): void {
         // For any other path, default to active tab
         this.activeTab = 'active';
         this.selectedProject = null;
+        
+        // Update URL to reflect actual state for invalid paths
+        window.history.replaceState(null, '', '/active');
       }
     },
 
