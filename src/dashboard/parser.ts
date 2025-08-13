@@ -571,6 +571,8 @@ export class SpecParser {
       }
     });
 
+    // Match header-based tasks: "## Task 23: Configure Apollo DevTools support"
+    const headerTaskRegex = /^##\s+Task\s+(\d+):\s+(.+)$/;
     // Match numbered tasks: "- [x] 1. Create GraphQL queries..." or "- [ ] **1. Task description**" or "- [ ] **Task 1.1**: Description"
     const numberedTaskRegex = /^(\s*)- \[([ x])\] (?:\*\*)?(?:Task\s+)?(\d+(?:\.\d+)*)\.*:?\s*\*?\*?:?\s*(.+?)(?:\*\*)?$/;
     // Also match unnumbered tasks: "- [x] Enable DevTools in development"
@@ -580,12 +582,58 @@ export class SpecParser {
     // Removed _In Progress: parsing - now automatically using first uncompleted task
 
     let currentTask: Task | null = null;
+    let currentHeaderTask: Task | null = null; // Track header-based task
     let parentStack: { level: number; task: Task }[] = [];
     let currentTaskIndent = 0;
     let unnumberedTaskCounter = 0; // Counter for unnumbered tasks
+    let inHeaderTaskSection = false;
 
     for (const line of lines) {
-      // First try to match numbered tasks
+      // Check for header-based task format first (## Task N: Description)
+      const headerMatch = line.match(headerTaskRegex);
+      if (headerMatch) {
+        const [, id, description] = headerMatch;
+        
+        // Save previous header task if exists
+        if (currentHeaderTask) {
+          tasks.push(currentHeaderTask);
+        }
+        
+        // Create new header task
+        currentHeaderTask = {
+          id: id || '',
+          description: (description || '').trim(),
+          completed: false, // Will be determined by subtasks
+          requirements: [],
+          details: [],
+          subtasks: []
+        };
+        
+        inHeaderTaskSection = true;
+        currentTask = null; // Reset current task
+        parentStack = [];
+        continue;
+      }
+      
+      // If we're in a header task section and hit a section divider, finish the task
+      if (inHeaderTaskSection && (line.startsWith('### ') || line === '' || line.includes('Task completed successfully'))) {
+        // Check if all subtasks are completed to mark header task as complete
+        if (currentHeaderTask && currentHeaderTask.subtasks && currentHeaderTask.subtasks.length > 0) {
+          currentHeaderTask.completed = currentHeaderTask.subtasks.every(st => st.completed);
+        }
+        
+        // Don't save task yet, continue collecting details
+        if (line.startsWith('### ') || line.includes('Task completed successfully')) {
+          inHeaderTaskSection = false;
+        }
+        
+        // Skip section headers and completion messages
+        if (line.startsWith('### ') || line.includes('Task completed successfully')) {
+          continue;
+        }
+      }
+      
+      // Try to match numbered tasks
       const numberedMatch = line.match(numberedTaskRegex);
       if (numberedMatch) {
         const [, indent, checked, id, description] = numberedMatch;
@@ -625,8 +673,22 @@ export class SpecParser {
             !line.includes('_In Progress:')) {
           const [, indent, checked, description] = unnumberedMatch;
           
+          // If we're in a header task section, these are subtasks
+          if (inHeaderTaskSection && currentHeaderTask) {
+            const subtask: Task = {
+              id: `${currentHeaderTask.id}.${(currentHeaderTask.subtasks?.length || 0) + 1}`,
+              description: (description || '').trim(),
+              completed: checked === 'x',
+              requirements: [],
+              details: [],
+            };
+            
+            if (!currentHeaderTask.subtasks) currentHeaderTask.subtasks = [];
+            currentHeaderTask.subtasks.push(subtask);
+            currentTask = subtask; // Set as current for capturing requirements/leverage
+          }
           // Skip if this line is just a detail under a numbered task
-          if (currentTask && (indent?.length || 0) > currentTaskIndent) {
+          else if (currentTask && (indent?.length || 0) > currentTaskIndent) {
             // This is likely a detail line, not a new task
             if (!currentTask.details) currentTask.details = [];
             currentTask.details.push((description || '').trim());
@@ -651,17 +713,25 @@ export class SpecParser {
             // Add to main tasks list
             tasks.push(unnumberedTask);
           }
-        } else if (currentTask) {
+        } else if (currentTask || currentHeaderTask) {
           // Check for requirements
           const reqMatch = line.match(requirementsRegex);
           if (reqMatch && reqMatch[1]) {
-            currentTask.requirements = reqMatch[1].split(',').map((r) => r.trim());
+            if (currentTask) {
+              currentTask.requirements = reqMatch[1].split(',').map((r) => r.trim());
+            } else if (currentHeaderTask && inHeaderTaskSection) {
+              currentHeaderTask.requirements = reqMatch[1].split(',').map((r) => r.trim());
+            }
           }
 
           // Check for leverage
           const levMatch = line.match(leverageRegex);
           if (levMatch && levMatch[1]) {
-            currentTask.leverage = levMatch[1].trim();
+            if (currentTask) {
+              currentTask.leverage = levMatch[1].trim();
+            } else if (currentHeaderTask && inHeaderTaskSection) {
+              currentHeaderTask.leverage = levMatch[1].trim();
+            }
           }
 
           // Check for detail lines (bullet points under task)
@@ -678,6 +748,15 @@ export class SpecParser {
           // Removed in-progress marker check - now using first uncompleted task automatically
         }
       }
+    }
+
+    // Save the last header task if exists
+    if (currentHeaderTask) {
+      // Check if all subtasks are completed
+      if (currentHeaderTask.subtasks && currentHeaderTask.subtasks.length > 0) {
+        currentHeaderTask.completed = currentHeaderTask.subtasks.every(st => st.completed);
+      }
+      tasks.push(currentHeaderTask);
     }
 
     // No longer storing in-progress task ID - automatically determined by first uncompleted task
