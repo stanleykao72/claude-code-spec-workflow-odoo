@@ -122,6 +122,7 @@ If validation fails, use the feedback to improve the requirements before present
 - **CRITICAL**: Wait for explicit approval before proceeding to Phase 2
 - Accept only clear affirmative responses: "yes", "approved", "looks good", etc.
 - If user provides feedback, make revisions and ask for approval again
+- **WHEN APPROVED**: Add "✅ APPROVED" at the top of requirements.md after the main heading
 
 ## PHASE 2: Design Creation
 
@@ -175,6 +176,7 @@ If validation fails, use the feedback to improve the design before presenting to
 - **Present the validated design document** with code reuse highlights and steering document alignment
 - Ask: "Does the design look good? If so, we can move on to the implementation planning."
 - **CRITICAL**: Wait for explicit approval before proceeding to Phase 3
+- **WHEN APPROVED**: Add "✅ APPROVED" at the top of design.md after the main heading
 
 ## PHASE 3: Tasks Creation
 
@@ -241,6 +243,7 @@ If validation fails, use the feedback to break down tasks further and improve at
 - **Present the validated task list**
 - Ask: "Do the tasks look good? Each task should be atomic and agent-friendly."
 - **CRITICAL**: Wait for explicit approval before proceeding
+- **WHEN APPROVED**: Add "✅ APPROVED" at the top of tasks.md after the main heading
 - **AFTER APPROVAL**: Ask "Would you like me to generate individual task commands for easier execution? (yes/no)"
 - **IF YES**: Execute \`npx @pimzino/claude-code-spec-workflow@latest generate-task-commands {feature-name}\`
 - **IF NO**: Continue with traditional task execution approach
@@ -718,6 +721,7 @@ You are helping create a new bug fix workflow. This is designed for smaller fixe
    - Save the completed bug report to report.md
    - Ask: "Is this bug report accurate? If so, we can move on to the analysis."
    - Wait for explicit approval before proceeding
+   - **WHEN APPROVED**: Add "✅ APPROVED" at the top of report.md after the main heading
 
 ## Key Differences from Spec Workflow
 
@@ -822,6 +826,7 @@ You are working on the analysis phase of the bug fix workflow.
    - Incorporate feedback and revisions
    - Continue until explicit approval
    - **CRITICAL**: Do not proceed without explicit approval
+   - **WHEN APPROVED**: Add "✅ APPROVED" at the top of analysis.md after the main heading
 
 ## Analysis Guidelines
 
@@ -958,6 +963,7 @@ You are working on the fix implementation phase of the bug fix workflow.
    - Show test results confirming fix
    - Ask: "The fix has been implemented. Should we proceed to verification?"
    - **CRITICAL**: Wait for user approval before proceeding
+   - **WHEN APPROVED**: Add "✅ APPROVED" at the top of fix.md after the main heading (if exists)
 
 ## Critical Rules
 - **ONLY** implement the fix outlined in the approved analysis
@@ -1036,6 +1042,7 @@ You are working on the verification phase of the bug fix workflow.
    - Show that all checks pass
    - Ask: "The bug fix has been verified successfully. Is this bug resolved?"
    - Get final confirmation before closing
+   - **WHEN APPROVED**: Add "✅ VERIFIED" at the top of verification.md after the main heading
 
 ## Verification Guidelines
 
