@@ -236,9 +236,14 @@ export class SpecParser {
 
       // Try to extract title from the first heading
       // Handle formats like "# Requirements: Feature Name", "# Requirements - Feature Name", "# Requirements Document - Feature Name", or "# Feature Name Requirements"
-      const titleMatch = content.match(/^#\s+(?:Requirements(?:\s+Document)?\s*[-:]\s+)?(.+?)(?:\s+Requirements)?$/m);
-      if (titleMatch && titleMatch[1] && titleMatch[1].trim() && titleMatch[1].trim().toLowerCase() !== 'requirements' && titleMatch[1].trim().toLowerCase() !== 'document') {
-        spec.displayName = titleMatch[1].trim();
+      // Also handle "# Requirements Document" (without separator) by treating it as a non-title
+      const titleMatch = content.match(/^#\s+(?:Requirements(?:\s+Document)?(?:\s*[-:]\s+(.+?))?|(.+?)\s+Requirements)$/m);
+      const extractedTitle = titleMatch ? (titleMatch[1] || titleMatch[2]) : null;
+      if (extractedTitle && extractedTitle.trim() && 
+          extractedTitle.trim().toLowerCase() !== 'requirements' && 
+          extractedTitle.trim().toLowerCase() !== 'document' &&
+          !this.isStatusIndicator(extractedTitle.trim())) {
+        spec.displayName = extractedTitle.trim();
       }
 
       const extractedRequirements = this.extractRequirements(content);
@@ -677,6 +682,31 @@ export class SpecParser {
       .split('-')
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
+  }
+
+  private isStatusIndicator(text: string): boolean {
+    // Check if the text is primarily a status indicator
+    const statusPatterns = [
+      /^✅\s*APPROVED$/i,
+      /^✓\s*APPROVED$/i,
+      /^❌\s*REJECTED$/i,
+      /^✗\s*REJECTED$/i,
+      /^✅$/,
+      /^✓$/,
+      /^❌$/,
+      /^✗$/,
+      /^APPROVED$/i,
+      /^PENDING$/i,
+      /^DRAFT$/i,
+      /^WIP$/i,
+      /^TODO$/i,
+      /^DONE$/i,
+      /^IN\s*PROGRESS$/i,
+      /^COMPLETED$/i,
+    ];
+    
+    const trimmedText = text.trim();
+    return statusPatterns.some(pattern => pattern.test(trimmedText));
   }
 
   private async getGitLastModified(path: string): Promise<Date> {
@@ -1213,7 +1243,7 @@ export class SpecParser {
             !trimmed.match(/^\[.*\]$/) && // Skip full line placeholders
             !trimmed.match(/^<.*>$/) && // Skip placeholder tags
             !trimmed.match(/^\{.*\}$/) && // Skip template variables
-            !trimmed.match(/\*[^*]+\*/) && // Skip italic text anywhere in line
+            !trimmed.match(/\*To be [^*]+\*/) && // Skip italic template phrases
             !trimmed.includes('**Pending**') && // Skip pending status markers
             !trimmed.toLowerCase().includes('pending') && // Skip any pending text
             !trimmed.includes('To be completed') && // Skip common template text
@@ -1276,7 +1306,7 @@ export class SpecParser {
             !trimmed.match(/^<.*>$/) && // Skip placeholder tags
             !trimmed.match(/^\{.*\}$/) && // Skip template variables
             !trimmed.match(/^[-*]\s*\[/) && // Skip any checkbox line
-            !trimmed.match(/\*[^*]+\*/) && // Skip italic text anywhere in line
+            !trimmed.match(/\*To be [^*]+\*/) && // Skip italic template phrases
             !trimmed.includes('**Pending**') && // Skip pending status markers
             !trimmed.toLowerCase().includes('pending') && // Skip any pending text
             !trimmed.includes('To be completed') && // Skip common template text
