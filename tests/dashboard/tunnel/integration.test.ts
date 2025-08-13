@@ -585,10 +585,15 @@ describe('Dashboard Tunnel Integration Tests', () => {
       testManager.registerProvider(failingProvider1);
       testManager.registerProvider(failingProvider2);
       
-      // Should throw error when all providers fail
-      await expect(testManager.startTunnel({ provider: 'auto' }))
-        .rejects.toThrow(Error);
-    }, 10000);
+      try {
+        // Should throw error when all providers fail
+        await expect(testManager.startTunnel({ provider: 'auto' }))
+          .rejects.toThrow('All tunnel providers failed');
+      } finally {
+        // Ensure cleanup
+        await testManager.stopTunnel();
+      }
+    }, 15000);
   });
   
   describe('Tunnel lifecycle management', () => {

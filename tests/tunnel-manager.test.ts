@@ -56,9 +56,17 @@ describe('TunnelManager', () => {
   
   beforeEach(() => {
     fastify = createMockFastify();
-    manager = new TunnelManager(fastify);
+    // Disable auto-reconnect for tests to avoid timeouts
+    manager = new TunnelManager(fastify, {}, { enableAutoReconnect: false });
     mockProvider = new MockTunnelProvider();
     manager.registerProvider(mockProvider);
+  });
+  
+  afterEach(async () => {
+    // Clean up any active tunnels
+    await manager.stopTunnel();
+    // Remove all event listeners
+    manager.removeAllListeners();
   });
   
   describe('Provider Registration', () => {
@@ -75,7 +83,7 @@ describe('TunnelManager', () => {
   
   describe('Tunnel Creation', () => {
     test('should create tunnel with available provider', async () => {
-      const info = await manager.startTunnel();
+      const info = await manager.startTunnel({ provider: 'mock' });
       
       expect(info).toMatchObject({
         url: 'https://mock-tunnel.example.com:3000',
@@ -87,17 +95,17 @@ describe('TunnelManager', () => {
     test('should fail when no providers available', async () => {
       mockProvider.setAvailable(false);
       
-      await expect(manager.startTunnel()).rejects.toThrow('No tunnel providers are available');
+      await expect(manager.startTunnel({ provider: 'mock' })).rejects.toThrow('No tunnel providers are available');
     });
     
     test('should fail when provider creation fails', async () => {
       mockProvider.setShouldFail(true);
       
-      await expect(manager.startTunnel()).rejects.toThrow('All tunnel providers failed');
+      await expect(manager.startTunnel({ provider: 'mock' })).rejects.toThrow('All tunnel providers failed');
     });
     
     test('should set password protection flag', async () => {
-      const info = await manager.startTunnel({ password: 'secret' });
+      const info = await manager.startTunnel({ provider: 'mock', password: 'secret' });
       
       expect(info.passwordProtected).toBe(true);
     });
@@ -106,7 +114,7 @@ describe('TunnelManager', () => {
       const ttl = 30; // 30 minutes
       const before = Date.now();
       
-      const info = await manager.startTunnel({ ttl });
+      const info = await manager.startTunnel({ provider: 'mock', ttl });
       
       const after = Date.now();
       
@@ -120,7 +128,7 @@ describe('TunnelManager', () => {
   describe('Provider Fallback', () => {
     test('should fallback to next provider if first fails', async () => {
       // Create a new manager without the default mock provider
-      manager = new TunnelManager(fastify);
+      manager = new TunnelManager(fastify, {}, { enableAutoReconnect: false });
       
       const failingProvider = new MockTunnelProvider();
       failingProvider.name = 'failing';
@@ -156,7 +164,7 @@ describe('TunnelManager', () => {
   
   describe('Tunnel Management', () => {
     test('should stop active tunnel', async () => {
-      await manager.startTunnel();
+      await manager.startTunnel({ provider: 'mock' });
       
       await expect(manager.stopTunnel()).resolves.not.toThrow();
       
@@ -169,8 +177,8 @@ describe('TunnelManager', () => {
     });
     
     test('should stop existing tunnel when starting new one', async () => {
-      const info1 = await manager.startTunnel();
-      const info2 = await manager.startTunnel();
+      const info1 = await manager.startTunnel({ provider: 'mock' });
+      const info2 = await manager.startTunnel({ provider: 'mock' });
       
       // Should have different URLs (different instances)
       expect(info2.url).toBe(info1.url); // Same because mock always returns same URL
@@ -190,7 +198,7 @@ describe('TunnelManager', () => {
     });
     
     test('should report active status with tunnel info', async () => {
-      const info = await manager.startTunnel();
+      const info = await manager.startTunnel({ provider: 'mock' });
       const status = manager.getStatus();
       
       expect(status).toMatchObject({
@@ -208,7 +216,7 @@ describe('TunnelManager', () => {
     });
     
     test('should return health status for active tunnel', async () => {
-      await manager.startTunnel();
+      await manager.startTunnel({ provider: 'mock' });
       const health = await manager.checkTunnelHealth();
       
       expect(health).toEqual({
@@ -236,10 +244,10 @@ describe('TunnelManager', () => {
         }
       });
       
-      manager = new TunnelManager(fastify);
+      manager = new TunnelManager(fastify, {}, { enableAutoReconnect: false });
       manager.registerProvider(unhealthyProvider);
       
-      await manager.startTunnel();
+      await manager.startTunnel({ provider: 'unhealthy' });
       
       // First check should trigger restart
       const health1 = await manager.checkTunnelHealth();
@@ -256,7 +264,7 @@ describe('TunnelManager', () => {
       const handler = jest.fn();
       manager.on('tunnel:started', handler);
       
-      const info = await manager.startTunnel();
+      const info = await manager.startTunnel({ provider: 'mock' });
       
       expect(handler).toHaveBeenCalledWith(info);
     });
@@ -265,17 +273,28 @@ describe('TunnelManager', () => {
       const handler = jest.fn();
       manager.on('tunnel:stopped', handler);
       
-      const info = await manager.startTunnel();
+      const info = await manager.startTunnel({ provider: 'mock' });
       await manager.stopTunnel();
       
-      expect(handler).toHaveBeenCalledWith(info);
+      // Event includes metrics when analytics is enabled (default)
+      expect(handler).toHaveBeenCalledWith({
+        info,
+        metrics: expect.objectContaining({
+          activeVisitors: expect.any(Number),
+          totalVisitors: expect.any(Number),
+          totalAccesses: expect.any(Number),
+          startTime: expect.any(Date),
+          lastActivity: expect.any(Date),
+          visitors: expect.any(Array)
+        })
+      });
     });
     
     test('should emit tunnel:health event', async () => {
       const handler = jest.fn();
       manager.on('tunnel:health', handler);
       
-      await manager.startTunnel();
+      await manager.startTunnel({ provider: 'mock' });
       await manager.checkTunnelHealth();
       
       expect(handler).toHaveBeenCalledWith({ healthy: true });

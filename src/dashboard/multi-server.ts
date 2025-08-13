@@ -670,6 +670,9 @@ export class MultiProjectDashboardServer {
           // Determine the next command based on bug status
           let nextCommand = '';
           switch (bug.status) {
+            case 'reported':
+              nextCommand = `/bug-analyze ${bug.name}`;
+              break;
             case 'analyzing':
               nextCommand = `/bug-analyze ${bug.name}`;
               break;
@@ -679,8 +682,14 @@ export class MultiProjectDashboardServer {
             case 'verifying':
               nextCommand = `/bug-verify ${bug.name}`;
               break;
+            case 'fixed':
+              nextCommand = `/bug-verify ${bug.name}`;
+              break;
+            case 'resolved':
+              nextCommand = ''; // Bug is complete, no next command
+              break;
             default:
-              nextCommand = `/bug-report ${bug.name}`;
+              nextCommand = `/bug-analyze ${bug.name}`;
           }
 
           activeSession = {

@@ -101,15 +101,16 @@ describe('UsageTracker', () => {
   
   describe('cleanupInactiveVisitors', () => {
     it('should remove old visitors', async () => {
-      const oldEvent: AccessEvent = {
+      // Add first visitor
+      tracker.trackAccess({
         ip: '192.168.1.1',
         userAgent: 'Mozilla/5.0',
         path: '/api/specs',
-        timestamp: new Date(Date.now() - 25 * 60 * 60 * 1000) // 25 hours ago
-      };
+        timestamp: new Date()
+      });
       
-      // Manually add old visitor
-      tracker.trackAccess(oldEvent);
+      // Wait a bit then add another visitor
+      await new Promise(resolve => setTimeout(resolve, 150));
       
       // Add recent visitor
       tracker.trackAccess({
@@ -121,8 +122,7 @@ describe('UsageTracker', () => {
       
       expect(tracker.getMetrics().totalVisitors).toBe(2);
       
-      // Wait a bit and cleanup with 100ms max age
-      await new Promise(resolve => setTimeout(resolve, 150));
+      // Cleanup with 100ms max age - should remove the first visitor
       const removed = tracker.cleanupInactiveVisitors(100);
       
       expect(removed).toBe(1);

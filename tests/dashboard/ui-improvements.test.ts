@@ -254,6 +254,8 @@ Fix by updating method Y
 
         await writeFile(join(bugDir, 'report.md'), reportContent);
         await writeFile(join(bugDir, 'analysis.md'), analysisContent);
+        // Create fix.md to trigger 'fixing' status
+        await writeFile(join(bugDir, 'fix.md'), '# Fix Document\n\n');
         
         const bugs = await parser.getAllBugs();
         const activeBug = bugs.find(b => b.name === 'active-bug');

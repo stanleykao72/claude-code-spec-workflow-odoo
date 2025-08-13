@@ -336,15 +336,19 @@ function initApp(): void {
       if (!grouped || grouped.length === 0) return [];
       
       // Create a new array with simple objects to avoid reactivity issues
-      return grouped.map(p => ({
-        path: p.path,
-        name: p.name,
-        level: p.level || 0,
-        hasActiveSession: p.hasActiveSession || false,
-        specs: p.specs || [],
-        bugs: p.bugs || [],
-        steeringStatus: p.steeringStatus
-      } as Project));
+      return grouped.map(p => {
+        const steeringData = p.steeringStatus;
+        console.log(`Project ${p.name} steering data:`, steeringData);
+        return {
+          path: p.path,
+          name: p.name,
+          level: p.level || 0,
+          hasActiveSession: p.hasActiveSession || false,
+          specs: p.specs || [],
+          bugs: p.bugs || [],
+          steeringStatus: steeringData
+        } as Project;
+      });
     },
 
     // ========================================================================
@@ -1571,7 +1575,11 @@ function initApp(): void {
     },
 
     normalizeProjects(projects: Project[]): Project[] {
+      console.log('normalizeProjects input:', projects);
       return projects.map((project) => {
+        console.log(`Project ${project.name} raw data:`, {
+          steeringStatus: project.steeringStatus
+        });
         if (project.specs) {
           project.specs = project.specs.map((spec) => {
             // Initialize selected task to first incomplete when tasks exist
@@ -1603,6 +1611,8 @@ function initApp(): void {
             return spec;
           });
         }
+        
+        console.log(`Project ${project.name} normalized with steering:`, project.steeringStatus);
         return project;
       });
     },

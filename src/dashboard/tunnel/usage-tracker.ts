@@ -218,12 +218,12 @@ export class UsageTracker extends EventEmitter {
   private classifyUserAgent(userAgent: string): string {
     const ua = userAgent.toLowerCase();
     if (ua.includes('mobile')) return 'mobile';
-    if (ua.includes('tablet')) return 'tablet';
+    if (ua.includes('ipad') || ua.includes('tablet')) return 'tablet';
     if (ua.includes('bot') || ua.includes('crawler')) return 'bot';
     if (ua.includes('chrome')) return 'chrome';
     if (ua.includes('firefox')) return 'firefox';
     if (ua.includes('safari')) return 'safari';
-    if (ua.includes('edge')) return 'edge';
+    if (ua.includes('edg')) return 'edge';
     return 'other';
   }
 }

@@ -78,14 +78,18 @@ class NgrokTunnelInstance implements TunnelInstance {
     try {
       const start = Date.now();
       
-      // Simple health check - just verify the tunnel is still active
-      // Full HTTP health checks would require additional dependencies
+      // Perform actual HTTP health check
+      const response = await fetch(this._url, {
+        method: 'HEAD',
+        signal: AbortSignal.timeout(5000)
+      });
+      
       const latency = Date.now() - start;
       
       return {
-        healthy: this.status === 'active' && !!this._url,
+        healthy: response.ok,
         latency,
-        error: this.status !== 'active' ? `Tunnel status: ${this.status}` : undefined
+        error: !response.ok ? `HTTP ${response.status}` : undefined
       };
     } catch (error) {
       return {

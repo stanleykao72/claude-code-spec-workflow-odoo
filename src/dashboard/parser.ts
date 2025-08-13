@@ -273,11 +273,11 @@ export class SpecParser {
       if (spec.displayName === this.formatDisplayName(name)) {
         // Handle formats like "# Design: Feature Name", "# Design - Feature Name", or "# Feature Name Design"
         const titleMatch = content.match(/^#\s+(?:Design\s*[-:]\s+)?(.+?)(?:\s+Design(?:\s+Document)?)?$/m);
-        if (titleMatch && titleMatch[1].trim() && 
-            titleMatch[1].trim().toLowerCase() !== 'design' &&
-            !titleMatch[1].toLowerCase().includes('placeholder') &&
-            !titleMatch[1].toLowerCase().includes('will be populated')) {
-          spec.displayName = titleMatch[1].trim();
+        if (titleMatch && titleMatch[1]?.trim() && 
+            titleMatch[1]?.trim().toLowerCase() !== 'design' &&
+            !titleMatch[1]?.toLowerCase().includes('placeholder') &&
+            !titleMatch[1]?.toLowerCase().includes('will be populated')) {
+          spec.displayName = titleMatch[1]?.trim() ?? this.formatDisplayName(name);
         }
       }
       
@@ -314,8 +314,8 @@ export class SpecParser {
         // Handle formats like "# Tasks: Feature Name", "# Tasks - Feature Name", or "# Implementation Plan: Feature Name"
         // First check for titles with colons or dashes
         const titleWithSeparatorMatch = content.match(/^#\s+(?:Tasks|Implementation Plan)\s*[-:]\s+(.+)$/m);
-        if (titleWithSeparatorMatch && titleWithSeparatorMatch[1].trim()) {
-          spec.displayName = titleWithSeparatorMatch[1].trim();
+        if (titleWithSeparatorMatch && titleWithSeparatorMatch[1]?.trim()) {
+          spec.displayName = titleWithSeparatorMatch[1]?.trim() ?? this.formatDisplayName(name);
         }
         // If no separator found and title is just "# Tasks" or "# Implementation Plan", keep the default display name
         // This prevents "Implementation" from being extracted from "# Implementation Plan"
@@ -344,7 +344,9 @@ export class SpecParser {
           spec.status = 'in-progress';
           // Always use the first uncompleted task as in-progress
           const inProgressTask = this.findInProgressTask(taskList);
-          spec.tasks.inProgress = inProgressTask;
+          if (inProgressTask) {
+            spec.tasks.inProgress = inProgressTask;
+          }
         } else {
           spec.status = 'completed';
         }
@@ -504,20 +506,24 @@ export class SpecParser {
       }
     }
     
-    // Check analysis if status still not determined
-    if (!bug.status || bug.status === 'reported') {
-      if (hasAnalysis) {
-        const content = await readFile(analysisPath, 'utf-8');
+    // Always check analysis content (even for resolved bugs to maintain document access)
+    if (hasAnalysis) {
+      const content = await readFile(analysisPath, 'utf-8');
+      
+      // Only update status if not already determined
+      const shouldUpdateStatus = !bug.status || bug.status === 'reported';
         
-        // Check for content in the actual analysis sections (not just headers)
-        const hasRootCauseContent = this.hasContentAfterSection(content, 'Root Cause Analysis') ||
-                                  this.hasContentAfterSection(content, 'Investigation Summary') ||
-                                  this.hasContentAfterSection(content, 'Root Cause');
-        const hasImplementationPlan = this.hasContentAfterSection(content, 'Implementation Plan') ||
-                                    this.hasContentAfterSection(content, 'Changes Required') ||
-                                    this.hasContentAfterSection(content, 'Proposed Fix');
-        
-        if (hasRootCauseContent || hasImplementationPlan) {
+      // Check for content in the actual analysis sections (not just headers)
+      const hasRootCauseContent = this.hasContentAfterSection(content, 'Root Cause Analysis') ||
+                                this.hasContentAfterSection(content, 'Investigation Summary') ||
+                                this.hasContentAfterSection(content, 'Root Cause');
+      const hasImplementationPlan = this.hasContentAfterSection(content, 'Implementation Plan') ||
+                                  this.hasContentAfterSection(content, 'Changes Required') ||
+                                  this.hasContentAfterSection(content, 'Proposed Fix');
+      
+      if (hasRootCauseContent || hasImplementationPlan) {
+        // Only update status if not already determined
+        if (shouldUpdateStatus) {
           // If fix file exists but is empty template, we're in 'fixing' state
           // Otherwise we're still 'analyzing'
           if (hasFix) {
@@ -525,30 +531,31 @@ export class SpecParser {
           } else {
             bug.status = 'analyzing';
           }
-          
-          // Try multiple possible section names for root cause
-          const rootCause = this.extractSection(content, 'Root Cause') || 
-                           this.extractSection(content, 'Root Cause Analysis') ||
-                           this.extractSection(content, 'Investigation Summary');
-          
-          // Try multiple possible section names for proposed fix
-          const proposedFix = this.extractSection(content, 'Proposed Fix') ||
-                             this.extractSection(content, 'Fix Strategy') ||
-                             this.extractSection(content, 'Solution Approach') ||
-                             this.extractSection(content, 'Implementation Plan');
-          
-          const filesAffected = this.extractFilesAffected(content);
-          
-          bug.analysis = {
-            exists: true,
-            ...(rootCause && { rootCause }),
-            ...(proposedFix && { proposedFix }),
-            ...(filesAffected.length > 0 && { filesAffected }),
-          };
-        } else {
-          // Analysis file exists but is just template
-          // Don't change status - leave as 'reported'
         }
+        
+        // Always extract analysis content
+        // Try multiple possible section names for root cause
+        const rootCause = this.extractSection(content, 'Root Cause') || 
+                         this.extractSection(content, 'Root Cause Analysis') ||
+                         this.extractSection(content, 'Investigation Summary');
+        
+        // Try multiple possible section names for proposed fix
+        const proposedFix = this.extractSection(content, 'Proposed Fix') ||
+                           this.extractSection(content, 'Fix Strategy') ||
+                           this.extractSection(content, 'Solution Approach') ||
+                           this.extractSection(content, 'Implementation Plan');
+        
+        const filesAffected = this.extractFilesAffected(content);
+        
+        bug.analysis = {
+          exists: true,
+          ...(rootCause && { rootCause }),
+          ...(proposedFix && { proposedFix }),
+          ...(filesAffected.length > 0 && { filesAffected }),
+        };
+      } else if (!shouldUpdateStatus) {
+        // Even if analysis is just template, mark it exists for resolved bugs
+        bug.analysis = { exists: true };
       }
     }
 
@@ -649,8 +656,13 @@ export class SpecParser {
         };
 
         // Find parent based on level
-        while (parentStack.length > 0 && parentStack[parentStack.length - 1].level >= level) {
-          parentStack.pop();
+        while (parentStack.length > 0) {
+          const lastParent = parentStack[parentStack.length - 1];
+          if (lastParent && lastParent.level >= level) {
+            parentStack.pop();
+          } else {
+            break;
+          }
         }
 
         if (parentStack.length > 0) {
@@ -739,9 +751,9 @@ export class SpecParser {
           if (detailMatch && !line.includes('_Requirements:') && !line.includes('_Leverage:')) {
             const [, detailIndent, detail] = detailMatch;
             // Only capture details that are indented more than the task
-            if ((detailIndent?.length || 0) > currentTaskIndent) {
+            if ((detailIndent?.length || 0) > currentTaskIndent && currentTask) {
               if (!currentTask.details) currentTask.details = [];
-              currentTask.details.push((detail || '').trim());
+              if (currentTask.details) currentTask.details.push((detail || '').trim());
             }
           }
 
@@ -900,7 +912,7 @@ export class SpecParser {
       const line = lines[i];
 
       // Skip non-requirement section headers
-      if (line.match(/^###\s+(Non-Functional Requirements|Technical Constraints|Edge Cases)\s*$/)) {
+      if (line?.match(/^###\s+(Non-Functional Requirements|Technical Constraints|Edge Cases)\s*$/)) {
         continue;
       }
 
@@ -918,7 +930,7 @@ export class SpecParser {
 
       let matchFound = false;
       for (const pattern of requirementPatterns) {
-        const match = line.match(pattern);
+        const match = line?.match(pattern);
         if (match) {
           // Save previous requirement
           if (currentRequirement) {
@@ -926,11 +938,11 @@ export class SpecParser {
           }
 
           currentRequirement = {
-            id: match[1],
-            title: match[2].trim(),
+            id: match[1] ?? '',
+            title: match[2]?.trim() ?? '',
             acceptanceCriteria: [],
           };
-          debug(`Found requirement ${match[1]}: ${match[2].trim()}`);
+          debug(`Found requirement ${match[1] ?? ''}: ${match[2]?.trim() ?? ''}`);
           inAcceptanceCriteria = false;
           matchFound = true;
           break;
@@ -939,44 +951,44 @@ export class SpecParser {
 
       if (!matchFound && currentRequirement) {
         // Debug every line to see what we're getting
-        if (line.trim()) {
+        if (line?.trim()) {
           debug(`Processing line for ${currentRequirement.id}: "${line}"`);
         }
         
         // Look for user story in requirement body
-        if (line.includes('**User Story:**')) {
-          currentRequirement.userStory = line.replace('**User Story:**', '').trim();
+        if (line?.includes('**User Story:**')) {
+          currentRequirement.userStory = line?.replace('**User Story:**', '').trim();
           debug(`Found user story for ${currentRequirement.id}: ${currentRequirement.userStory}`);
         }
         // Look for user story parts in new format - check more broadly
-        else if (line.includes('As a') || line.includes('I want') || line.includes('So that')) {
+        else if (line?.includes('As a') || line?.includes('I want') || line?.includes('So that')) {
           if (!currentRequirement.userStory) {
             currentRequirement.userStory = '';
           }
-          currentRequirement.userStory += ' ' + line.trim();
-          debug(`Building user story for ${currentRequirement.id}: ${line.trim()}`);
+          currentRequirement.userStory += ' ' + (line?.trim() ?? '');
+          debug(`Building user story for ${currentRequirement.id}: ${line?.trim() ?? ''}`);
         }
         // Look for acceptance criteria section
-        else if (line.includes('#### Acceptance Criteria') || line.includes('**Acceptance Criteria**')) {
+        else if (line?.includes('#### Acceptance Criteria') || line?.includes('**Acceptance Criteria**')) {
           inAcceptanceCriteria = true;
           debug(`Found acceptance criteria section for ${currentRequirement.id}`);
         }
         // Look for GIVEN/WHEN/THEN format in new style (might be direct under requirement)
         // But exclude numbered acceptance criteria (1. WHEN..., 2. THEN...) and bulleted criteria (- WHEN...)
-        else if ((line.includes('GIVEN') || line.includes('WHEN') || line.includes('THEN')) &&
-                 !line.match(/^\d+\.\s+/) && !line.match(/^[-•]\s+/)) {
+        else if ((line?.includes('GIVEN') || line?.includes('WHEN') || line?.includes('THEN')) &&
+                 !line?.match(/^\d+\.\s+/) && !line?.match(/^[-•]\s+/)) {
           if (!currentRequirement.acceptanceCriteria) {
             currentRequirement.acceptanceCriteria = [];
           }
           
           // Collect GIVEN/WHEN/THEN as a group for better formatting
           // Start collecting a new acceptance criteria scenario
-          let scenario = line.trim();
+          let scenario = line?.trim() ?? '';
           let j = i + 1;
           
           // Collect WHEN and THEN parts that follow
           while (j < lines.length) {
-            const nextLine = lines[j].trim();
+            const nextLine = lines[j]?.trim() ?? '';
             if (nextLine.startsWith('**WHEN**') || nextLine.startsWith('**THEN**')) {
               scenario += ' ' + nextLine;
               j++;
@@ -1003,43 +1015,43 @@ export class SpecParser {
           i = j - 1; // Skip lines we've already processed
         }
         // Collect acceptance criteria items (numbered format)
-        else if (currentRequirement && inAcceptanceCriteria && line.match(/^\d+\. /)) {
-          const criterion = line.replace(/^\d+\. /, '').trim();
+        else if (currentRequirement && inAcceptanceCriteria && line?.match(/^\d+\. /)) {
+          const criterion = line?.replace(/^\d+\. /, '').trim() ?? '';
           if (criterion) {
             currentRequirement.acceptanceCriteria.push(criterion);
             debug(`Found acceptance criterion for ${currentRequirement.id}: ${criterion}`);
           }
         }
         // Also collect bullet point acceptance criteria (- WHEN...)
-        else if (currentRequirement && inAcceptanceCriteria && line.match(/^[-•]\s+/)) {
-          const criterion = line.replace(/^[-•]\s+/, '').trim();
+        else if (currentRequirement && inAcceptanceCriteria && line?.match(/^[-•]\s+/)) {
+          const criterion = line?.replace(/^[-•]\s+/, '').trim() ?? '';
           if (criterion) {
             currentRequirement.acceptanceCriteria.push(criterion);
           }
         }
         // For FR/NFR requirements, collect bullet points directly as acceptance criteria
-        else if (currentRequirement && !inAcceptanceCriteria && line.match(/^[-•]\s+/) && 
+        else if (currentRequirement && !inAcceptanceCriteria && line?.match(/^[-•]\s+/) && 
                  currentRequirement.id && (currentRequirement.id.startsWith('FR-') || currentRequirement.id.startsWith('NFR-'))) {
           if (!currentRequirement.acceptanceCriteria) {
             currentRequirement.acceptanceCriteria = [];
           }
-          const criterion = line.replace(/^[-•]\s+/, '').trim();
+          const criterion = line?.replace(/^[-•]\s+/, '').trim() ?? '';
           if (criterion) {
             currentRequirement.acceptanceCriteria.push(criterion);
             debug(`Found bullet criterion for ${currentRequirement.id}: ${criterion}`);
           }
         }
         // For FR/NFR requirements, also collect regular text as part of description
-        else if (currentRequirement && line.trim() && !line.startsWith('#') &&
+        else if (currentRequirement && line?.trim() && !line?.startsWith('#') &&
                  currentRequirement.id && (currentRequirement.id.startsWith('FR-') || currentRequirement.id.startsWith('NFR-'))) {
           // If it's descriptive text, add it to the user story
           if (!currentRequirement.userStory) {
-            currentRequirement.userStory = line.trim();
-          } else if (!line.match(/^[-•]\s+/)) {
+            currentRequirement.userStory = line?.trim() ?? '';
+          } else if (!line?.match(/^[-•]\s+/)) {
             // Continue building the description if it's not a bullet point
-            currentRequirement.userStory += ' ' + line.trim();
+            currentRequirement.userStory += ' ' + (line?.trim() ?? '');
           }
-          debug(`Adding description for ${currentRequirement.id}: ${line.trim()}`);
+          debug(`Adding description for ${currentRequirement.id}: ${line?.trim() ?? ''}`);
         }
       }
     }
@@ -1052,7 +1064,7 @@ export class SpecParser {
     // Clean up user stories that might have extra spaces
     requirements.forEach(req => {
       if (req.userStory) {
-        req.userStory = req.userStory.trim().replace(/\s+/g, ' ');
+        req.userStory = req.userStory?.trim().replace(/\s+/g, ' ') ?? '';
       }
     });
 
@@ -1090,22 +1102,22 @@ export class SpecParser {
       const line = lines[i];
       
       // Check for old format: **User Story:**
-      if (line.includes('**User Story:**')) {
+      if (line?.includes('**User Story:**')) {
         if (currentStory) {
           stories.push(currentStory.trim());
         }
         // Extract the story content after "**User Story:**"
-        currentStory = line.replace('**User Story:**', '').trim();
+        currentStory = line?.replace('**User Story:**', '').trim() ?? '';
         inStorySection = true;
         currentStoryTitle = '';
       } 
       // Check for new format: ### US-N: Title
-      else if (line.match(/^### US-\d+: (.+)$/)) {
+      else if (line?.match(/^### US-\d+: (.+)$/)) {
         if (currentStory) {
           stories.push(currentStory.trim());
         }
-        const match = line.match(/^### US-\d+: (.+)$/);
-        currentStoryTitle = match![1].trim();
+        const match = line?.match(/^### US-\d+: (.+)$/);
+        currentStoryTitle = match?.[1]?.trim() ?? '';
         currentStory = currentStoryTitle;
         inStorySection = true;
         
@@ -1113,7 +1125,7 @@ export class SpecParser {
         // Format: **As a** X **I want** Y **So that** Z
         let storyParts: string[] = [];
         for (let j = i + 1; j < lines.length && j < i + 10; j++) {
-          const nextLine = lines[j].trim();
+          const nextLine = lines[j]?.trim() ?? '';
           if (nextLine.startsWith('**As a**') || 
               nextLine.startsWith('**I want**') || 
               nextLine.startsWith('**So that**')) {
@@ -1126,23 +1138,23 @@ export class SpecParser {
           currentStory = currentStoryTitle + ': ' + storyParts.join(' ');
         }
       } 
-      else if (inStorySection && line.trim()) {
+      else if (inStorySection && line?.trim()) {
         // Stop at next major section (### or ##) or next user story
-        if (line.startsWith('###') || line.startsWith('##') || line.includes('**User Story:**')) {
+        if (line?.startsWith('###') || line?.startsWith('##') || line?.includes('**User Story:**')) {
           if (currentStory) {
             stories.push(currentStory.trim());
             currentStory = '';
           }
           // If this line is another user story, process it
-          if (line.includes('**User Story:**')) {
-            currentStory = line.replace('**User Story:**', '').trim();
+          if (line?.includes('**User Story:**')) {
+            currentStory = line?.replace('**User Story:**', '').trim() ?? '';
             currentStoryTitle = '';
           } else {
             inStorySection = false;
           }
-        } else if (!line.startsWith('#') && line.trim() && !currentStoryTitle) {
+        } else if (!line?.startsWith('#') && line?.trim() && !currentStoryTitle) {
           // Continue building the story if it's not a heading (old format only)
-          currentStory += ' ' + line.trim();
+          currentStory += ' ' + (line?.trim() ?? '');
         }
       }
     }
@@ -1178,6 +1190,12 @@ export class SpecParser {
             !line.includes('Existing Components')) {
           break;
         }
+        
+        // Also stop at "New Components" sections since we only want existing/reusable code
+        if (line.includes('### New Components') || 
+            line.includes('## New Components')) {
+          break;
+        }
 
         // Look for numbered categories like "1. **Configuration Infrastructure**", "1. Item Name:", or "### 1. Item Name"
         const categoryMatch = line.match(/^(?:###\s+)?\d+\.\s*(?:\*\*(.+?)\*\*|(.+?)(?::|\s*$))/);
@@ -1191,7 +1209,7 @@ export class SpecParser {
           }
           
           currentCategory = {
-            title: categoryName.trim(),
+            title: categoryName?.trim() ?? '',
             items: [],
           };
           
@@ -1268,7 +1286,7 @@ export class SpecParser {
   private extractBugSeverity(content: string): 'critical' | 'high' | 'medium' | 'low' | undefined {
     const severityMatch = content.match(/\*\*Severity\*\*:\s*(critical|high|medium|low)/i);
     if (severityMatch) {
-      return severityMatch[1].toLowerCase() as 'critical' | 'high' | 'medium' | 'low';
+      return severityMatch[1]?.toLowerCase() as 'critical' | 'high' | 'medium' | 'low';
     }
     return undefined;
   }
@@ -1293,7 +1311,7 @@ export class SpecParser {
         // Look for numbered steps
         const stepMatch = line.match(/^\d+\.\s+(.+)$/);
         if (stepMatch) {
-          steps.push(stepMatch[1].trim());
+          steps.push(stepMatch[1]?.trim() ?? '');
         }
       }
     }
@@ -1364,8 +1382,7 @@ export class SpecParser {
         const trimmed = line.trim();
         if (trimmed && 
             !trimmed.match(/^-+$/) && // Skip horizontal rules (---)
-            !trimmed.startsWith('[') && // Skip template placeholders like [Description]
-            !trimmed.match(/^\[.*\]$/) && // Skip full line placeholders
+            !trimmed.match(/\[.*?\]/) && // Skip any line containing square bracket placeholders
             !trimmed.match(/^<.*>$/) && // Skip placeholder tags
             !trimmed.match(/^\{.*\}$/) && // Skip template variables
             !trimmed.match(/\*To be [^*]+\*/) && // Skip italic template phrases
@@ -1468,7 +1485,7 @@ export class SpecParser {
         // Look for file paths (basic heuristic: contains / or .)
         const fileMatch = line.match(/[-•]\s*(.+\.[a-zA-Z]+)/) || line.match(/[-•]\s*(.+\/.+)/);
         if (fileMatch) {
-          files.push(fileMatch[1].trim());
+          files.push(fileMatch[1]?.trim() ?? '');
         }
       }
     }
@@ -1506,7 +1523,7 @@ export class SpecParser {
         // Look for check items
         const checkMatch = line.match(/[-•✅❌]\s+(.+)$/);
         if (checkMatch) {
-          checks.push(checkMatch[1].trim());
+          checks.push(checkMatch[1]?.trim() ?? '');
         }
       }
     }

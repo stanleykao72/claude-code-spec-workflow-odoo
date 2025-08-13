@@ -103,22 +103,10 @@ describe('SpecWorkflowSetup', () => {
     expect(config.spec_workflow).toHaveProperty('auto_create_directories');
   });
 
-  test('should create CLAUDE.md', async () => {
-    await setup.setupDirectories();
-    await setup.createClaudeMd();
-
-    const claudeMdPath = join(tempDir, 'CLAUDE.md');
-    await expect(fs.access(claudeMdPath)).resolves.not.toThrow();
-
-    const content = await fs.readFile(claudeMdPath, 'utf-8');
-    expect(content).toContain('# Spec Workflow');
-    expect(content).toContain('/spec-create');
-    expect(content).toContain('/spec-steering-setup');
-    expect(content).toContain('Requirements → Design → Tasks → Implementation');
-    expect(content).toContain('Steering Documents');
-    expect(content).toContain('product.md');
-    expect(content).toContain('tech.md');
-    expect(content).toContain('structure.md');
+  // CLAUDE.md creation removed in newer versions - all workflow instructions now in individual commands
+  test.skip('should create CLAUDE.md', async () => {
+    // This test is skipped as CLAUDE.md is no longer created
+    // All workflow instructions are now in individual command files
   });
 
   test('should run complete setup', async () => {

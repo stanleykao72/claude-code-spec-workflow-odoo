@@ -1,4 +1,4 @@
-import { DashboardServer } from '../../../src/dashboard/server';
+import { DashboardServer } from '../../../src/dashboard/multi-server';
 import { TunnelManager, CloudflareProvider, NgrokProvider } from '../../../src/dashboard/tunnel';
 import { join } from 'path';
 import { promises as fs } from 'fs';

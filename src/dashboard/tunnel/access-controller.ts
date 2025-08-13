@@ -113,8 +113,19 @@ export class AccessController {
     // Mark session as read-only
     this.readOnlySessions.add(sessionId);
     
-    // For now, just mark the socket as read-only
-    // TODO: Implement proper WebSocket message filtering
+    // Wrap the send method to add readOnly flag to messages
+    const originalSend = socket.send.bind(socket);
+    socket.send = (data: any) => {
+      try {
+        const message = typeof data === 'string' ? JSON.parse(data) : data;
+        message.readOnly = true;
+        originalSend(JSON.stringify(message));
+      } catch {
+        // If we can't parse it, send as-is
+        originalSend(data);
+      }
+    };
+    
     console.log(`WebSocket ${sessionId} marked as read-only`);
     
     // Clean up on close

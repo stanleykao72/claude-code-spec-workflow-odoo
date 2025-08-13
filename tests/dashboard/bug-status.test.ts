@@ -127,6 +127,9 @@ The root cause has been identified.
 ✅ APPROVED - Ready to proceed with the fix
 `);
 
+      // Create fix.md file to trigger 'fixing' status
+      await fs.writeFile(join(bugPath, 'fix.md'), '# Fix Document\n\n');
+
       const bug = await parser.getBug(bugName);
       expect(bug).toBeDefined();
       expect(bug?.status).toBe('fixing'); // Should advance to fixing
@@ -153,6 +156,16 @@ Bug identified
 
 ✅ APPROVED`);
       
+      // Create fix.md with actual content
+      await fs.writeFile(join(bugPath, 'fix.md'), `# Fix Document
+
+## Fix Summary
+The bug has been fixed
+
+## Implementation Details
+Changes were made to fix the issue
+`);
+      
       // Create empty verification.md
       await fs.writeFile(join(bugPath, 'verification.md'), `# Bug Verification
 
@@ -165,7 +178,7 @@ Bug identified
 
       const bug = await parser.getBug(bugName);
       expect(bug).toBeDefined();
-      expect(bug?.status).toBe('fixing'); // Should stay in fixing status
+      expect(bug?.status).toBe('fixed'); // Should be 'fixed' since fix has content but verification is empty
     });
 
     it('should advance to verifying with actual verification content', async () => {
