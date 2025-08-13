@@ -1208,10 +1208,17 @@ export class SpecParser {
         // Check if line has meaningful content (not just whitespace or template placeholders)
         const trimmed = line.trim();
         if (trimmed && 
+            !trimmed.match(/^-+$/) && // Skip horizontal rules (---)
             !trimmed.startsWith('[') && // Skip template placeholders like [Description]
             !trimmed.match(/^\[.*\]$/) && // Skip full line placeholders
             !trimmed.match(/^<.*>$/) && // Skip placeholder tags
             !trimmed.match(/^\{.*\}$/) && // Skip template variables
+            !trimmed.match(/\*[^*]+\*/) && // Skip italic text anywhere in line
+            !trimmed.includes('**Pending**') && // Skip pending status markers
+            !trimmed.toLowerCase().includes('pending') && // Skip any pending text
+            !trimmed.includes('To be completed') && // Skip common template text
+            !trimmed.includes('To be performed') && // Skip template variation
+            !trimmed.includes('To be defined') && // Skip template variation
             !trimmed.includes('To be determined') && // Skip template placeholder text
             !trimmed.includes('This file will be populated') && // Skip template headers
             !trimmed.startsWith('- To be')) { // Skip template list items
@@ -1263,13 +1270,18 @@ export class SpecParser {
         
         // Look for actual content (not checkboxes, not placeholders)
         if (trimmed && 
+            !trimmed.match(/^-+$/) && // Skip horizontal rules (---)
             !trimmed.startsWith('[') && // Skip template placeholders
             !trimmed.match(/^\[.*\]$/) && // Skip full line placeholders
             !trimmed.match(/^<.*>$/) && // Skip placeholder tags
             !trimmed.match(/^\{.*\}$/) && // Skip template variables
             !trimmed.match(/^[-*]\s*\[/) && // Skip any checkbox line
-            !trimmed.match(/^\*.*\*$/) && // Skip italic placeholder text
+            !trimmed.match(/\*[^*]+\*/) && // Skip italic text anywhere in line
+            !trimmed.includes('**Pending**') && // Skip pending status markers
+            !trimmed.toLowerCase().includes('pending') && // Skip any pending text
             !trimmed.includes('To be completed') && // Skip common template text
+            !trimmed.includes('To be performed') && // Skip template variation
+            !trimmed.includes('To be defined') && // Skip template variation
             !trimmed.includes('To be determined') && // Skip template placeholder
             !trimmed.includes('This file will be populated')) { // Skip template header
           hasContent = true;
