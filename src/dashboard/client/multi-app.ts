@@ -1421,7 +1421,7 @@ function initApp(): void {
       let newPath = '/active';
       
       if (this.activeTab === 'projects' && this.selectedProject) {
-        newPath = '/' + this.getProjectSlug(this.selectedProject);
+        newPath = '/project/' + this.getProjectSlug(this.selectedProject);
       }
 
       // Only update if path has changed to avoid infinite loops
