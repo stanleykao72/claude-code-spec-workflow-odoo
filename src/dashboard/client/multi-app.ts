@@ -1412,7 +1412,8 @@ function initApp(): void {
             // Projects are loaded but project not found, or invalid route - go to active tab
             this.activeTab = 'active';
             this.selectedProject = null;
-            this.updateURL();
+            // Use replaceState to avoid polluting browser history for invalid projects
+            window.history.replaceState(null, '', '/active');
           }
         }
       } else {
