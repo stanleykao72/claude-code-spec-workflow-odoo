@@ -295,8 +295,10 @@ export interface ActiveSession {
   specName?: string;
   /** Name of the bug */
   bugName?: string;
-  /** Current task ID being worked on (for specs) */
+  /** Current task ID being worked on (for specs) - deprecated, use task.id */
   currentTaskId?: string;
+  /** Current task object being worked on (for specs) */
+  task?: Task;
   /** Total number of tasks (for specs) */
   totalTasks?: number;
   /** Progress percentage (0-100) */

@@ -1287,7 +1287,11 @@ function initApp(): void {
       
       if (!spec?.tasks?.taskList) return 1;
       
-      const taskIndex = spec.tasks.taskList.findIndex((t) => t?.id === activeSession?.currentTaskId);
+      // Use activeSession.task.id instead of activeSession.currentTaskId
+      const taskId = activeSession?.task?.id;
+      if (!taskId) return 1;
+      
+      const taskIndex = spec.tasks.taskList.findIndex((t) => t?.id === taskId);
       return taskIndex >= 0 ? taskIndex + 1 : 1;
     },
 
@@ -1321,14 +1325,18 @@ function initApp(): void {
       
       if (!spec?.tasks?.taskList) return null;
       
+      // Use activeSession.task.id instead of activeSession.currentTaskId
+      const taskId = activeSession?.task?.id;
+      if (!taskId) return null;
+      
       const taskList = spec.tasks.taskList;  // TypeScript now knows this is defined
-      const currentIndex = taskList.findIndex((t) => t?.id === activeSession?.currentTaskId);
+      const currentIndex = taskList.findIndex((t) => t?.id === taskId);
       if (currentIndex >= 0 && currentIndex < taskList.length - 1) {
         const nextTask = taskList[currentIndex + 1];
         if (nextTask && !nextTask.completed) return nextTask;
       }
       
-      return taskList.find((t) => t && !t.completed && t.id !== activeSession?.currentTaskId) || null;
+      return taskList.find((t) => t && !t.completed && t.id !== taskId) || null;
     },
 
     getCurrentTask(spec: Spec): Task | null {
