@@ -147,6 +147,13 @@ interface MultiAppState extends AppState {
   // Computed Properties
   readonly activeSessionCount: number;
   readonly groupedProjectsList: Project[];
+  
+  // Markdown preview getters for template compatibility
+  readonly markdownShow: boolean;
+  readonly markdownTitle: string;
+  readonly markdownContent: string;
+  readonly markdownRawContent: string;
+  readonly markdownLoading: boolean;
 
   // Essential Methods (only those actually implemented)
   init(): Promise<void>;
@@ -276,6 +283,23 @@ function initApp(): void {
       content: '',
       rawContent: '',
       loading: false
+    },
+
+    // Computed properties for markdown preview (for template compatibility)
+    get markdownShow(): boolean {
+      return this.markdownPreview.show;
+    },
+    get markdownTitle(): string {
+      return this.markdownPreview.title;
+    },
+    get markdownContent(): string {
+      return this.markdownPreview.content;
+    },
+    get markdownRawContent(): string {
+      return this.markdownPreview.rawContent;
+    },
+    get markdownLoading(): boolean {
+      return this.markdownPreview.loading;
     },
 
     // Multi dashboard specific state
