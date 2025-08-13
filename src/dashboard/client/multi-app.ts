@@ -1395,20 +1395,16 @@ function initApp(): void {
 
     handleRouteChange(): void {
       const path = window.location.pathname;
-      console.log('[ROUTING DEBUG] handleRouteChange - incoming path:', path);
       
       // Handle base path - if we're at the dashboard root or common dashboard paths
       if (path === '/' || path === '/active' || path === '/dashboard' || path === '/dashboard/' || path.includes('/dashboard/public')) {
-        console.log('[ROUTING DEBUG] detected route type: active/dashboard');
         this.activeTab = 'active';
         this.selectedProject = null;
         
         // If we're at root path, redirect to /active to maintain consistent URLs
         if (path === '/') {
-          console.log('[ROUTING DEBUG] redirecting root path to /active');
           window.history.replaceState(null, '', '/active');
         }
-        console.log('[ROUTING DEBUG] final state - activeTab:', this.activeTab, 'selectedProject:', null);
         return;
       }
       
@@ -1416,24 +1412,19 @@ function initApp(): void {
       const projectMatch = path.match(/^\/project\/(.+)$/);
       if (projectMatch) {
         const projectName = projectMatch[1];
-        console.log('[ROUTING DEBUG] detected route type: project, projectName:', projectName);
         
         // Find project by name
         const project = this.projects.find(p => this.getProjectSlug(p) === projectName);
         if (project) {
-          console.log('[ROUTING DEBUG] project found:', project.name);
           this.selectedProject = project;
           this.activeTab = 'projects';
         } else {
-          console.log('[ROUTING DEBUG] project not found, projects.length:', this.projects.length);
           // Project not found, check if we have projects loaded yet
           if (this.projects.length === 0 && projectName && !projectName.includes('.')) {
             // Projects not loaded yet and this looks like a project name, store for later
-            console.log('[ROUTING DEBUG] storing pending route for later:', projectName);
             this.pendingProjectRoute = projectName;
           } else {
             // Projects are loaded but project not found, or invalid route - go to active tab
-            console.log('[ROUTING DEBUG] invalid project, redirecting to active');
             this.activeTab = 'active';
             this.selectedProject = null;
             // Use replaceState to avoid polluting browser history for invalid projects
@@ -1442,36 +1433,25 @@ function initApp(): void {
         }
       } else {
         // For any other path, default to active tab
-        console.log('[ROUTING DEBUG] detected route type: other/invalid, defaulting to active');
         this.activeTab = 'active';
         this.selectedProject = null;
         
         // Update URL to reflect actual state for invalid paths
-        console.log('[ROUTING DEBUG] updating URL to /active for invalid path');
         window.history.replaceState(null, '', '/active');
       }
-      console.log('[ROUTING DEBUG] final state - activeTab:', this.activeTab, 'selectedProject:', this.selectedProject?.name || null);
     },
 
     updateURL(): void {
       let newPath = '/active';
-      console.log('[URL DEBUG] updateURL - current state - activeTab:', this.activeTab, 'selectedProject:', this.selectedProject?.name || null);
       
       if (this.activeTab === 'projects' && this.selectedProject) {
         newPath = '/project/' + this.getProjectSlug(this.selectedProject);
-        console.log('[URL DEBUG] generated project path:', newPath, 'for project:', this.selectedProject.name);
-      } else {
-        console.log('[URL DEBUG] using default active path:', newPath);
       }
 
       // Only update if path has changed to avoid infinite loops
       const currentPath = window.location.pathname;
-      console.log('[URL DEBUG] comparing paths - current:', currentPath, 'new:', newPath);
       if (currentPath !== newPath) {
-        console.log('[URL DEBUG] updating URL from', currentPath, 'to', newPath);
         window.history.pushState(null, '', newPath);
-      } else {
-        console.log('[URL DEBUG] no URL update needed, paths match');
       }
     },
 
