@@ -95,12 +95,17 @@ export class SpecWatcher extends EventEmitter {
         // When a new directory is added, we should check for .md files in it
         if (path) {
           // Check if this is a valid spec directory (top-level, alphanumeric with dashes)
-          const parts = path.split(/[\/]/);
-          if (parts.length === 1 && /^[a-z0-9-]+$/.test(parts[0])) {
-            debug(`[Watcher] Valid spec directory detected: ${path}`);
-            this.checkNewSpecDirectory(path);
+          const parts = path.split(/[\\/]/);
+          debug(`[Watcher] Directory path parts: ${JSON.stringify(parts)}, length: ${parts.length}`);
+          
+          // Check if this is a top-level directory (no path separators)
+          // On different systems, chokidar may report paths differently
+          if ((parts.length === 1 || (parts.length === 2 && parts[0] === '')) && /^[a-z0-9-]+$/.test(parts[parts.length - 1])) {
+            const dirName = parts[parts.length - 1];
+            debug(`[Watcher] Valid spec directory detected: ${dirName}`);
+            this.checkNewSpecDirectory(dirName);
           } else {
-            debug(`[Watcher] Skipping non-spec directory: ${path}`);
+            debug(`[Watcher] Skipping non-spec directory: ${path} (parts: ${JSON.stringify(parts)})`);
           }
         }
       })
@@ -109,17 +114,20 @@ export class SpecWatcher extends EventEmitter {
         // Emit a remove event for the spec
         if (path) {
           // Check if this is a valid spec directory (top-level, alphanumeric with dashes)
-          const parts = path.split(/[\/]/);
-          if (parts.length === 1 && /^[a-z0-9-]+$/.test(parts[0])) {
-            debug(`[Watcher] Valid spec directory removal detected: ${path}`);
+          const parts = path.split(/[\\/]/);
+          debug(`[Watcher] Directory removal path parts: ${JSON.stringify(parts)}, length: ${parts.length}`);
+          
+          if ((parts.length === 1 || (parts.length === 2 && parts[0] === '')) && /^[a-z0-9-]+$/.test(parts[parts.length - 1])) {
+            const dirName = parts[parts.length - 1];
+            debug(`[Watcher] Valid spec directory removal detected: ${dirName}`);
             this.emit('change', {
               type: 'removed',
-              spec: path,
+              spec: dirName,
               file: 'directory',
               data: null,
             } as SpecChangeEvent);
           } else {
-            debug(`[Watcher] Skipping non-spec directory removal: ${path}`);
+            debug(`[Watcher] Skipping non-spec directory removal: ${path} (parts: ${JSON.stringify(parts)})`);
           }
         }
       })
@@ -162,12 +170,17 @@ export class SpecWatcher extends EventEmitter {
         debug(`[BugWatcher] Directory added: ${path}`);
         if (path) {
           // Check if this is a valid bug directory (top-level, alphanumeric with dashes)
-          const parts = path.split(/[\/]/);
-          if (parts.length === 1 && /^[a-z0-9-]+$/.test(parts[0])) {
-            debug(`[BugWatcher] Valid bug directory detected: ${path}`);
-            this.checkNewBugDirectory(path);
+          const parts = path.split(/[\\/]/);
+          debug(`[BugWatcher] Directory path parts: ${JSON.stringify(parts)}, length: ${parts.length}`);
+          
+          // Check if this is a top-level directory (no path separators)
+          // On different systems, chokidar may report paths differently
+          if ((parts.length === 1 || (parts.length === 2 && parts[0] === '')) && /^[a-z0-9-]+$/.test(parts[parts.length - 1])) {
+            const dirName = parts[parts.length - 1];
+            debug(`[BugWatcher] Valid bug directory detected: ${dirName}`);
+            this.checkNewBugDirectory(dirName);
           } else {
-            debug(`[BugWatcher] Skipping non-bug directory: ${path}`);
+            debug(`[BugWatcher] Skipping non-bug directory: ${path} (parts: ${JSON.stringify(parts)})`);
           }
         }
       })
@@ -175,16 +188,19 @@ export class SpecWatcher extends EventEmitter {
         debug(`[BugWatcher] Directory removed: ${path}`);
         if (path) {
           // Check if this is a valid bug directory (top-level, alphanumeric with dashes)
-          const parts = path.split(/[\/]/);
-          if (parts.length === 1 && /^[a-z0-9-]+$/.test(parts[0])) {
-            debug(`[BugWatcher] Valid bug directory removal detected: ${path}`);
+          const parts = path.split(/[\\/]/);
+          debug(`[BugWatcher] Directory removal path parts: ${JSON.stringify(parts)}, length: ${parts.length}`);
+          
+          if ((parts.length === 1 || (parts.length === 2 && parts[0] === '')) && /^[a-z0-9-]+$/.test(parts[parts.length - 1])) {
+            const dirName = parts[parts.length - 1];
+            debug(`[BugWatcher] Valid bug directory removal detected: ${dirName}`);
             this.emit('bug-change', {
               type: 'removed',
-              bug: path,
+              bug: dirName,
               file: 'directory',
             } as BugChangeEvent);
           } else {
-            debug(`[BugWatcher] Skipping non-bug directory removal: ${path}`);
+            debug(`[BugWatcher] Skipping non-bug directory removal: ${path} (parts: ${JSON.stringify(parts)})`);
           }
         }
       })
