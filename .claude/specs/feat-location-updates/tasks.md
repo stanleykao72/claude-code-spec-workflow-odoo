@@ -58,7 +58,7 @@ All modifications remain within the existing `multi-app.ts` file following the t
   - _Leverage: existing getProjectSlug() method_
   - _Requirements: 4.2_
 
-- [ ] 6. Fix project not found handling with proper redirect
+- [x] 6. Fix project not found handling with proper redirect
   - File: src/dashboard/client/multi-app.ts  
   - In handleRouteChange() at line 1384-1387
   - Ensure history.replaceState is called (not pushState) for invalid projects
@@ -67,7 +67,7 @@ All modifications remain within the existing `multi-app.ts` file following the t
   - _Leverage: existing error handling block_
   - _Requirements: 1.5, 2.4, 3.3_
 
-- [ ] 7. Add URL update on WebSocket project deletion
+- [x] 7. Add URL update on WebSocket project deletion
   - File: src/dashboard/client/multi-app.ts
   - In handleWebSocketMessage() update case around line 882
   - Add check if deleted project is currently selected

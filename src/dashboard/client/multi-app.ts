@@ -906,8 +906,23 @@ function initApp(): void {
           // Handle project updates
           const updateData = message.data as { projects?: Project[]; projectPath?: string; data?: any };
           if (updateData.projects) {
+            // Check if currently selected project is being deleted
+            const wasProjectSelected = this.selectedProject !== null;
+            const selectedProjectPath = this.selectedProject?.path;
+            
             this.projects = this.normalizeProjects(updateData.projects);
             this.sortProjects();
+            
+            // If a project was selected but no longer exists, reset to active tab
+            if (wasProjectSelected && selectedProjectPath) {
+              const projectStillExists = this.projects.find(p => p.path === selectedProjectPath);
+              if (!projectStillExists) {
+                this.activeTab = 'active';
+                this.selectedProject = null;
+                this.updateURL();
+              }
+            }
+            
             // Clear caches
             this._groupedProjectsCache = null;
             projectColorCache.clear();
