@@ -571,8 +571,10 @@ export class SpecParser {
       }
     });
 
-    // Match the actual format: "- [x] 1. Create GraphQL queries..." or "- [ ] **1. Task description**" or "- [ ] **Task 1.1**: Description"
-    const taskRegex = /^(\s*)- \[([ x])\] (?:\*\*)?(?:Task\s+)?(\d+(?:\.\d+)*)\.*:?\s*\*?\*?:?\s*(.+?)(?:\*\*)?$/;
+    // Match numbered tasks: "- [x] 1. Create GraphQL queries..." or "- [ ] **1. Task description**" or "- [ ] **Task 1.1**: Description"
+    const numberedTaskRegex = /^(\s*)- \[([ x])\] (?:\*\*)?(?:Task\s+)?(\d+(?:\.\d+)*)\.*:?\s*\*?\*?:?\s*(.+?)(?:\*\*)?$/;
+    // Also match unnumbered tasks: "- [x] Enable DevTools in development"
+    const unnumberedTaskRegex = /^(\s*)- \[([ x])\] (.+)$/;
     const requirementsRegex = /_Requirements: (.+?)_?$/;
     const leverageRegex = /_Leverage: (.+?)_?$/;
     // Removed _In Progress: parsing - now automatically using first uncompleted task
@@ -580,17 +582,19 @@ export class SpecParser {
     let currentTask: Task | null = null;
     let parentStack: { level: number; task: Task }[] = [];
     let currentTaskIndent = 0;
+    let unnumberedTaskCounter = 0; // Counter for unnumbered tasks
 
     for (const line of lines) {
-      const match = line.match(taskRegex);
-      if (match) {
-        const [, indent, checked, id, description] = match;
-        const level = indent.length / 2;
-        currentTaskIndent = indent.length;
+      // First try to match numbered tasks
+      const numberedMatch = line.match(numberedTaskRegex);
+      if (numberedMatch) {
+        const [, indent, checked, id, description] = numberedMatch;
+        const level = (indent?.length || 0) / 2;
+        currentTaskIndent = indent?.length || 0;
 
         currentTask = {
-          id,
-          description: description.trim(),
+          id: id || '',
+          description: (description || '').trim(),
           completed: checked === 'x',
           requirements: [],
           details: [],
@@ -602,39 +606,77 @@ export class SpecParser {
         }
 
         if (parentStack.length > 0) {
-          const parent = parentStack[parentStack.length - 1].task;
-          if (!parent.subtasks) parent.subtasks = [];
-          parent.subtasks.push(currentTask);
+          const parent = parentStack[parentStack.length - 1]?.task;
+          if (parent) {
+            if (!parent.subtasks) parent.subtasks = [];
+            parent.subtasks.push(currentTask);
+          }
         } else {
           tasks.push(currentTask);
         }
 
         parentStack.push({ level, task: currentTask });
-      } else if (currentTask) {
-        // Check for requirements
-        const reqMatch = line.match(requirementsRegex);
-        if (reqMatch) {
-          currentTask.requirements = reqMatch[1].split(',').map((r) => r.trim());
-        }
-
-        // Check for leverage
-        const levMatch = line.match(leverageRegex);
-        if (levMatch) {
-          currentTask.leverage = levMatch[1].trim();
-        }
-
-        // Check for detail lines (bullet points under task)
-        const detailMatch = line.match(/^(\s*)- (.+)$/);
-        if (detailMatch && !line.includes('_Requirements:') && !line.includes('_Leverage:')) {
-          const [, detailIndent, detail] = detailMatch;
-          // Only capture details that are indented more than the task
-          if (detailIndent.length > currentTaskIndent) {
+      } else {
+        // Try to match unnumbered tasks
+        const unnumberedMatch = line.match(unnumberedTaskRegex);
+        if (unnumberedMatch && 
+            !line.includes('_Requirements:') && 
+            !line.includes('_Leverage:') &&
+            !line.includes('_In Progress:')) {
+          const [, indent, checked, description] = unnumberedMatch;
+          
+          // Skip if this line is just a detail under a numbered task
+          if (currentTask && (indent?.length || 0) > currentTaskIndent) {
+            // This is likely a detail line, not a new task
             if (!currentTask.details) currentTask.details = [];
-            currentTask.details.push(detail.trim());
-          }
-        }
+            currentTask.details.push((description || '').trim());
+          } else {
+            // This is a standalone unnumbered task
+            const level = (indent?.length || 0) / 2;
+            currentTaskIndent = indent?.length || 0;
+            unnumberedTaskCounter++;
 
-        // Removed in-progress marker check - now using first uncompleted task automatically
+            const unnumberedTask: Task = {
+              id: `unnumbered-${unnumberedTaskCounter}`, // Assign a unique ID for unnumbered tasks
+              description: (description || '').trim(),
+              completed: checked === 'x',
+              requirements: [],
+              details: [],
+            };
+
+            // Reset current task tracking for unnumbered tasks
+            currentTask = null;
+            parentStack = [];
+
+            // Add to main tasks list
+            tasks.push(unnumberedTask);
+          }
+        } else if (currentTask) {
+          // Check for requirements
+          const reqMatch = line.match(requirementsRegex);
+          if (reqMatch && reqMatch[1]) {
+            currentTask.requirements = reqMatch[1].split(',').map((r) => r.trim());
+          }
+
+          // Check for leverage
+          const levMatch = line.match(leverageRegex);
+          if (levMatch && levMatch[1]) {
+            currentTask.leverage = levMatch[1].trim();
+          }
+
+          // Check for detail lines (bullet points under task)
+          const detailMatch = line.match(/^(\s*)- (.+)$/);
+          if (detailMatch && !line.includes('_Requirements:') && !line.includes('_Leverage:')) {
+            const [, detailIndent, detail] = detailMatch;
+            // Only capture details that are indented more than the task
+            if ((detailIndent?.length || 0) > currentTaskIndent) {
+              if (!currentTask.details) currentTask.details = [];
+              currentTask.details.push((detail || '').trim());
+            }
+          }
+
+          // Removed in-progress marker check - now using first uncompleted task automatically
+        }
       }
     }
 
