@@ -1,32 +1,33 @@
-import {
-  getRequirementsTemplate,
-  getDesignTemplate,
-  getTasksTemplate,
-  getProductTemplate,
-  getTechTemplate,
-  getStructureTemplate
-} from '../src/templates';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+import { AVAILABLE_TEMPLATES } from '../src/templates';
+
+// Helper function to read template content from markdown files
+function getTemplateContent(templateName: string): string {
+  const templatePath = join(__dirname, '..', 'src', 'markdown', 'templates', templateName);
+  return readFileSync(templatePath, 'utf-8');
+}
 
 describe('Template Functions', () => {
   describe('Existing Templates', () => {
-    test('should return requirements template', () => {
-      const template = getRequirementsTemplate();
+    test('should have requirements template', () => {
+      const template = getTemplateContent('requirements-template.md');
       expect(template).toContain('# Requirements Document');
       expect(template).toContain('## Introduction');
       expect(template).toContain('User Story');
       expect(template).toContain('Acceptance Criteria');
     });
 
-    test('should return design template', () => {
-      const template = getDesignTemplate();
+    test('should have design template', () => {
+      const template = getTemplateContent('design-template.md');
       expect(template).toContain('# Design Document');
       expect(template).toContain('## Overview');
       expect(template).toContain('## Architecture');
       expect(template).toContain('## Data Models');
     });
 
-    test('should return tasks template', () => {
-      const template = getTasksTemplate();
+    test('should have tasks template', () => {
+      const template = getTemplateContent('tasks-template.md');
       expect(template).toContain('# Implementation Plan');
       expect(template).toContain('## Tasks');
       expect(template).toContain('_Requirements:');
@@ -34,8 +35,8 @@ describe('Template Functions', () => {
   });
 
   describe('Steering Templates', () => {
-    test('should return product template', () => {
-      const template = getProductTemplate();
+    test('should have product template', () => {
+      const template = getTemplateContent('product-template.md');
       expect(template).toContain('# Product Overview');
       expect(template).toContain('## Product Purpose');
       expect(template).toContain('## Target Users');
@@ -44,8 +45,8 @@ describe('Template Functions', () => {
       expect(template).toContain('## Success Metrics');
     });
 
-    test('should return tech template', () => {
-      const template = getTechTemplate();
+    test('should have tech template', () => {
+      const template = getTemplateContent('tech-template.md');
       expect(template).toContain('# Technology Stack');
       expect(template).toContain('## Project Type');
       expect(template).toContain('## Core Technologies');
@@ -53,8 +54,8 @@ describe('Template Functions', () => {
       expect(template).toContain('## Technical Requirements & Constraints');
     });
 
-    test('should return structure template', () => {
-      const template = getStructureTemplate();
+    test('should have structure template', () => {
+      const template = getTemplateContent('structure-template.md');
       expect(template).toContain('# Project Structure');
       expect(template).toContain('## Directory Organization');
       expect(template).toContain('## Naming Conventions');
@@ -65,23 +66,23 @@ describe('Template Functions', () => {
 
   describe('Language Agnostic Templates', () => {
     test('templates should not contain language-specific code', () => {
-      const templates = [
-        getRequirementsTemplate(),
-        getDesignTemplate(),
-        getTasksTemplate(),
-        getProductTemplate(),
-        getTechTemplate(),
-        getStructureTemplate()
+      const templateContents = [
+        getTemplateContent('requirements-template.md'),
+        getTemplateContent('design-template.md'),
+        getTemplateContent('tasks-template.md'),
+        getTemplateContent('product-template.md'),
+        getTemplateContent('tech-template.md'),
+        getTemplateContent('structure-template.md')
       ];
 
       // Check that templates don't have TypeScript-specific interface syntax
-      templates.forEach(template => {
+      templateContents.forEach(template => {
         expect(template).not.toMatch(/interface\s+\w+\s*{/);
       });
     });
 
     test('tech template should be project-type agnostic', () => {
-      const template = getTechTemplate();
+      const template = getTemplateContent('tech-template.md');
       // Should not assume web architecture
       expect(template).not.toContain('### Frontend');
       expect(template).not.toContain('### Backend');
@@ -91,11 +92,31 @@ describe('Template Functions', () => {
     });
 
     test('structure template should provide flexible examples', () => {
-      const template = getStructureTemplate();
+      const template = getTemplateContent('structure-template.md');
       // Should provide examples rather than prescriptive structure
       expect(template).toContain('Example for a library/package:');
       expect(template).toContain('Example for an application:');
       expect(template).toContain('[Define your project\'s directory structure');
+    });
+  });
+
+  describe('Template List Exports', () => {
+    test('should export list of available templates', () => {
+      expect(AVAILABLE_TEMPLATES).toContain('requirements-template.md');
+      expect(AVAILABLE_TEMPLATES).toContain('design-template.md');
+      expect(AVAILABLE_TEMPLATES).toContain('tasks-template.md');
+      expect(AVAILABLE_TEMPLATES).toContain('product-template.md');
+      expect(AVAILABLE_TEMPLATES).toContain('tech-template.md');
+      expect(AVAILABLE_TEMPLATES).toContain('structure-template.md');
+      expect(AVAILABLE_TEMPLATES).toContain('bug-report-template.md');
+      expect(AVAILABLE_TEMPLATES).toContain('bug-analysis-template.md');
+      expect(AVAILABLE_TEMPLATES).toContain('bug-verification-template.md');
+    });
+
+    test('all template files should exist', () => {
+      AVAILABLE_TEMPLATES.forEach(templateName => {
+        expect(() => getTemplateContent(templateName)).not.toThrow();
+      });
     });
   });
 });

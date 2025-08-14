@@ -1,0 +1,73 @@
+name: 🐛 Bug Report
+description: Report a bug or issue with the Claude Code Spec Workflow
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug! Please provide the essential details below to help us fix the issue quickly.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the bug clearly and concisely
+      placeholder: Tell us what went wrong...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce this issue?
+      placeholder: |
+        1. Run command '...'
+        2. Do this...
+        3. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: What should have happened instead?
+      placeholder: Describe what you expected to happen...
+    validations:
+      required: true
+
+  - type: textarea
+    id: error-output
+    attributes:
+      label: Error Output (if any)
+      description: Paste any error messages or logs
+      render: shell
+      placeholder: Paste error messages here...
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: What version are you using?
+      placeholder: "1.4.4"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - Other
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Anything else that might help us understand the issue?
+      placeholder: Add any other details, screenshots, or context here...

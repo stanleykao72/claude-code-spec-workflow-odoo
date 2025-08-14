@@ -1,7 +1,7 @@
 {
   "name": "@pimzino/claude-code-spec-workflow",
-  "version": "1.4.2",
-  "description": "Automated workflows for Claude Code. Includes spec-driven development (Requirements → Design → Tasks → Implementation) with optional steering documents and streamlined bug fix workflow (Report → Analyze → Fix → Verify). We have a bonus and option real time dashboard to monitor your specs and tasks.",
+  "version": "1.5.7",
+  "description": "Automated workflows for Claude Code. Includes spec-driven development (Requirements → Design → Tasks → Implementation) with intelligent task execution, optional steering documents and streamlined bug fix workflow (Report → Analyze → Fix → Verify). We have a bonus and option real time dashboard to monitor your specs and tasks.",
   "main": "dist/index.js",
   "bin": {
     "claude-code-spec-workflow": "dist/cli.js",
@@ -9,7 +9,8 @@
     "claude-spec-dashboard": "dist/dashboard/cli.js"
   },
   "scripts": {
-    "build": "tsc && npm run build:dashboard && npm run copy-static && npm run fix-permissions",
+    "clean": "rimraf dist",
+    "build": "npm run clean && tsc && npm run build:dashboard && npm run copy-static && npm run fix-permissions",
     "build:frontend": "npm run build:frontend:dev",
     "build:frontend:dev": "node esbuild.config.js development",
     "build:frontend:prod": "node esbuild.config.js production",
@@ -18,7 +19,7 @@
     "typecheck": "npm run typecheck:backend && npm run typecheck:frontend",
     "typecheck:backend": "tsc --noEmit --skipLibCheck",
     "typecheck:frontend": "tsc --project src/dashboard/client/tsconfig.json --noEmit",
-    "copy-static": "cpy 'src/dashboard/*.html' 'src/dashboard/*.svg' 'dist/dashboard/'",
+    "copy-static": "cpy 'src/dashboard/*.html' 'src/dashboard/*.svg' 'dist/dashboard/' && node scripts/copy-static.js",
     "fix-permissions": "node scripts/fix-permissions.js",
     "prepare": "npm run build",
     "dev": "ts-node src/cli.ts",
@@ -26,6 +27,7 @@
     "dev:dashboard:backend-only": "ts-node src/dashboard/cli.ts",
     "dev:dashboard:tauri": "CLAUDE_SPEC_DEBUG=true ts-node src/dashboard/cli.ts --port 8247",
     "test": "jest",
+    "test:patterns": "jest tests/pattern-consistency.test.ts",
     "lint": "eslint src --ext .ts --fix",
     "format": "prettier --write src"
   },
@@ -33,6 +35,7 @@
     "claude-code",
     "spec-workflow",
     "bug-fix-workflow",
+    "task-execution",
     "requirements",
     "design",
     "tasks",
@@ -95,6 +98,7 @@
     "jest-environment-jsdom": "^30.0.5",
     "jsdom": "^26.1.0",
     "prettier": "^3.4.2",
+    "rimraf": "^6.0.1",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.2"

@@ -1,0 +1,69 @@
+name: 📊 Dashboard Issue
+description: Report an issue or request a feature for the dashboard
+title: "[Dashboard]: "
+labels: ["dashboard", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Report issues with the `claude-spec-dashboard` monitoring tool.
+
+  - type: dropdown
+    id: issue-type
+    attributes:
+      label: Issue Type
+      description: What type of dashboard issue is this?
+      options:
+        - "Bug - Dashboard not loading"
+        - "Bug - Display/UI issues"
+        - "Bug - Updates not showing"
+        - "Feature request"
+        - "Performance issue"
+        - "Other"
+    validations:
+      required: true
+
+  - type: textarea
+    id: issue-description
+    attributes:
+      label: What's happening?
+      description: Describe the issue or feature request
+      placeholder: Tell us what's wrong or what you'd like to see...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce this issue?
+      placeholder: |
+        1. Start dashboard with...
+        2. Do this...
+        3. See issue
+    validations:
+      required: true
+
+  - type: textarea
+    id: command-used
+    attributes:
+      label: Command Used
+      description: What command did you use to start the dashboard?
+      render: shell
+      placeholder: claude-spec-dashboard
+
+  - type: dropdown
+    id: dashboard-mode
+    attributes:
+      label: Dashboard Mode
+      options:
+        - "Single project (default)"
+        - "Multi-project (--multi)"
+        - "Not sure"
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Any other details, error messages, or screenshots?
+      placeholder: Add any other context here...

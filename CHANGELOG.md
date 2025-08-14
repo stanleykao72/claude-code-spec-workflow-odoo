@@ -5,6 +5,98 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.7] - 2025-08-07
+
+### Updated
+- Updated README.
+
+## [1.5.6] - 2025-08-05
+
+### Changed
+- Removed all other sub agents due to overcomplication of workflow.
+  - Kept the following sub agents:
+    - spec-task-executor
+    - spec-requirements-validator
+    - spec-design-validator
+    - spec-task-validator
+- Added a few more tools for retrieving specific context documents with added in memory caching for 1 hour.
+- Removed spec-orchestrator command as it did not work as expected especially due to claude code's auto compacting of commands and sometimes the agent would just stop for no reason.
+- On .claude folder detection, the folder will be backuped and a fresh install will be performed, you will need to manually move any custom commands / sub agents you have created to the new .claude folder. The setup script will attempt to migrate all other files such as specs, steering documents, bugs and task commands.
+- Overall workflow has been simplified and made more robust.
+
+### Fixed
+- Improved bug status determination to prevent premature 'verifying' state
+
+
+## [1.5.5] - 2025-08-02
+
+### Fixed
+- Automated Task Completion: Updated all task completion instructions across agents and commands to use `get-tasks --mode complete` script instead of manual tasks.md editing for consistent cross-platform behavior
+
+## [1.5.4] - 2025-08-02
+
+### Fixed
+1. Fixed Regex Global Flag Issues: Added lastIndex = 0 resets to prevent state pollution between tests
+2. Updated Conditional Language Regex: Enhanced pattern matching for agent usage checks
+3. Standardized Get-Content Usage: Replaced all hardcoded file paths with proper cross-platform get-content script examples
+4. Fixed Unused Variable: Cleaned up lint error in src/update.ts
+5. Updated Parser Test Expectations: Aligned tests with new parser behavior that includes all requirement types
+
+## [1.5.3] - 2025-08-02
+
+### Added
+
+## [1.5.2] - 2025-08-02
+
+### Fixed
+- The { isDefault: true } flag in Commander.js was too aggressive in matching - it would route ANY unmatched input to the default command, even when that input was actually meant to be a different command that Commander.js failed to parse correctly in certain environments.
+
+## [1.5.1] - 2025-08-02
+
+### Fixed
+- Removed the custom argument handling that was interfering with command routing
+
+## [1.5.0] - 2025-08-02
+
+### Fixed
+- Minor tweaks to sub agent calls especially around script command calls.
+- Tweaks to CLI which should fix issues in Linux, WSL and MacOS with calling npx @pimzino/claude-code-spec-workflow@latest commands.
+
+## [1.4.9] - 2025-08-02
+
+### Fixed
+- Fixed critical build process bug where markdown command files were not being included in published packages
+
+## [1.4.8] - 2025-08-02
+
+### Fixed
+- Replaced all instances of npx @pimzino\claude-code-spec-workflow with npx @pimzino/claude-code-spec-workflow@latest to avoid cache issues.
+
+## [1.4.7] - 2025-08-02
+
+### Fixed
+- Fixed a bug with the task command regeneration when running an update to a current project with the workflow already in use.
+
+## [1.4.6] - 2025-08-02
+
+### Added
+- Implemented various scripts for the agent/s to call which should improve context management (tasks.md doc no longer loaded into context, only the relevant task is. This is only valid for some scenarios), agent token waste reduction, and task management (tasks.md).
+
+### Enhancements
+- Improved workflow update process for projects where the workflow has been used previously.
+- Agents, Commands, Templates have all been removed from functions and are now markdown documents in the repository /src/markdown. This should make it easier to modify / update in future as well as allow anyone to suggest changes or read the agents / commands directly in the repo without having to read a ton of typescript in between.
+
+### Fixed
+- Fixed ESLint warnings in dashboard parser (unused variables in catch blocks)
+
+## [1.4.4] - 2025-08-01
+
+### Added
+  - Stateless design using tasks.md as single source of truth
+
+### Fixed
+- README documentation has been simplified.
+
 ## [1.5.0] - 2025-01-05
 
 ### Added
@@ -525,11 +617,11 @@ This is a **game-changing update** that transforms spec-driven development with 
 ├── commands/           # 7 slash commands for spec workflow
 ├── templates/          # Document templates
 ├── specs/             # Generated spec files
-└── spec-config.json   # Configuration
+└── agents/            # AI agents (enabled by default)
 ```
 
 ### Installation Options
-- NPX (recommended): `npx @pimzino/claude-code-spec-workflow`
+- NPX (recommended): `npx @pimzino/claude-code-spec-workflow@latest`
 - Global: `npm install -g @pimzino/claude-code-spec-workflow`
 - Local: `npm install --save-dev @pimzino/claude-code-spec-workflow`
 

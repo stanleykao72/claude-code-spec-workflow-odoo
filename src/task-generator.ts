@@ -3,6 +3,9 @@
  * Parses tasks.md files and generates individual command files
  */
 
+import * as path from 'path';
+import { getCachedFileContent, cachedFileExists } from './file-cache';
+
 export interface ParsedTask {
   id: string;
   description: string;
@@ -91,25 +94,115 @@ export function parseTasksFromMarkdown(content: string): ParsedTask[] {
   // Log parsing results for debugging
   console.log(`Parsed ${tasks.length} tasks from markdown`);
   if (tasks.length === 0 && content.trim().length > 0) {
-    console.log('Warning: No tasks found. Content preview:');
-    console.log(content.substring(0, 500) + '...');
+    console.log('Warning: No tasks found. Tasks must follow this exact format:');
+    console.log('  - [ ] 1. Task description');
+    console.log('  - [ ] 2.1 Subtask description');
+    console.log('    - Additional details');
+    console.log('    - _Requirements: 1.1, 2.2_');
+    console.log('    - _Leverage: path/to/file.ts_');
+    console.log('');
+    console.log('Content preview:');
+    console.log(content.substring(0, 500) + (content.length > 500 ? '...' : ''));
   }
   
   return tasks;
 }
 
 /**
+ * Load steering context content
+ */
+function loadSteeringContext(projectPath: string): string {
+  const steeringDir = path.join(projectPath, '.claude', 'steering');
+
+  if (!cachedFileExists(steeringDir)) {
+    return '## Steering Documents Context\n\nNo steering documents found.';
+  }
+
+  const steeringFiles = [
+    { name: 'product.md', title: 'Product Context' },
+    { name: 'tech.md', title: 'Technology Context' },
+    { name: 'structure.md', title: 'Structure Context' }
+  ];
+
+  const sections: string[] = [];
+  let hasContent = false;
+
+  for (const file of steeringFiles) {
+    const filePath = path.join(steeringDir, file.name);
+
+    if (cachedFileExists(filePath)) {
+      const content = getCachedFileContent(filePath);
+      if (content && content.trim()) {
+        sections.push(`### ${file.title}\n${content.trim()}`);
+        hasContent = true;
+      }
+    }
+  }
+
+  if (!hasContent) {
+    return '## Steering Documents Context\n\nNo steering documents found or all are empty.';
+  }
+
+  return `## Steering Documents Context (Pre-loaded)\n\n${sections.join('\n\n---\n\n')}\n\n**Note**: Steering documents have been pre-loaded. Do not use get-content to fetch them again.`;
+}
+
+/**
+ * Load spec context content (requirements and design only)
+ */
+function loadSpecContext(specName: string, projectPath: string): string {
+  const specDir = path.join(projectPath, '.claude', 'specs', specName);
+
+  if (!cachedFileExists(specDir)) {
+    return `## Specification Context\n\nNo specification found for: ${specName}`;
+  }
+
+  // Only load requirements and design, not tasks
+  const specFiles = [
+    { name: 'requirements.md', title: 'Requirements' },
+    { name: 'design.md', title: 'Design' }
+  ];
+
+  const sections: string[] = [];
+  let hasContent = false;
+
+  for (const file of specFiles) {
+    const filePath = path.join(specDir, file.name);
+
+    if (cachedFileExists(filePath)) {
+      const content = getCachedFileContent(filePath);
+      if (content && content.trim()) {
+        sections.push(`### ${file.title}\n${content.trim()}`);
+        hasContent = true;
+      }
+    }
+  }
+
+  if (!hasContent) {
+    return `## Specification Context\n\nNo specification documents found for: ${specName}`;
+  }
+
+  return `## Specification Context (Pre-loaded): ${specName}\n\n${sections.join('\n\n---\n\n')}\n\n**Note**: Specification documents have been pre-loaded. Do not use get-content to fetch them again.`;
+}
+
+/**
  * Generate a command file for a specific task
  */
 export async function generateTaskCommand(
-  commandsDir: string, 
-  specName: string, 
+  commandsDir: string,
+  specName: string,
   task: ParsedTask
 ): Promise<void> {
   const fs = await import('fs/promises');
-  const path = await import('path');
-  
-  const commandFile = path.join(commandsDir, `task-${task.id}.md`);
+  const pathModule = await import('path');
+
+  const commandFile = pathModule.join(commandsDir, `task-${task.id}.md`);
+
+  // Determine project path from commandsDir (commandsDir is typically .claude/commands/{specName})
+  const projectPath = pathModule.resolve(commandsDir, '../../..');
+
+  // Load actual content
+  const steeringContext = loadSteeringContext(projectPath);
+  const specContext = loadSpecContext(specName, projectPath);
   
   let content = `# ${specName} - Task ${task.id}
 
@@ -138,85 +231,43 @@ ${task.description}
 
   content += `## Usage
 \`\`\`
-/${specName}-task-${task.id}
+/Task:${task.id}-${specName}
 \`\`\`
 
 ## Instructions
 
-**Agent-Based Execution (Recommended)**: If the \`spec-task-executor\` agent is available, use it for optimal task implementation:
+Execute with @spec-task-executor agent the following task: "${task.description}"
 
 \`\`\`
-Use the spec-task-executor agent to implement task ${task.id}: "${task.description}" for the ${specName} specification.
+Use the @spec-task-executor agent to implement task ${task.id}: "${task.description}" for the ${specName} specification and include all the below context.
 
-The agent should:
-1. Load all specification context from .claude/specs/${specName}/
-2. Load steering documents from .claude/steering/ (if available)
-3. Implement ONLY task ${task.id}: "${task.description}"
-4. Follow all project conventions and leverage existing code
-5. Mark the task as complete in tasks.md
-6. Provide a completion summary
+# Steering Context
+${steeringContext}
 
-Context files to load:
-- .claude/specs/${specName}/requirements.md
-- .claude/specs/${specName}/design.md  
-- .claude/specs/${specName}/tasks.md
-- .claude/steering/product.md (if exists)
-- .claude/steering/tech.md (if exists)
-- .claude/steering/structure.md (if exists)
+# Specification Context
+${specContext}
 
-Task details:
-- ID: ${task.id}
+## Task Details
+- Task ID: ${task.id}
 - Description: ${task.description}${task.leverage ? `
 - Leverage: ${task.leverage}` : ''}${task.requirements ? `
 - Requirements: ${task.requirements}` : ''}
+
+## Instructions
+- Implement ONLY task ${task.id}: "${task.description}"
+- Follow all project conventions and leverage existing code
+- Mark the task as complete using: claude-code-spec-workflow get-tasks ${specName} ${task.id} --mode complete
+- Provide a completion summary
 \`\`\`
 
-**Fallback Execution**: If the agent is not available, you can execute:
+## Task Completion
+When the task is complete, mark it as done:
+\`\`\`bash
+claude-code-spec-workflow get-tasks ${specName} ${task.id} --mode complete
 \`\`\`
-/spec-execute ${task.id} ${specName}
-\`\`\`
-
-**Context Loading**:
-Before executing the task, you MUST load all relevant context:
-1. **Specification Documents**:
-   - Load \`.claude/specs/${specName}/requirements.md\` for feature requirements
-   - Load \`.claude/specs/${specName}/design.md\` for technical design
-   - Load \`.claude/specs/${specName}/tasks.md\` for the complete task list
-2. **Steering Documents** (if available):
-   - Load \`.claude/steering/product.md\` for product vision context
-   - Load \`.claude/steering/tech.md\` for technical standards
-   - Load \`.claude/steering/structure.md\` for project conventions
-
-**Process**:
-1. Load all context documents listed above
-2. Execute task ${task.id}: "${task.description}"
-3. **Prioritize code reuse**: Use existing components and utilities${task.leverage ? ` identified above` : ''}
-4. Follow all implementation guidelines from the main /spec-execute command
-5. **Follow steering documents**: Adhere to patterns in tech.md and conventions in structure.md
-6. **CRITICAL**: Mark the task as complete in tasks.md by changing [ ] to [x]
-7. Confirm task completion to user
-8. Stop and wait for user review
-
-**Important Rules**:
-- Execute ONLY this specific task
-- **Leverage existing code** whenever possible to avoid rebuilding functionality
-- **Follow project conventions** from steering documents
-- Mark task as complete by changing [ ] to [x] in tasks.md
-- Stop after completion and wait for user approval
-- Do not automatically proceed to the next task
-- Validate implementation against referenced requirements
-
-## Task Completion Protocol
-When completing this task:
-1. **Update tasks.md**: Change task ${task.id} status from \`- [ ]\` to \`- [x]\`
-2. **Confirm to user**: State clearly "Task ${task.id} has been marked as complete"
-3. **Stop execution**: Do not proceed to next task automatically
-4. **Wait for instruction**: Let user decide next steps
 
 ## Next Steps
 After task completion, you can:
-- Review the implementation
-- Run tests if applicable
 - Execute the next task using /${specName}-task-[next-id]
 - Check overall progress with /spec-status ${specName}
 `;

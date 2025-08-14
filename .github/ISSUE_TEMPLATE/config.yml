@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-issue-config.json
+
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Discussion
+    url: https://github.com/pimzino/claude-code-spec-workflow/discussions
+    about: Ask questions, share ideas, or discuss the project with the community
+  - name: 📖 Documentation
+    url: https://github.com/pimzino/claude-code-spec-workflow/blob/main/README.md
+    about: Read the project documentation and usage guides
+  - name: ⚡ Claude Code
+    url: https://claude.ai/code
+    about: Official Claude Code documentation and resources

@@ -60,6 +60,8 @@ coverage/
 # AI
 CLAUDE.md
 .claude
+agent_ideas.md
+.serena
 
 # Tests
 local_testing.md
