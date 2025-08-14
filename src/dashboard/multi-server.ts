@@ -329,22 +329,49 @@ export class MultiProjectDashboardServer {
       }
     });
 
-    // Register static file serving with fastify-static AFTER all API routes
-    await this.app.register(fastifyStatic, {
-      root: join(__dirname),
-      prefix: '/',
-      wildcard: false, // Disable wildcard to prevent conflicts
-    });
-
-    // Use setNotFoundHandler as SPA fallback - must be last
-    this.app.setNotFoundHandler((request, reply) => {
-      // Only serve index.html for GET requests that aren't API or WebSocket
-      if (request.method === 'GET' && 
-          !request.url.startsWith('/api/') && 
-          !request.url.startsWith('/ws')) {
-        return reply.sendFile('index.html');
+    // Manually serve static files to avoid route conflicts
+    const { readFile } = require('fs/promises');
+    const { extname } = require('path');
+    
+    // Serve all non-API, non-WebSocket GET requests
+    this.app.get('*', async (request, reply) => {
+      const url = request.url.split('?')[0]; // Remove query params
+      
+      // Skip API and WebSocket routes
+      if (url.startsWith('/api/') || url.startsWith('/ws')) {
+        return reply.code(404).send({ error: 'Not found' });
       }
-      reply.code(404).send({ error: 'Not found' });
+
+      // Try to serve the file if it exists
+      try {
+        let filePath = url === '/' ? 'index.html' : url.slice(1);
+        const fullPath = join(__dirname, filePath);
+        
+        // Check if file exists and serve it
+        const content = await readFile(fullPath);
+        
+        // Set content type based on extension
+        const ext = extname(filePath);
+        const contentTypes: Record<string, string> = {
+          '.html': 'text/html',
+          '.js': 'application/javascript',
+          '.map': 'application/json',
+          '.svg': 'image/svg+xml',
+          '.json': 'application/json',
+        };
+        
+        reply.type(contentTypes[ext] || 'application/octet-stream');
+        return reply.send(content);
+      } catch (err) {
+        // File doesn't exist, serve index.html for SPA routing
+        try {
+          const indexContent = await readFile(join(__dirname, 'index.html'));
+          reply.type('text/html');
+          return reply.send(indexContent);
+        } catch {
+          return reply.code(404).send({ error: 'Not found' });
+        }
+      }
     });
 
     // Find available port if the requested port is busy
