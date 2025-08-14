@@ -75,7 +75,9 @@ export type WebSocketMessage =
   | TunnelVisitorMessage
   | ProjectUpdateMessage
   | ActiveSessionsUpdateMessage
-  | GitUpdateMessage;
+  | GitUpdateMessage
+  | NewProjectMessage
+  | RemoveProjectMessage;
 
 export interface InitialDataMessage {
   type: 'initial';
@@ -138,6 +140,16 @@ export interface GitUpdateMessage {
   projectPath: string;
   gitBranch: string;
   gitCommit: string;
+}
+
+export interface NewProjectMessage {
+  type: 'new-project';
+  data: Project;
+}
+
+export interface RemoveProjectMessage {
+  type: 'remove-project';
+  data: { path: string };
 }
 
 /**
@@ -643,6 +655,14 @@ export function isActiveSessionsUpdateMessage(msg: WebSocketMessage): msg is Act
 
 export function isGitUpdateMessage(msg: WebSocketMessage): msg is GitUpdateMessage {
   return msg.type === 'git-update';
+}
+
+export function isNewProjectMessage(msg: WebSocketMessage): msg is NewProjectMessage {
+  return msg.type === 'new-project';
+}
+
+export function isRemoveProjectMessage(msg: WebSocketMessage): msg is RemoveProjectMessage {
+  return msg.type === 'remove-project';
 }
 
 /**

@@ -1054,6 +1054,57 @@ function initApp(): void {
           }
           break;
 
+        case 'new-project':
+          // Handle new project being added
+          const newProjectData = message.data as Project;
+          if (newProjectData) {
+            // Add the new project if it doesn't already exist
+            const existingIndex = this.projects.findIndex(p => p.path === newProjectData.path);
+            if (existingIndex === -1) {
+              const normalizedProjects = this.normalizeProjects([newProjectData]);
+              if (normalizedProjects.length > 0 && normalizedProjects[0]) {
+                this.projects.push(normalizedProjects[0]);
+                this.sortProjects();
+                
+                // Clear caches when projects change
+                this._groupedProjectsCache = null;
+                projectColorCache.clear();
+                this._colorValueCache = {};
+                this.updateProjectTabsData();
+                
+                console.log(`Added new project: ${newProjectData.name} at ${newProjectData.path}`);
+              }
+            }
+          }
+          break;
+
+        case 'remove-project':
+          // Handle project removal
+          const removeData = message.data as { path: string };
+          if (removeData && removeData.path) {
+            const projectIndex = this.projects.findIndex(p => p.path === removeData.path);
+            if (projectIndex !== -1) {
+              const removedProject = this.projects[projectIndex];
+              this.projects.splice(projectIndex, 1);
+              
+              // If the removed project was selected, clear selection
+              if (this.selectedProject?.path === removeData.path) {
+                this.selectedProject = null;
+                this.activeTab = 'active';
+                this.updateURL();
+              }
+              
+              // Clear caches when projects change
+              this._groupedProjectsCache = null;
+              projectColorCache.clear();
+              this._colorValueCache = {};
+              this.updateProjectTabsData();
+              
+              console.log(`Removed project: ${removedProject?.name || 'unknown'} from ${removeData.path}`);
+            }
+          }
+          break;
+
         default:
           console.log('Unknown message type:', message.type);
       }
