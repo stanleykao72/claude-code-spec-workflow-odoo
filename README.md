@@ -152,7 +152,131 @@ npx -p @pimzino/claude-code-spec-workflow claude-spec-dashboard
 
 ---
 
-## 🗂️ Project Structure
+### 🔗 Dashboard Tunnel (NEW!)
+
+Share your dashboard securely with external stakeholders through temporary HTTPS URLs:
+
+```bash
+# Start dashboard with tunnel
+npx -p @pimzino/claude-code-spec-workflow claude-spec-dashboard --tunnel
+
+# With password protection
+npx -p @pimzino/claude-code-spec-workflow claude-spec-dashboard --tunnel --tunnel-password mySecret123
+
+# Choose specific provider
+npx -p @pimzino/claude-code-spec-workflow claude-spec-dashboard --tunnel --tunnel-provider cloudflare
+```
+
+**Tunnel Features:**
+- **🔒 Secure HTTPS URLs** - Share dashboard with managers, clients, or remote team members
+- **👁️ Read-Only Access** - External viewers cannot modify any project data
+- **🔑 Optional Password** - Protect access with password authentication
+- **🌐 Multiple Providers** - Automatic fallback between Cloudflare and ngrok
+- **📊 Usage Analytics** - Track who accessed your dashboard and when
+- **⏰ Auto-Expiration** - Tunnels close when you stop the dashboard
+- **🚀 Zero Configuration** - Works out of the box with built-in providers
+
+## 📊 Command Line Options
+
+### Setup Commands
+```bash
+# Setup in current directory
+npx @pimzino/claude-code-spec-workflow
+
+# Setup in specific directory
+npx @pimzino/claude-code-spec-workflow --project /path/to/project
+
+# Force overwrite existing files
+npx @pimzino/claude-code-spec-workflow --force
+
+# Skip confirmation prompts
+npx @pimzino/claude-code-spec-workflow --yes
+
+# Test the setup
+npx @pimzino/claude-code-spec-workflow test
+```
+
+### Dashboard Commands
+```bash
+# Basic dashboard
+npx -p @pimzino/claude-code-spec-workflow claude-spec-dashboard
+
+# Dashboard with tunnel (share externally)
+npx -p @pimzino/claude-code-spec-workflow claude-spec-dashboard --tunnel
+
+# Full tunnel configuration
+npx -p @pimzino/claude-code-spec-workflow claude-spec-dashboard \
+  --tunnel \
+  --tunnel-password mySecret123 \
+  --tunnel-provider cloudflare \
+  --port 3000 \
+  --open
+```
+
+## 🎯 Steering Documents (NEW!)
+
+Steering documents provide persistent project context that guides all spec development:
+
+### **Product Document** (`product.md`)
+- Product vision and purpose
+- Target users and their needs
+- Key features and objectives
+- Success metrics
+
+### **Technology Document** (`tech.md`)
+- Technology stack and frameworks
+- Development tools and practices
+- Technical constraints and requirements
+- Third-party integrations
+
+### **Structure Document** (`structure.md`)
+- File organization patterns
+- Naming conventions
+- Import patterns
+- Code organization principles
+
+Run `/spec-steering-setup` to create these documents. Claude will analyze your project and help you define these standards.
+
+## 🎨 Features
+
+### ✅ **Zero Configuration**
+- Works out of the box with any project
+- Auto-detects project type (Node.js, Python, Java, etc.)
+- Validates Claude Code installation
+
+### ✅ **Interactive Setup**
+- Beautiful CLI with progress indicators
+- Confirmation prompts for safety
+- Helpful error messages and guidance
+
+### ✅ **Smart File Management**
+- Complete workflow instructions in each command file
+- Creates comprehensive directory structure
+- Includes all necessary templates and configs
+
+### ✅ **Professional Quality**
+- **Full TypeScript implementation** with strict type checking
+- **Frontend converted to TypeScript** for enhanced dashboard development
+- **95%+ type coverage** with no implicit any types
+- **Modern build pipeline** with esbuild bundling and source maps
+- Comprehensive error handling
+- Follows npm best practices
+
+### ✅ **Steering Document Integration**
+- Persistent project context across all specs
+- Automatic alignment with project standards
+- Consistent code generation
+- Reduced need for repetitive explanations
+
+### ✅ **TypeScript Dashboard Frontend**
+- **Type-safe frontend code** with comprehensive interfaces
+- **Real-time WebSocket communication** with typed message handling
+- **Petite-vue integration** with custom type definitions
+- **Build pipeline** supporting development and production bundles
+- **Strict null checking** and modern TypeScript patterns
+- **JSDoc documentation** for all exported functions
+
+## 🏗️ Project Structure After Setup
 
 ```
 your-project/
@@ -164,6 +288,214 @@ your-project/
 │   ├── bugs/             # Bug fix workflows
 │   └── agents/           # AI agents (enabled by default)
 ```
+
+## 🧪 Testing
+
+The package includes a built-in test command:
+
+```bash
+# Test setup in temporary directory
+npx @pimzino/claude-code-spec-workflow test
+```
+
+## 📋 Requirements
+
+- **Node.js** 16.0.0 or higher
+- **Claude Code** installed and configured
+- Any project directory
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+**❓ Command not found after NPX**
+```bash
+# Make sure you're using the correct package name
+npx @pimzino/claude-code-spec-workflow
+```
+
+**❓ Setup fails with permission errors**
+```bash
+# Try with different directory permissions
+npx @pimzino/claude-code-spec-workflow --project ~/my-project
+```
+
+**❓ Claude Code not detected**
+```bash
+# Install Claude Code first
+npm install -g @anthropic-ai/claude-code
+```
+
+### Debug Information
+
+```bash
+# Show verbose output
+DEBUG=* npx @pimzino/claude-code-spec-workflow
+
+# Check package version
+npx @pimzino/claude-code-spec-workflow --version
+```
+
+## 🌟 Examples
+
+### Basic Usage
+```bash
+cd my-awesome-project
+npx @pimzino/claude-code-spec-workflow
+claude
+# Type: /spec-create user-dashboard "User profile management"
+```
+
+### Advanced Usage
+```bash
+# Setup multiple projects
+for dir in project1 project2 project3; do
+  npx @pimzino/claude-code-spec-workflow --project $dir --yes
+done
+```
+
+## 🔧 TypeScript Development
+
+### Frontend Dashboard Development
+
+The dashboard frontend is fully implemented in TypeScript for enhanced type safety and developer experience:
+
+#### Type Definitions
+```typescript
+// Core dashboard types
+interface Project {
+  path: string;
+  name: string;
+  level: number;
+  hasActiveSession: boolean;
+  specs: Spec[];
+  bugs: Bug[];
+  steeringStatus?: SteeringStatus;
+}
+
+// WebSocket message types with discriminated unions
+type WebSocketMessage = 
+  | { type: 'initial'; data: InitialData }
+  | { type: 'update'; data: UpdateData }
+  | { type: 'error'; data: ErrorData }
+  | { type: 'tunnel-status'; data: TunnelStatusData };
+```
+
+#### Build Commands
+```bash
+# TypeScript compilation and bundling
+npm run build:frontend:dev   # Build frontend for development
+npm run build:frontend:prod  # Build frontend for production (minified)
+npm run watch:frontend       # Watch mode with auto-rebuild
+npm run typecheck:frontend   # Type checking only (no output)
+npm run typecheck           # Check both backend and frontend types
+
+# Development workflow  
+npm run dev:dashboard       # Start dashboard with hot reload (frontend + backend)
+npm run dev:dashboard:backend-only  # Start only backend (for frontend debugging)
+
+# Full build process
+npm run build              # Complete build: TypeScript + frontend + static files
+npm run lint               # Lint TypeScript files with auto-fix
+npm run format             # Format code with Prettier
+```
+
+#### Type Safety Features
+- **Strict TypeScript configuration** with null checks
+- **Runtime type validation** with type guards
+- **WebSocket message typing** for real-time updates  
+- **State management types** for reactive UI components
+- **Error handling types** with Result<T> pattern
+- **Petite-vue integration** with custom type definitions
+
+#### Type Usage Examples
+
+```typescript
+// Import dashboard types
+import type { Project, WebSocketMessage, AppState } from './dashboard.types';
+
+// Type-safe project handling
+function selectProject(project: Project): void {
+  console.log(`Selected: ${project.name} (${project.specs.length} specs)`);
+  
+  // Safe property access with optional chaining
+  const steeringCount = project.steeringStatus?.totalDocs ?? 0;
+  if (steeringCount > 0) {
+    console.log(`Steering docs: ${steeringCount}`);
+  }
+}
+
+// WebSocket message handling with discriminated unions
+function handleMessage(message: WebSocketMessage): void {
+  switch (message.type) {
+    case 'initial':
+      // TypeScript knows data is InitialData
+      console.log(`Loaded ${message.data.projects.length} projects`);
+      break;
+    case 'update':
+      // TypeScript knows data is UpdateData
+      console.log(`Updated project: ${message.data.projectPath}`);
+      break;
+    case 'error':
+      // TypeScript knows data is ErrorData
+      console.error(`Error: ${message.data.message}`);
+      break;
+  }
+}
+
+// Type guards for runtime validation
+function isValidProject(obj: unknown): obj is Project {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'path' in obj &&
+    'name' in obj &&
+    'specs' in obj &&
+    Array.isArray((obj as Project).specs)
+  );
+}
+
+// Result type for error handling
+type Result<T, E = Error> = 
+  | { success: true; data: T }
+  | { success: false; error: E };
+
+function parseProjectData(data: unknown): Result<Project> {
+  if (isValidProject(data)) {
+    return { success: true, data };
+  }
+  return { success: false, error: new Error('Invalid project data') };
+}
+```
+
+#### Development Guidelines
+- **JSDoc documentation** on all exported functions
+- **95%+ type coverage** maintained (no implicit any types)
+- **Modern TypeScript patterns** (optional chaining, nullish coalescing)
+- **Type guards preferred** over type assertions
+- **Interfaces for object shapes**, union types for discriminated unions
+- **Result<T> pattern** for error handling
+- **Runtime validation** with type guards for external data
+
+## 📚 Documentation
+
+- **[Full Documentation](https://github.com/pimzino/claude-code-spec-workflow#readme)**
+- **[Tunnel Feature Guide](./docs/tunnel-feature.md)** - Comprehensive tunnel documentation
+- **[Tunnel Examples](./examples/tunnel/)** - Ready-to-use tunnel scripts
+- **[Claude Code Docs](https://docs.anthropic.com/claude-code)**
+- **[TypeScript API Reference](./docs/typescript-api.md)** - Generated from JSDoc comments
+
+## 🤝 Contributing
+
+Contributions are welcome! Please see our [Contributing Guide](https://github.com/pimzino/claude-code-spec-workflow/blob/main/CONTRIBUTING.md).
+
+## 📄 License
+
+MIT License - see [LICENSE](https://github.com/pimzino/claude-code-spec-workflow/blob/main/LICENSE) for details.
+
+## 🏷️ Changelog
+
+See [CHANGELOG.md](https://github.com/pimzino/claude-code-spec-workflow/blob/main/CHANGELOG.md) for version history.
 
 ---
 

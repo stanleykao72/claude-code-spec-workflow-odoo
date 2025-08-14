@@ -39,13 +39,29 @@ describe('SpecParser Path Normalization', () => {
     expect(parser1['projectPath']).toContain(tempDir.split(sep).pop());
   });
 
-  test('should handle relative paths by resolving them', () => {
-    // Create a parser with a relative path
-    const relativePath = './test-project';
-    const parser = new SpecParser(relativePath);
+  test('should handle relative paths by resolving them', async () => {
+    // Create a temporary directory for the relative path test
+    const testProjectDir = join(tempDir, 'test-project');
+    await fs.mkdir(testProjectDir, { recursive: true });
     
-    // The path should be resolved to an absolute path
-    expect(parser['projectPath']).toMatch(/^[A-Za-z]:|^\//); // Windows drive letter or Unix root
+    // Save current working directory
+    const originalCwd = process.cwd();
+    
+    try {
+      // Change to temp directory to make relative path work
+      process.chdir(tempDir);
+      
+      // Create a parser with a relative path
+      const relativePath = './test-project';
+      const parser = new SpecParser(relativePath);
+      
+      // The path should be resolved to an absolute path
+      expect(parser['projectPath']).toMatch(/^[A-Za-z]:|^\//); // Windows drive letter or Unix root
+      expect(parser['projectPath']).toContain('test-project');
+    } finally {
+      // Restore original working directory
+      process.chdir(originalCwd);
+    }
   });
 
   test('should normalize trailing slashes', () => {

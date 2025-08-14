@@ -18,6 +18,8 @@ export interface DiscoveredProject {
   hasSteeringDocs?: boolean;
   gitBranch?: string;
   gitCommit?: string;
+  parentPath?: string; // Path to parent project if this is a nested project
+  children?: DiscoveredProject[]; // Child projects
 }
 
 export class ProjectDiscovery {
@@ -37,28 +39,73 @@ export class ProjectDiscovery {
   }
 
   async discoverProjects(): Promise<DiscoveredProject[]> {
-    const projects: DiscoveredProject[] = [];
+    const allProjects: DiscoveredProject[] = [];
     const activeClaudes = await this.getActiveClaudeSessions();
+    debug(`Starting project discovery with ${activeClaudes.length} active Claude sessions`);
 
     // Search for .claude directories
     for (const searchPath of this.searchPaths) {
       try {
         await fs.access(searchPath);
+        debug(`Searching in: ${searchPath}`);
         const found = await this.searchDirectory(searchPath, activeClaudes);
-        projects.push(...found);
+        debug(`Found ${found.length} projects in ${searchPath}`);
+        allProjects.push(...found);
       } catch {
+        debug(`Directory doesn't exist: ${searchPath}`);
         // Directory doesn't exist, skip it
       }
     }
 
+    // Filter out projects that have a .claude directory but no specs or bugs
+    // (unless they have an active session)
+    const filteredProjects = allProjects.filter(project => {
+      const hasContent = (project.specCount || 0) > 0 || (project.bugCount || 0) > 0;
+      const keep = hasContent || project.hasActiveSession;
+      if (!keep) {
+        debug(`Filtering out project ${project.name} at ${project.path} - no specs/bugs and no active session`);
+      }
+      return keep;
+    });
+
     // Sort by last activity
-    projects.sort((a, b) => {
+    filteredProjects.sort((a, b) => {
       const dateA = a.lastActivity?.getTime() || 0;
       const dateB = b.lastActivity?.getTime() || 0;
       return dateB - dateA;
     });
 
-    return projects;
+    return filteredProjects;
+  }
+
+  private groupRelatedProjects(projects: DiscoveredProject[]): DiscoveredProject[] {
+    // Create a map for quick lookup
+    const projectMap = new Map<string, DiscoveredProject>();
+    projects.forEach(p => projectMap.set(p.path, p));
+
+    // Find parent-child relationships
+    projects.forEach(project => {
+      // Check if this project is nested inside another project
+      const pathParts = project.path.split('/');
+      for (let i = pathParts.length - 1; i > 0; i--) {
+        const potentialParentPath = pathParts.slice(0, i).join('/');
+        const parentProject = projectMap.get(potentialParentPath);
+        
+        if (parentProject) {
+          // This is a child project
+          project.parentPath = parentProject.path;
+          if (!parentProject.children) {
+            parentProject.children = [];
+          }
+          parentProject.children.push(project);
+          break;
+        }
+      }
+    });
+
+    // Return only top-level projects (ones without parents)
+    // Child projects will be included in their parent's children array
+    return projects.filter(p => !p.parentPath);
   }
 
   private async searchDirectory(
@@ -66,7 +113,7 @@ export class ProjectDiscovery {
     activeSessions: string[],
     depth = 0
   ): Promise<DiscoveredProject[]> {
-    if (depth > 3) return []; // Don't go too deep
+    if (depth > 4) return []; // Search up to 4 directories deep
 
     const projects: DiscoveredProject[] = [];
 
@@ -80,6 +127,11 @@ export class ProjectDiscovery {
           continue;
 
         const fullPath = join(dir, entry.name);
+        
+        // Special debug for phenix paths
+        if (fullPath.includes('phenix')) {
+          debug(`Checking phenix-related path: ${fullPath} (depth: ${depth})`);
+        }
 
         // Check if this directory has a .claude folder
         const claudePath = join(fullPath, '.claude');
@@ -88,13 +140,21 @@ export class ProjectDiscovery {
           if (claudeStat.isDirectory()) {
             const project = await this.analyzeProject(fullPath, claudePath, activeSessions);
             projects.push(project);
+            debug(`Found project with .claude dir: ${fullPath}`);
           }
         } catch {
-          // No .claude directory, check subdirectories
-          if (depth < 3) {
-            const subProjects = await this.searchDirectory(fullPath, activeSessions, depth + 1);
-            projects.push(...subProjects);
+          // No .claude directory
+        }
+
+        // Always check subdirectories if we haven't reached max depth
+        // This ensures we find nested projects like phenix/phenix/public-api
+        if (depth < 4) {
+          debug(`Searching subdirectory: ${fullPath} (depth: ${depth})`);
+          const subProjects = await this.searchDirectory(fullPath, activeSessions, depth + 1);
+          if (subProjects.length > 0) {
+            debug(`Found ${subProjects.length} projects in subdirectory ${fullPath}`);
           }
+          projects.push(...subProjects);
         }
       }
     } catch (error) {
@@ -110,6 +170,7 @@ export class ProjectDiscovery {
     activeSessions: string[]
   ): Promise<DiscoveredProject> {
     debug(`Analyzing project: ${projectPath}`);
+    // Just use the last segment of the path as the name
     const name = projectPath.split('/').pop() || 'Unknown';
 
     // Check if any active Claude session is in this project directory
@@ -117,7 +178,10 @@ export class ProjectDiscovery {
       // Normalize paths for comparison
       const normalizedSession = session.replace(/\/$/, '');
       const normalizedProject = projectPath.replace(/\/$/, '');
-      const isMatch = normalizedSession === normalizedProject || normalizedSession.startsWith(normalizedProject + '/');
+      
+      // Only match if the session is exactly this project, not a subdirectory
+      // This prevents /Users/michael/Projects/phenix from matching /Users/michael/Projects/phenix/phenix/public-api
+      const isMatch = normalizedSession === normalizedProject;
       if (isMatch) {
         debug(`Found active session match: ${session} matches ${projectPath}`);
       }
@@ -155,9 +219,11 @@ export class ProjectDiscovery {
       }
       
       specCount = specDirs.filter((d) => !d.startsWith('.')).length;
-    } catch {
+      debug(`Found ${specCount} specs in ${projectPath}`);
+    } catch (error) {
       // Error reading specs directory, but continue with git info
-      debug(`Could not read specs for ${projectPath}, but continuing with git info`);
+      debug(`Could not read specs for ${projectPath}: ${error}`);
+      specCount = 0;
     }
 
     // Count bugs
@@ -179,9 +245,10 @@ export class ProjectDiscovery {
           // Error reading bug directory
         }
       }
-    } catch {
+    } catch (error) {
       // No bugs directory or error reading it
-      debug(`Could not read bugs for ${projectPath}`);
+      debug(`Could not read bugs for ${projectPath}: ${error}`);
+      bugCount = 0;
     }
 
     const result = {
@@ -195,6 +262,9 @@ export class ProjectDiscovery {
     };
     
     debug(`Returning project ${name} with result:`, {
+      path: projectPath,
+      specCount,
+      bugCount,
       hasGitInfo: !!(result.gitBranch || result.gitCommit),
       gitBranch: result.gitBranch,
       gitCommit: result.gitCommit
