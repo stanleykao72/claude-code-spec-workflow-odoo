@@ -18,7 +18,7 @@
     "typecheck": "npm run typecheck:backend && npm run typecheck:frontend",
     "typecheck:backend": "tsc --noEmit --skipLibCheck",
     "typecheck:frontend": "tsc --project src/dashboard/client/tsconfig.json --noEmit",
-    "copy-static": "cpy 'src/dashboard/public/**' 'dist/dashboard/public/'",
+    "copy-static": "cpy 'src/dashboard/*.html' 'src/dashboard/*.svg' 'dist/dashboard/'",
     "fix-permissions": "node scripts/fix-permissions.js",
     "prepare": "npm run build",
     "dev": "ts-node src/cli.ts",

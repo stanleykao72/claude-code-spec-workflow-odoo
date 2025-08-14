@@ -108,22 +108,17 @@ export class MultiProjectDashboardServer {
 
     // Register plugins
     await this.app.register(fastifyStatic, {
-      root: join(__dirname, 'public'),
-      prefix: '/public/',
+      root: join(__dirname),
+      prefix: '/',
     });
 
-    // Serve multi.html as the main page
-    this.app.get('/', async (request, reply) => {
-      return reply.sendFile('index.html', join(__dirname, 'public'));
-    });
-
-    // Catch-all route for client-side routing - serve index.html for any non-API route
+    // Serve index.html for root and any non-API/WebSocket routes
     this.app.get('/*', async (request, reply) => {
-      // Skip API routes and static files
-      if (request.url.startsWith('/api/') || request.url.startsWith('/public/') || request.url.startsWith('/ws')) {
+      // Skip API routes and WebSocket
+      if (request.url.startsWith('/api/') || request.url.startsWith('/ws')) {
         return reply.code(404).send({ error: 'Not found' });
       }
-      return reply.sendFile('index.html', join(__dirname, 'public'));
+      return reply.sendFile('index.html');
     });
 
     await this.app.register(fastifyWebsocket);
