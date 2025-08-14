@@ -4,7 +4,7 @@ const path = require('path');
 const baseConfig = {
   entryPoints: [path.resolve(__dirname, 'src/dashboard/client/multi-app.ts')],
   bundle: true,
-  outfile: path.resolve(__dirname, 'src/dashboard/public/dist/app.js'),
+  outfile: path.resolve(__dirname, 'dist/dashboard/app.js'),
   target: 'es2020',
   format: 'iife',
   external: ['petite-vue'],
@@ -109,7 +109,7 @@ if (require.main === module) {
         
         // Write build analysis for production builds
         if (mode === 'production' && result.metafile) {
-          const metafilePath = path.resolve(__dirname, 'src/dashboard/public/dist/meta.json');
+          const metafilePath = path.resolve(__dirname, 'dist/dashboard/meta.json');
           fs.writeFileSync(metafilePath, JSON.stringify(result.metafile, null, 2));
           console.log('[esbuild] Build analysis written to meta.json');
           

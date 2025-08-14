@@ -106,27 +106,41 @@ export class MultiProjectDashboardServer {
       debug(`  - ${state.project.name}: ${path}`);
     });
 
-    // Register plugins
-    await this.app.register(fastifyStatic, {
-      root: join(__dirname, 'public'),
-      prefix: '/public/',
-    });
-
-    // Serve multi.html as the main page
-    this.app.get('/', async (request, reply) => {
-      return reply.sendFile('index.html', join(__dirname, 'public'));
-    });
-
-    // Catch-all route for client-side routing - serve index.html for any non-API route
-    this.app.get('/*', async (request, reply) => {
-      // Skip API routes and static files
-      if (request.url.startsWith('/api/') || request.url.startsWith('/public/') || request.url.startsWith('/ws')) {
-        return reply.code(404).send({ error: 'Not found' });
-      }
-      return reply.sendFile('index.html', join(__dirname, 'public'));
-    });
-
     await this.app.register(fastifyWebsocket);
+
+    // Register static file serving FIRST (before other routes)
+    // In development, files are in src/dashboard, in production they're in dist/dashboard
+    // We need to handle app.js specially since it might be in dist/dashboard even in dev mode
+    await this.app.register(fastifyStatic, {
+      root: __dirname, // Serve from the current directory (either src/dashboard or dist/dashboard)
+      prefix: '/',
+      decorateReply: true, // Enable sendFile method on reply
+      wildcard: false // Disable wildcard to prevent catching all routes
+    });
+
+    // Special handling for app.js in development mode
+    // In dev mode, app.js might be in dist/dashboard while we're running from src/dashboard
+    this.app.get('/app.js', async (request, reply) => {
+      const { existsSync } = require('fs');
+      const appJsPath = join(__dirname, 'app.js');
+      const distAppJsPath = join(__dirname, '..', '..', 'dist', 'dashboard', 'app.js');
+      
+      // Try current directory first (production)
+      if (existsSync(appJsPath)) {
+        return reply.sendFile('app.js');
+      }
+      // Try dist directory (development)
+      else if (existsSync(distAppJsPath)) {
+        const { readFile } = require('fs/promises');
+        const content = await readFile(distAppJsPath);
+        reply.type('application/javascript');
+        return reply.send(content);
+      }
+      // File not found
+      else {
+        return reply.code(404).send({ error: 'app.js not found - run npm run build:dashboard' });
+      }
+    });
 
     // WebSocket endpoint
     const self = this;
@@ -349,6 +363,20 @@ export class MultiProjectDashboardServer {
       }
     });
 
+    // SPA fallback - serve index.html for any non-API, non-static route
+    // This must come AFTER all API routes but will work with the static plugin
+    this.app.setNotFoundHandler((request, reply) => {
+      // Only handle GET requests that aren't API or WebSocket
+      if (request.method === 'GET' && 
+          !request.url.startsWith('/api/') && 
+          !request.url.startsWith('/ws')) {
+        // Serve the index.html file for SPA routing
+        reply.sendFile('index.html');
+      } else {
+        reply.code(404).send({ error: 'Not found' });
+      }
+    });
+
     // Find available port if the requested port is busy
     let actualPort = this.options.port;
     if (!(await isPortAvailable(this.options.port))) {
@@ -368,9 +396,9 @@ export class MultiProjectDashboardServer {
       await this.initializeTunnel();
     }
 
-    // Start periodic rescan for new active projects
-    // Disabled: We now use file watching instead of polling
-    // this.startPeriodicRescan();
+    // Start periodic rescan for new active projects and cleanup removed ones
+    // This complements file watching by detecting removed projects
+    this.startPeriodicRescan();
 
     // Open browser if requested (always use localhost for local user)
     if (this.options.autoOpen) {
@@ -766,7 +794,7 @@ export class MultiProjectDashboardServer {
   }
 
   private startPeriodicRescan() {
-    // Rescan every 30 seconds for new active projects
+    // Rescan every 10 seconds for new/removed projects
     this.rescanInterval = setInterval(async () => {
       const activeProjects = await this.discovery.discoverProjects();
 
@@ -780,7 +808,8 @@ export class MultiProjectDashboardServer {
           const parser = this.projects.get(project.path)?.parser;
           const specs = (await parser?.getAllSpecs()) || [];
           const bugs = (await parser?.getAllBugs()) || [];
-          const projectData = { ...project, specs, bugs };
+          const steeringStatus = await parser?.getProjectSteeringStatus();
+          const projectData = { ...project, specs, bugs, steering: steeringStatus };
 
           const message = JSON.stringify({
             type: 'new-project',
@@ -795,34 +824,49 @@ export class MultiProjectDashboardServer {
         }
       }
 
-      // Check for projects that are no longer active
+      // Check for projects that should be removed
+      // A project should be removed if:
+      // 1. It's not in the discovered projects list (no .claude directory or no specs/bugs)
+      // 2. It has no active Claude session
       for (const [path, state] of this.projects) {
-        const stillActive = activeProjects.some((p) => p.path === path);
-        if (!stillActive) {
-          const hasSpecs = (await state.parser.getAllSpecs()).length > 0;
-          const currentProject = activeProjects.find((p) => p.path === path);
-          const hasActiveSession = currentProject?.hasActiveSession || false;
+        const stillExists = activeProjects.some((p) => p.path === path);
+        
+        if (!stillExists) {
+          debug(`Project no longer exists or has no content: ${state.project.name}`);
+          
+          // Stop the watcher for this project
+          await state.watcher.stop();
+          this.projects.delete(path);
 
-          if (!hasSpecs && !hasActiveSession) {
-            debug(`Project no longer active: ${state.project.name}`);
-            await state.watcher.stop();
-            this.projects.delete(path);
+          // Notify clients to remove the project
+          const message = JSON.stringify({
+            type: 'remove-project',
+            data: { path },
+          });
 
-            // Notify clients to remove the project
-            const message = JSON.stringify({
-              type: 'remove-project',
-              data: { path },
-            });
-
-            this.clients.forEach((client) => {
-              if (client.readyState === 1) {
-                client.send(message);
-              }
-            });
-          }
+          this.clients.forEach((client) => {
+            if (client.readyState === 1) {
+              client.send(message);
+            }
+          });
+          
+          debug(`Removed project: ${state.project.name} from dashboard`);
         }
       }
-    }, 30000); // 30 seconds
+
+      // Also send updated active sessions periodically
+      const activeSessions = await this.collectActiveSessions();
+      const activeSessionsMessage = JSON.stringify({
+        type: 'active-sessions-update',
+        data: activeSessions,
+      });
+
+      this.clients.forEach((client) => {
+        if (client.readyState === 1) {
+          client.send(activeSessionsMessage);
+        }
+      });
+    }, 10000); // 10 seconds for more responsive updates
   }
 
   async stop() {
