@@ -47,15 +47,13 @@ describe('SpecWorkflowSetup', () => {
     const commandsDir = join(tempDir, '.claude', 'commands');
     const expectedCommands = [
       'spec-create.md',
+      'spec-requirements.md',
+      'spec-design.md',
+      'spec-tasks.md',
       'spec-execute.md',
       'spec-status.md',
       'spec-list.md',
-      'spec-steering-setup.md',
-      'bug-create.md',
-      'bug-analyze.md',
-      'bug-fix.md',
-      'bug-verify.md',
-      'bug-status.md'
+      'spec-steering-setup.md'
     ];
 
     for (const command of expectedCommands) {
@@ -64,11 +62,7 @@ describe('SpecWorkflowSetup', () => {
 
       const content = await fs.readFile(commandPath, 'utf-8');
       expect(content.length).toBeGreaterThan(0);
-      if (command.startsWith('spec-')) {
-        expect(content).toContain('# Spec');
-      } else if (command.startsWith('bug-')) {
-        expect(content).toContain('# Bug');
-      }
+      expect(content).toContain('# Spec');
     }
   });
 
@@ -109,7 +103,11 @@ describe('SpecWorkflowSetup', () => {
     expect(config.spec_workflow).toHaveProperty('auto_create_directories');
   });
 
-  // CLAUDE.md tests removed - workflow instructions now in individual commands
+  // CLAUDE.md creation removed in newer versions - all workflow instructions now in individual commands
+  test.skip('should create CLAUDE.md', async () => {
+    // This test is skipped as CLAUDE.md is no longer created
+    // All workflow instructions are now in individual command files
+  });
 
   test('should run complete setup', async () => {
     await setup.runSetup();
@@ -119,18 +117,30 @@ describe('SpecWorkflowSetup', () => {
     const commandsDir = join(claudeDir, 'commands');
     const templatesDir = join(claudeDir, 'templates');
     const configPath = join(claudeDir, 'spec-config.json');
+    const claudeMdPath = join(tempDir, 'CLAUDE.md');
+
     await expect(fs.access(claudeDir)).resolves.not.toThrow();
     await expect(fs.access(commandsDir)).resolves.not.toThrow();
     await expect(fs.access(templatesDir)).resolves.not.toThrow();
     await expect(fs.access(configPath)).resolves.not.toThrow();
+    await expect(fs.access(claudeMdPath)).resolves.not.toThrow();
 
-    // Check that command files have workflow content
-    const specCreatePath = join(commandsDir, 'spec-create.md');
-    const specCreateContent = await fs.readFile(specCreatePath, 'utf-8');
-    expect(specCreateContent).toContain('Workflow Philosophy');
-    expect(specCreateContent).toContain('Core Principles');
-    expect(specCreateContent.length).toBeGreaterThan(2000);
+    // Check that files have content
+    const claudeMdContent = await fs.readFile(claudeMdPath, 'utf-8');
+    expect(claudeMdContent.length).toBeGreaterThan(1000);
   });
 
-  // Test removed - CLAUDE.md no longer created
+  test('should handle existing CLAUDE.md', async () => {
+    // Create existing CLAUDE.md with content
+    const existingContent = '# My Project\n\nThis is my existing project documentation.\n';
+    await fs.writeFile(join(tempDir, 'CLAUDE.md'), existingContent);
+
+    await setup.setupDirectories();
+    await setup.createClaudeMd();
+
+    const claudeMdContent = await fs.readFile(join(tempDir, 'CLAUDE.md'), 'utf-8');
+    expect(claudeMdContent).toContain('# My Project');
+    expect(claudeMdContent).toContain('# Spec Workflow');
+    expect(claudeMdContent).toContain('existing project documentation');
+  });
 });

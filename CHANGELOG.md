@@ -97,18 +97,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - README documentation has been simplified.
 
-## [1.4.3] - 2025-07-31
+## [1.5.0] - 2025-01-05
 
 ### Added
-- Bug tracking to real time dashboard.
+- **Dashboard Tunnel Feature**: Secure, temporary sharing of dashboard with external stakeholders
+  - New `--tunnel` flag for `claude-spec-dashboard` command creates HTTPS URLs
+  - Optional password protection with `--tunnel-password` for access control
+  - Multiple tunnel providers (Cloudflare, ngrok) with automatic fallback
+  - Native Node.js bindings for ngrok for improved reliability
+  - Read-only access enforcement for all external viewers
+  - Real-time usage analytics tracking visitor count and access times
+  - Visual tunnel status display in dashboard UI
+  - Comprehensive error handling and provider failover
+  - Zero configuration required - works out of the box
+  - Automatic ngrok auth token detection from local config
+  - Cross-platform executable permissions fix
 
 ### Enhanced
-- **Integrated agent workflows**: Added agent integration points throughout the spec workflow for automated quality checks
-- **Post-completion analysis**: Added comprehensive post-completion agents for documentation, performance, and compatibility analysis
-- **Task implementation flow**: Enhanced with test generation and code duplication detection during implementation
+- **Security Architecture**: Implemented multi-layer security for tunnel access
+  - All tunnel traffic encrypted via HTTPS/WSS
+  - Read-only middleware blocks all write operations
+  - WebSocket message filtering for read-only mode
+  - Rate limiting on password authentication attempts
+  - Session management for authenticated users
 
-### Fixed
-- Misc dashboard fixes
+### Technical Implementation
+- Created modular tunnel system in `src/dashboard/tunnel/`
+  - `TunnelManager` orchestrates tunnel lifecycle
+  - Provider abstraction supports multiple tunnel services
+  - Native ngrok implementation using `@ngrok/ngrok` package
+  - Cloudflare provider using `cloudflared` CLI
+  - `AccessController` enforces read-only access
+  - `UsageTracker` collects privacy-preserving analytics
+  - Comprehensive test coverage for all tunnel components
+  - Example scripts for common use cases (team standups, client demos, etc.)
+
+### Documentation
+- Created comprehensive tunnel documentation in `docs/tunnel-feature.md`
+- Added tunnel examples in `examples/tunnel/` directory
+- Updated README with tunnel feature section
+- Created troubleshooting guide for common tunnel issues
 
 ## [1.4.2] - 2025-07-30
 

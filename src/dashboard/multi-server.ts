@@ -11,6 +11,9 @@ import { WebSocket } from 'ws';
 import { userInfo } from 'os';
 import { isPortAvailable, findAvailablePort } from '../utils';
 import { debug } from './logger';
+import { TunnelManager, TunnelOptions, TunnelProviderError } from './tunnel';
+import { CloudflareProvider } from './tunnel/cloudflare-provider-native';
+import { NgrokProvider } from './tunnel/ngrok-provider-native';
 
 interface ProjectState {
   project: DiscoveredProject;
@@ -22,21 +25,46 @@ interface WebSocketConnection {
   socket: WebSocket;
 }
 
-interface ActiveTask {
+
+// Discriminated union for type-safe active sessions
+type ActiveSession = ActiveSpecSession | ActiveBugSession;
+
+interface BaseActiveSession {
   projectPath: string;
   projectName: string;
-  specName: string;
-  specDisplayName: string;
-  task: Task;
+  displayName: string;
+  lastModified: Date;
   isCurrentlyActive: boolean;
   hasActiveSession: boolean;
   gitBranch?: string;
   gitCommit?: string;
 }
 
+interface ActiveSpecSession extends BaseActiveSession {
+  type: 'spec';
+  specName: string;
+  task: Task;
+  status?: string;
+  requirements?: any;
+  design?: any;
+  tasks?: any;
+  isAdHoc?: boolean;
+}
+
+interface ActiveBugSession extends BaseActiveSession {
+  type: 'bug';
+  bugName: string;
+  bugStatus: 'reported' | 'analyzing' | 'fixing' | 'fixed' | 'verifying' | 'resolved';
+  bugSeverity?: 'critical' | 'high' | 'medium' | 'low';
+  nextCommand: string;  // e.g., '/bug-fix bug-name'
+}
+
 export interface MultiDashboardOptions {
   port: number;
   autoOpen?: boolean;
+  tunnel?: boolean;
+  tunnelPassword?: string;
+  tunnelProvider?: string;
 }
 
 export class MultiProjectDashboardServer {
@@ -46,6 +74,7 @@ export class MultiProjectDashboardServer {
   private projects: Map<string, ProjectState> = new Map();
   private discovery: ProjectDiscovery;
   private rescanInterval?: ReturnType<typeof setInterval>;
+  private tunnelManager?: TunnelManager;
 
   constructor(options: MultiDashboardOptions) {
     this.options = options;
@@ -58,17 +87,24 @@ export class MultiProjectDashboardServer {
     console.log('Starting project discovery...');
     const discoveredProjects = await this.discovery.discoverProjects();
 
-    // Filter to show projects with specs OR active Claude sessions
-    const activeProjects = discoveredProjects.filter(
-      (p) => (p.specCount || 0) > 0 || p.hasActiveSession
-    );
-    console.log(`Found ${activeProjects.map(p => p.name).join(', ')}`);
+    // Projects are already filtered by discovery
+    console.log(`Found ${discoveredProjects.length} projects:`);
+    discoveredProjects.forEach(p => {
+      console.log(`  - ${p.name} at ${p.path} (specs: ${p.specCount}, bugs: ${p.bugCount}, active: ${p.hasActiveSession})`);
+    });
 
     // Initialize watchers for each project
-    for (const project of activeProjects) {
-      debug(`Initializing project ${project.name}`);
+    for (const project of discoveredProjects) {
+      debug(`Initializing project ${project.name} at ${project.path}`);
       await this.initializeProject(project);
+      debug(`Project ${project.name} initialized and added to projects Map`);
     }
+    
+    // Log all projects in the Map
+    debug(`Total projects in Map: ${this.projects.size}`);
+    this.projects.forEach((state, path) => {
+      debug(`  - ${state.project.name}: ${path}`);
+    });
 
     // Register plugins
     await this.app.register(fastifyStatic, {
@@ -78,7 +114,16 @@ export class MultiProjectDashboardServer {
 
     // Serve multi.html as the main page
     this.app.get('/', async (request, reply) => {
-      return reply.sendFile('multi.html', join(__dirname, 'public'));
+      return reply.sendFile('index.html', join(__dirname, 'public'));
+    });
+
+    // Catch-all route for client-side routing - serve index.html for any non-API route
+    this.app.get('/*', async (request, reply) => {
+      // Skip API routes and static files
+      if (request.url.startsWith('/api/') || request.url.startsWith('/public/') || request.url.startsWith('/ws')) {
+        return reply.code(404).send({ error: 'Not found' });
+      }
+      return reply.sendFile('index.html', join(__dirname, 'public'));
     });
 
     await this.app.register(fastifyWebsocket);
@@ -181,7 +226,7 @@ export class MultiProjectDashboardServer {
         return;
       }
 
-      const allowedDocs = ['report', 'analysis', 'verification'];
+      const allowedDocs = ['report', 'analysis', 'fix', 'verification'];
       if (!allowedDocs.includes(document)) {
         reply.code(400).send({ error: 'Invalid document type' });
         return;
@@ -194,6 +239,113 @@ export class MultiProjectDashboardServer {
         return { content };
       } catch {
         reply.code(404).send({ error: 'Document not found' });
+      }
+    });
+
+    // Tunnel API endpoints
+    this.app.get('/api/tunnel/status', async () => {
+      const status = this.getTunnelStatus();
+      return status;
+    });
+
+    this.app.post('/api/tunnel/start', async (request, reply) => {
+      try {
+        // Always ensure tunnel manager is initialized
+        if (!this.tunnelManager) {
+          this.tunnelManager = new TunnelManager(this.app);
+          this.tunnelManager.registerProvider(new CloudflareProvider());
+          this.tunnelManager.registerProvider(new NgrokProvider());
+          
+          // Listen for tunnel events
+          this.tunnelManager.on('tunnel:started', (tunnelInfo) => {
+            console.log(`✅ Tunnel started: ${tunnelInfo.url} (${tunnelInfo.provider})`);
+            debug('Tunnel started event:', tunnelInfo);
+            this.broadcast({
+              type: 'tunnel:started',
+              data: tunnelInfo
+            });
+          });
+          
+          this.tunnelManager.on('tunnel:stopped', (data) => {
+            console.log('🛑 Tunnel stopped');
+            debug('Tunnel stopped event:', data);
+            this.broadcast({
+              type: 'tunnel:stopped',
+              data: data || {}
+            });
+          });
+          
+          this.tunnelManager.on('tunnel:metrics:updated', (metrics) => {
+            debug('Tunnel metrics updated:', metrics);
+            this.broadcast({
+              type: 'tunnel:metrics:updated',
+              data: metrics
+            });
+          });
+          
+          this.tunnelManager.on('tunnel:visitor:new', (visitor) => {
+            console.log(`👤 New tunnel visitor from ${visitor.country || 'Unknown'}`);
+            debug('New tunnel visitor:', visitor);
+          });
+          
+          this.tunnelManager.on('tunnel:recovery:start', (data) => {
+            console.log(`🔄 Tunnel recovery started (attempt ${data.attempt})`);
+          });
+          
+          this.tunnelManager.on('tunnel:recovery:success', () => {
+            console.log('✅ Tunnel recovery successful');
+          });
+          
+          this.tunnelManager.on('tunnel:recovery:failed', (data) => {
+            console.log(`❌ Tunnel recovery failed: ${data.error}`);
+          });
+        }
+        
+        // Check if tunnel is already active
+        const status = this.getTunnelStatus();
+        if (status.active) {
+          return { success: true, message: 'Tunnel already active', tunnelInfo: status.info };
+        }
+        
+        // Start tunnel with options from command line
+        const tunnelOptions: TunnelOptions = {
+          provider: this.options.tunnelProvider,
+          password: this.options.tunnelPassword,
+          analytics: true
+        };
+        
+        console.log(`🚀 Starting tunnel (provider: ${tunnelOptions.provider || 'auto'})...`);
+        debug(`Starting tunnel with provider: ${tunnelOptions.provider || 'auto'}`);
+        const tunnelInfo = await this.tunnelManager.startTunnel(tunnelOptions);
+        debug('Tunnel started via API:', tunnelInfo);
+        
+        return { success: true, tunnelInfo };
+      } catch (error) {
+        console.error('Error starting tunnel:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        reply.code(500).send({ error: 'Failed to start tunnel', details: errorMessage });
+      }
+    });
+
+    this.app.post('/api/tunnel/stop', async (request, reply) => {
+      if (!this.tunnelManager) {
+        reply.code(404).send({ error: 'No tunnel manager available' });
+        return;
+      }
+      
+      try {
+        await this.tunnelManager.stopTunnel();
+        
+        // Broadcast tunnel stopped event
+        this.broadcast({
+          type: 'tunnel:stopped',
+          data: {}
+        });
+        
+        return { success: true };
+      } catch (error) {
+        console.error('Error stopping tunnel:', error);
+        reply.code(500).send({ error: 'Failed to stop tunnel' });
       }
     });
 
@@ -211,11 +363,16 @@ export class MultiProjectDashboardServer {
     // Update the port in options for URL generation
     this.options.port = actualPort;
 
+    // Initialize tunnel if requested
+    if (this.options.tunnel) {
+      await this.initializeTunnel();
+    }
+
     // Start periodic rescan for new active projects
     // Disabled: We now use file watching instead of polling
     // this.startPeriodicRescan();
 
-    // Open browser if requested
+    // Open browser if requested (always use localhost for local user)
     if (this.options.autoOpen) {
       await open(`http://localhost:${this.options.port}`);
     }
@@ -231,6 +388,7 @@ export class MultiProjectDashboardServer {
 
     // Set up watcher events
     watcher.on('change', async (event) => {
+      debug(`[Multi-server] Watcher change event received for project ${project.name}:`, event);
       // Transform the watcher event into the format expected by the client
       const projectUpdateEvent = {
         type: 'spec-update',
@@ -247,23 +405,31 @@ export class MultiProjectDashboardServer {
       });
 
       debug(`[Multi-server] Sending spec update for ${project.name}/${event.spec} to ${this.clients.size} clients`);
+      let sentCount = 0;
       this.clients.forEach((client) => {
         if (client.readyState === 1) {
           client.send(message);
+          sentCount++;
+          debug(`[Multi-server] Sent update to client ${sentCount}`);
+        } else {
+          debug(`[Multi-server] Client has readyState ${client.readyState}, skipping`);
         }
       });
+      if (sentCount === 0) {
+        debug(`[Multi-server] WARNING: No clients received the update!`);
+      }
 
-      // Also send updated active tasks
-      const activeTasks = await this.collectActiveTasks();
-      debug(`[Multi-server] Collected ${activeTasks.length} active tasks after spec update`);
-      const activeTasksMessage = JSON.stringify({
-        type: 'active-tasks-update',
-        data: activeTasks,
+      // Also send updated active sessions
+      const activeSessions = await this.collectActiveSessions();
+      debug(`[Multi-server] Collected ${activeSessions.length} active sessions after spec update`);
+      const activeSessionsMessage = JSON.stringify({
+        type: 'active-sessions-update',
+        data: activeSessions,
       });
 
       this.clients.forEach((client) => {
         if (client.readyState === 1) {
-          client.send(activeTasksMessage);
+          client.send(activeSessionsMessage);
         }
       });
     });
@@ -331,7 +497,9 @@ export class MultiProjectDashboardServer {
       });
     });
 
+    debug(`[Multi-server] Starting watcher for project ${project.name} at path: ${project.path}`);
     await watcher.start();
+    debug(`[Multi-server] Watcher started successfully for ${project.name}`);
 
     this.projects.set(project.path, {
       project,
@@ -342,7 +510,7 @@ export class MultiProjectDashboardServer {
 
   private async sendInitialState(socket: WebSocket) {
     const projects = await Promise.all(
-      Array.from(this.projects.entries()).map(async ([, state]) => {
+      Array.from(this.projects.entries()).map(async ([path, state]) => {
         const specs = await state.parser.getAllSpecs();
         const bugs = await state.parser.getAllBugs();
         const steeringStatus = await state.parser.getProjectSteeringStatus();
@@ -352,93 +520,232 @@ export class MultiProjectDashboardServer {
           bugs,
           steering: steeringStatus,
         };
-        debug(`Sending project ${projectData.name}`);
+        debug(`Sending project ${projectData.name} (${path}) with ${specs.length} specs, ${bugs.length} bugs`);
         return projectData;
       })
     );
 
-    // Collect all active tasks across projects
-    const activeTasks = await this.collectActiveTasks();
+    // Collect all active sessions across projects
+    const activeSessions = await this.collectActiveSessions();
+
+    debug(`Sending initial state: ${projects.length} projects, ${activeSessions.length} active sessions`);
+    projects.forEach(p => {
+      debug(`  Project: ${p.name} (${p.path}) - specs: ${p.specs?.length || 0}, bugs: ${p.bugs?.length || 0}`);
+    });
 
     socket.send(
       JSON.stringify({
         type: 'initial',
         data: projects,
-        activeTasks,
+        activeSessions,
         username: this.getUsername(),
       })
     );
   }
 
-  private async collectActiveTasks(): Promise<ActiveTask[]> {
-    const activeTasks: ActiveTask[] = [];
+  private async collectActiveSessions(): Promise<ActiveSession[]> {
+    const allActiveSessions: ActiveSession[] = [];
 
     for (const [projectPath, state] of this.projects) {
-      const specs = await state.parser.getAllSpecs();
-      debug(`[collectActiveTasks] Project ${state.project.name}: ${specs.length} specs`);
+      // Only include projects where a Claude process is actually running
+      if (!state.project.hasActiveSession) {
+        debug(`[collectActiveSessions] Project ${state.project.name}: no active Claude process, skipping`);
+        continue;
+      }
 
-      let hasActiveTaskInProject = false;
+      debug(`[collectActiveSessions] Project ${state.project.name}: has active Claude process, finding active work item`);
       
-      for (const spec of specs) {
-        if (spec.tasks && spec.tasks.taskList.length > 0) {
-          debug(`[collectActiveTasks] Spec ${spec.name}: ${spec.tasks.taskList.length} tasks, inProgress: ${spec.tasks.inProgress}`);
-          if (spec.tasks.inProgress) {
-            // Only get the currently active task (marked as in progress)
-            const activeTask = this.findTaskById(spec.tasks.taskList, spec.tasks.inProgress);
+      const specs = await state.parser.getAllSpecs();
+      const bugs = await state.parser.getAllBugs();
+      const activeWorkItems: Array<{
+        type: 'spec' | 'bug';
+        item: any;
+        lastModified: Date;
+        priority: number; // Higher priority = more active
+      }> = [];
 
-            if (activeTask) {
-              hasActiveTaskInProject = true;
-              activeTasks.push({
-              projectPath,
-              projectName: state.project.name,
-              specName: spec.name,
-              specDisplayName: spec.displayName,
-              task: activeTask,
-              isCurrentlyActive: true,
-              hasActiveSession: true,
-              gitBranch: state.project.gitBranch,
-              gitCommit: state.project.gitCommit,
+      // Collect specs with active tasks (highest priority)
+      for (const spec of specs) {
+        if (spec.tasks && spec.tasks.inProgress) {
+          activeWorkItems.push({
+            type: 'spec',
+            item: spec,
+            lastModified: spec.lastModified || new Date(0),
+            priority: 100 // Highest priority - active task
+          });
+        }
+      }
+
+      // Collect active bugs (high priority)
+      for (const bug of bugs) {
+        if (['analyzing', 'fixing', 'verifying'].includes(bug.status)) {
+          activeWorkItems.push({
+            type: 'bug',
+            item: bug,
+            lastModified: bug.lastModified || new Date(0),
+            priority: 90 // High priority - active bug
+          });
+        }
+      }
+
+      // If no active work, collect recent incomplete work as fallback (lower priority)
+      if (activeWorkItems.length === 0) {
+        // Add most recently modified specs that are not completed
+        for (const spec of specs) {
+          if (spec.status !== 'completed') {
+            activeWorkItems.push({
+              type: 'spec',
+              item: spec,
+              lastModified: spec.lastModified || new Date(0),
+              priority: 10 // Low priority - incomplete work
+            });
+          }
+        }
+
+        // Add most recently modified bugs that are not resolved
+        for (const bug of bugs) {
+          if (bug.status !== 'resolved') {
+            activeWorkItems.push({
+              type: 'bug',
+              item: bug,
+              lastModified: bug.lastModified || new Date(0),
+              priority: 10 // Low priority - incomplete work
             });
           }
         }
       }
-    }
-      
-      // Update the project's active session status based on whether it has active tasks
-      if (state.project.hasActiveSession !== hasActiveTaskInProject) {
-        state.project.hasActiveSession = hasActiveTaskInProject;
+
+      // Sort by priority first, then by lastModified descending
+      activeWorkItems.sort((a, b) => {
+        if (a.priority !== b.priority) {
+          return b.priority - a.priority; // Higher priority first
+        }
+        return b.lastModified.getTime() - a.lastModified.getTime(); // Most recent first
+      });
+
+      let activeSession: ActiveSession | null = null;
+
+      if (activeWorkItems.length > 0) {
+        const mostRecent = activeWorkItems[0];
         
-        // Send status update to clients
-        const statusUpdate = {
-          type: 'project-update',
+        if (mostRecent.type === 'spec') {
+          const spec = mostRecent.item;
+          // For specs, try to find an active task, otherwise use a placeholder
+          let activeTask = null;
+          if (spec.tasks && spec.tasks.inProgress) {
+            activeTask = this.findTaskById(spec.tasks.taskList, spec.tasks.inProgress);
+          }
+          
+          // If no active task, create a placeholder representing the spec
+          if (!activeTask) {
+            activeTask = {
+              id: 'session',
+              description: `${spec.displayName || spec.name}`,
+              completed: false,
+              requirements: []
+            };
+          }
+
+          activeSession = {
+            type: 'spec',
+            projectPath,
+            projectName: state.project.name,
+            displayName: spec.displayName || spec.name,
+            specName: spec.name,
+            status: spec.status, // Include spec status
+            requirements: spec.requirements,
+            design: spec.design,
+            tasks: spec.tasks,
+            task: activeTask,
+            lastModified: mostRecent.lastModified,
+            isCurrentlyActive: true,
+            hasActiveSession: true,
+            gitBranch: state.project.gitBranch,
+            gitCommit: state.project.gitCommit,
+          } as ActiveSpecSession;
+
+        } else if (mostRecent.type === 'bug') {
+          const bug = mostRecent.item;
+          
+          // Determine the next command based on bug status
+          let nextCommand = '';
+          switch (bug.status) {
+            case 'reported':
+              nextCommand = `/bug-analyze ${bug.name}`;
+              break;
+            case 'analyzing':
+              nextCommand = `/bug-analyze ${bug.name}`;
+              break;
+            case 'fixing':
+              nextCommand = `/bug-fix ${bug.name}`;
+              break;
+            case 'verifying':
+              nextCommand = `/bug-verify ${bug.name}`;
+              break;
+            case 'fixed':
+              nextCommand = `/bug-verify ${bug.name}`;
+              break;
+            case 'resolved':
+              nextCommand = ''; // Bug is complete, no next command
+              break;
+            default:
+              nextCommand = `/bug-analyze ${bug.name}`;
+          }
+
+          activeSession = {
+            type: 'bug',
+            projectPath,
+            projectName: state.project.name,
+            displayName: bug.displayName || bug.name,
+            bugName: bug.name,
+            bugStatus: bug.status, // Use the actual bug status, including 'fixed' and 'resolved'
+            bugSeverity: bug.report?.severity,
+            nextCommand,
+            lastModified: mostRecent.lastModified,
+            isCurrentlyActive: true,
+            hasActiveSession: true,
+            gitBranch: state.project.gitBranch,
+            gitCommit: state.project.gitCommit,
+          } as ActiveBugSession;
+        }
+      } else {
+        // No work items found, create a generic session for the active Claude process
+        activeSession = {
+          type: 'spec',
           projectPath,
-          data: {
-            type: 'status-update',
-            data: {
-              hasActiveSession: hasActiveTaskInProject,
-              lastActivity: new Date(),
-              isClaudeActive: hasActiveTaskInProject
-            }
-          }
-        };
-        
-        this.clients.forEach((client) => {
-          if (client.readyState === 1) {
-            client.send(JSON.stringify(statusUpdate));
-          }
-        });
+          projectName: state.project.name,
+          displayName: 'Ad-hoc Session',
+          specName: 'ad-hoc-session',
+          isAdHoc: true, // Mark as ad-hoc
+          task: {
+            id: 'session',
+            description: 'Active Claude session',
+            completed: false,
+            requirements: []
+          },
+          lastModified: new Date(),
+          isCurrentlyActive: true,
+          hasActiveSession: true,
+          gitBranch: state.project.gitBranch,
+          gitCommit: state.project.gitCommit,
+        } as ActiveSpecSession;
+      }
+
+      if (activeSession) {
+        debug(`[collectActiveSessions] Project ${state.project.name}: selected ${activeSession.type} session (${activeSession.type === 'spec' ? activeSession.specName : activeSession.bugName})`);
+        allActiveSessions.push(activeSession);
       }
     }
 
     // Sort by currently active first, then by project name
-    activeTasks.sort((a, b) => {
+    allActiveSessions.sort((a, b) => {
       if (a.isCurrentlyActive && !b.isCurrentlyActive) return -1;
       if (!a.isCurrentlyActive && b.isCurrentlyActive) return 1;
       return a.projectName.localeCompare(b.projectName);
     });
 
-    debug(`[collectActiveTasks] Total active tasks found: ${activeTasks.length}`);
-    return activeTasks;
+    debug(`[collectActiveSessions] Total active sessions found: ${allActiveSessions.length} (filtered to single session per project)`);
+    return allActiveSessions;
   }
 
   private findTaskById(tasks: Task[], taskId: string): Task | null {
@@ -461,10 +768,7 @@ export class MultiProjectDashboardServer {
   private startPeriodicRescan() {
     // Rescan every 30 seconds for new active projects
     this.rescanInterval = setInterval(async () => {
-      const currentProjects = await this.discovery.discoverProjects();
-      const activeProjects = currentProjects.filter(
-        (p) => (p.specCount || 0) > 0 || p.hasActiveSession
-      );
+      const activeProjects = await this.discovery.discoverProjects();
 
       // Check for new projects
       for (const project of activeProjects) {
@@ -532,6 +836,11 @@ export class MultiProjectDashboardServer {
       await state.watcher.stop();
     }
 
+    // Stop the tunnel if active
+    if (this.tunnelManager) {
+      await this.tunnelManager.stopTunnel();
+    }
+
     // Close all WebSocket connections
     this.clients.forEach((client) => {
       if (client.readyState === 1) {
@@ -542,6 +851,93 @@ export class MultiProjectDashboardServer {
 
     // Close the server
     await this.app.close();
+  }
+
+  private async initializeTunnel() {
+    // Initialize tunnel manager
+    this.tunnelManager = new TunnelManager(this.app);
+    
+    // Register providers
+    this.tunnelManager.registerProvider(new CloudflareProvider());
+    this.tunnelManager.registerProvider(new NgrokProvider());
+    
+    // Listen for tunnel events
+    this.tunnelManager.on('tunnel:started', (tunnelInfo) => {
+      console.log(`✅ Tunnel started: ${tunnelInfo.url} (${tunnelInfo.provider})`);
+      debug('Tunnel started event:', tunnelInfo);
+      this.broadcast({
+        type: 'tunnel:started',
+        data: tunnelInfo
+      });
+    });
+    
+    this.tunnelManager.on('tunnel:stopped', (data) => {
+      console.log('🛑 Tunnel stopped');
+      debug('Tunnel stopped event:', data);
+      this.broadcast({
+        type: 'tunnel:stopped',
+        data: data || {}
+      });
+    });
+    
+    this.tunnelManager.on('tunnel:metrics:updated', (metrics) => {
+      debug('Tunnel metrics updated:', metrics);
+      this.broadcast({
+        type: 'tunnel:metrics:updated',
+        data: metrics
+      });
+    });
+    
+    this.tunnelManager.on('tunnel:visitor:new', (visitor) => {
+      console.log(`👤 New tunnel visitor from ${visitor.country || 'Unknown'}`);
+      debug('New tunnel visitor:', visitor);
+    });
+    
+    this.tunnelManager.on('tunnel:recovery:start', (data) => {
+      console.log(`🔄 Tunnel recovery started (attempt ${data.attempt})`);
+    });
+    
+    this.tunnelManager.on('tunnel:recovery:success', () => {
+      console.log('✅ Tunnel recovery successful');
+    });
+    
+    this.tunnelManager.on('tunnel:recovery:failed', (data) => {
+      console.log(`❌ Tunnel recovery failed: ${data.error}`);
+    });
+    
+    // Start tunnel with options
+    const tunnelOptions: TunnelOptions = {
+      provider: this.options.tunnelProvider,
+      password: this.options.tunnelPassword,
+      analytics: true
+    };
+    
+    try {
+      console.log(`🚀 Starting tunnel (provider: ${tunnelOptions.provider || 'auto'})...`);
+      const tunnelInfo = await this.tunnelManager.startTunnel(tunnelOptions);
+      debug('Tunnel created:', tunnelInfo);
+    } catch (error) {
+      if (error instanceof TunnelProviderError) {
+        console.error('Tunnel setup failed:', error.getUserFriendlyMessage());
+      } else {
+        console.error('Failed to create tunnel:', error);
+      }
+      throw error;
+    }
+  }
+
+  getTunnelStatus() {
+    return this.tunnelManager?.getStatus() || { active: false };
+  }
+
+  private broadcast(message: { type: string; data: unknown }) {
+    const jsonMessage = JSON.stringify(message);
+    this.clients.forEach((client) => {
+      if (client.readyState === 1) {
+        // WebSocket.OPEN
+        client.send(jsonMessage);
+      }
+    });
   }
 
   private getUsername(): string {
