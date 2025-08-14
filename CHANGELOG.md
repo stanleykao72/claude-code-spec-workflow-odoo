@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.8] - 2025-08-14
+
+- Dashboard improvements for multi-project support
+- Bug tracking system enhancements
+- Fixed issue where deleted spec directories remained in dashboard
+- Performance optimizations
+- Various bug fixes and stability improvements
+
+**Note:** This is the last release of the claude-code-spec-workflow. Development focus has shifted to the MCP version of this workflow system. The MCP version provides enhanced features, real-time dashboard, and broader AI tool compatibility.
+
 ## [1.5.7] - 2025-08-07
 
 ### Updated
