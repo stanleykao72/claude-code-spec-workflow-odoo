@@ -334,12 +334,6 @@ export class MultiProjectDashboardServer {
       root: join(__dirname),
       prefix: '/',
       wildcard: false, // Disable wildcard to prevent conflicts
-      serve: true,
-    });
-
-    // Explicitly handle specific routes for our known static files
-    this.app.get('/', async (request, reply) => {
-      return reply.sendFile('index.html');
     });
 
     // Use setNotFoundHandler as SPA fallback - must be last
