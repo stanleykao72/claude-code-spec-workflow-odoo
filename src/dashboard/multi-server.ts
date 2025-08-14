@@ -112,15 +112,6 @@ export class MultiProjectDashboardServer {
       prefix: '/',
     });
 
-    // Serve index.html for root and any non-API/WebSocket routes
-    this.app.get('/*', async (request, reply) => {
-      // Skip API routes and WebSocket
-      if (request.url.startsWith('/api/') || request.url.startsWith('/ws')) {
-        return reply.code(404).send({ error: 'Not found' });
-      }
-      return reply.sendFile('index.html');
-    });
-
     await this.app.register(fastifyWebsocket);
 
     // WebSocket endpoint
@@ -342,6 +333,21 @@ export class MultiProjectDashboardServer {
         console.error('Error stopping tunnel:', error);
         reply.code(500).send({ error: 'Failed to stop tunnel' });
       }
+    });
+
+    // Serve index.html for the root route
+    this.app.get('/', async (request, reply) => {
+      return reply.sendFile('index.html');
+    });
+    
+    // Handle other routes that aren't API or static files
+    this.app.setNotFoundHandler(async (request, reply) => {
+      // For non-API routes, serve index.html (for client-side routing)
+      if (!request.url.startsWith('/api/') && !request.url.startsWith('/ws')) {
+        return reply.sendFile('index.html');
+      }
+      // For API routes, return 404
+      reply.code(404).send({ error: 'Not found' });
     });
 
     // Find available port if the requested port is busy
