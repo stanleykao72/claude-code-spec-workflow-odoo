@@ -106,12 +106,6 @@ export class MultiProjectDashboardServer {
       debug(`  - ${state.project.name}: ${path}`);
     });
 
-    // Register plugins
-    await this.app.register(fastifyStatic, {
-      root: join(__dirname),
-      prefix: '/',
-    });
-
     await this.app.register(fastifyWebsocket);
 
     // WebSocket endpoint
@@ -335,18 +329,27 @@ export class MultiProjectDashboardServer {
       }
     });
 
-    // Serve index.html for the root route
+    // Register static file serving with fastify-static AFTER all API routes
+    await this.app.register(fastifyStatic, {
+      root: join(__dirname),
+      prefix: '/',
+      wildcard: false, // Disable wildcard to prevent conflicts
+      serve: true,
+    });
+
+    // Explicitly handle specific routes for our known static files
     this.app.get('/', async (request, reply) => {
       return reply.sendFile('index.html');
     });
-    
-    // Handle other routes that aren't API or static files
-    this.app.setNotFoundHandler(async (request, reply) => {
-      // For non-API routes, serve index.html (for client-side routing)
-      if (!request.url.startsWith('/api/') && !request.url.startsWith('/ws')) {
+
+    // Use setNotFoundHandler as SPA fallback - must be last
+    this.app.setNotFoundHandler((request, reply) => {
+      // Only serve index.html for GET requests that aren't API or WebSocket
+      if (request.method === 'GET' && 
+          !request.url.startsWith('/api/') && 
+          !request.url.startsWith('/ws')) {
         return reply.sendFile('index.html');
       }
-      // For API routes, return 404
       reply.code(404).send({ error: 'Not found' });
     });
 
