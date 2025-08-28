@@ -23,7 +23,7 @@ Transform your development with structured workflows: **Requirements → Design 
 
 1. Install the workflow globally
 ```bash
- `npm i -g @pimzino/claude-code-spec-workflow`
+npm i -g @pimzino/claude-code-spec-workflow
 ```
 2. Run the setup command in your project directory
 ```bash
