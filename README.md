@@ -1,15 +1,15 @@
-# Claude Code Spec Workflow
+# Claude Code Spec Workflow - Odoo ERP Edition
 
-> **⚠️ IMPORTANT NOTICE:** Development focus has shifted to the **MCP (Model Context Protocol) version** of this workflow system. The MCP version provides enhanced features, real-time dashboard, and broader AI tool compatibility.
+> **🎉 ODOO ERP CUSTOMIZATION VERSION:** This is an enhanced version of the original Claude Code Spec Workflow, specifically adapted for Odoo ERP customization development. It includes all original features plus comprehensive Odoo-specific tools and workflows.
 > 
-> **🚀 [View the new Spec Workflow MCP →](https://github.com/Pimzino/spec-workflow-mcp)**
->
-> This Claude Code-specific version remains available for existing users but will receive limited updates.
+> **📚 [Original Project by Pimzino →](https://github.com/Pimzino/claude-code-spec-workflow)**
+> 
+> **🚀 [View the new MCP version →](https://github.com/Pimzino/spec-workflow-mcp)**
 
-[![npm version](https://badge.fury.io/js/@pimzino%2Fclaude-code-spec-workflow.svg?cacheSeconds=300)](https://badge.fury.io/js/@pimzino%2Fclaude-code-spec-workflow)
+[![npm version](https://badge.fury.io/js/@stanleykao72%2Fclaude-code-spec-workflow-odoo.svg?cacheSeconds=300)](https://badge.fury.io/js/@stanleykao72%2Fclaude-code-spec-workflow-odoo)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Automated workflows for Claude Code with intelligent task execution.**
+**Automated workflows for Claude Code with Odoo ERP customization development support.**
 
 Transform your development with structured workflows: **Requirements → Design → Tasks → Implementation** for new features, plus streamlined **Report → Analyze → Fix → Verify** for bug fixes.
 
@@ -21,15 +21,19 @@ Transform your development with structured workflows: **Requirements → Design 
 
 ## 📦 Installation
 
-1. Install the workflow globally
+1. Install the Odoo edition workflow globally
 ```bash
-npm i -g @pimzino/claude-code-spec-workflow
+npm i -g @stanleykao72/claude-code-spec-workflow-odoo
 ```
 2. Run the setup command in your project directory
 ```bash
 claude-code-spec-workflow
 ```
-**Thats it, you are ready to go!**
+3. For Odoo projects, run the specialized setup
+```bash
+npx @stanleykao72/claude-code-spec-workflow-odoo odoo-setup
+```
+**That's it, you are ready to go!**
 ---
 
 ## ✨ What You Get
@@ -143,7 +147,7 @@ claude-code-spec-workflow
 
 ### 📊 **Real-Time Dashboard**
 ```bash
-npx -p @pimzino/claude-code-spec-workflow claude-spec-dashboard
+npx -p @stanleykao72/claude-code-spec-workflow-odoo claude-spec-dashboard
 ```
 - Live progress tracking
 - WebSocket updates
@@ -158,13 +162,13 @@ Share your dashboard securely with external stakeholders through temporary HTTPS
 
 ```bash
 # Start dashboard with tunnel
-npx -p @pimzino/claude-code-spec-workflow claude-spec-dashboard --tunnel
+npx -p @stanleykao72/claude-code-spec-workflow-odoo claude-spec-dashboard --tunnel
 
 # With password protection
-npx -p @pimzino/claude-code-spec-workflow claude-spec-dashboard --tunnel --tunnel-password mySecret123
+npx -p @stanleykao72/claude-code-spec-workflow-odoo claude-spec-dashboard --tunnel --tunnel-password mySecret123
 
 # Choose specific provider
-npx -p @pimzino/claude-code-spec-workflow claude-spec-dashboard --tunnel --tunnel-provider cloudflare
+npx -p @stanleykao72/claude-code-spec-workflow-odoo claude-spec-dashboard --tunnel --tunnel-provider cloudflare
 ```
 
 **Tunnel Features:**
@@ -181,31 +185,31 @@ npx -p @pimzino/claude-code-spec-workflow claude-spec-dashboard --tunnel --tunne
 ### Setup Commands
 ```bash
 # Setup in current directory
-npx @pimzino/claude-code-spec-workflow
+npx @stanleykao72/claude-code-spec-workflow-odoo
 
 # Setup in specific directory
-npx @pimzino/claude-code-spec-workflow --project /path/to/project
+npx @stanleykao72/claude-code-spec-workflow-odoo --project /path/to/project
 
 # Force overwrite existing files
-npx @pimzino/claude-code-spec-workflow --force
+npx @stanleykao72/claude-code-spec-workflow-odoo --force
 
 # Skip confirmation prompts
-npx @pimzino/claude-code-spec-workflow --yes
+npx @stanleykao72/claude-code-spec-workflow-odoo --yes
 
 # Test the setup
-npx @pimzino/claude-code-spec-workflow test
+npx @stanleykao72/claude-code-spec-workflow-odoo test
 ```
 
 ### Dashboard Commands
 ```bash
 # Basic dashboard
-npx -p @pimzino/claude-code-spec-workflow claude-spec-dashboard
+npx -p @stanleykao72/claude-code-spec-workflow-odoo claude-spec-dashboard
 
 # Dashboard with tunnel (share externally)
-npx -p @pimzino/claude-code-spec-workflow claude-spec-dashboard --tunnel
+npx -p @stanleykao72/claude-code-spec-workflow-odoo claude-spec-dashboard --tunnel
 
 # Full tunnel configuration
-npx -p @pimzino/claude-code-spec-workflow claude-spec-dashboard \
+npx -p @stanleykao72/claude-code-spec-workflow-odoo claude-spec-dashboard \
   --tunnel \
   --tunnel-password mySecret123 \
   --tunnel-provider cloudflare \
@@ -295,7 +299,7 @@ The package includes a built-in test command:
 
 ```bash
 # Test setup in temporary directory
-npx @pimzino/claude-code-spec-workflow test
+npx @stanleykao72/claude-code-spec-workflow-odoo test
 ```
 
 ## 📋 Requirements
@@ -311,13 +315,13 @@ npx @pimzino/claude-code-spec-workflow test
 **❓ Command not found after NPX**
 ```bash
 # Make sure you're using the correct package name
-npx @pimzino/claude-code-spec-workflow
+npx @stanleykao72/claude-code-spec-workflow-odoo
 ```
 
 **❓ Setup fails with permission errors**
 ```bash
 # Try with different directory permissions
-npx @pimzino/claude-code-spec-workflow --project ~/my-project
+npx @stanleykao72/claude-code-spec-workflow-odoo --project ~/my-project
 ```
 
 **❓ Claude Code not detected**
@@ -330,10 +334,89 @@ npm install -g @anthropic-ai/claude-code
 
 ```bash
 # Show verbose output
-DEBUG=* npx @pimzino/claude-code-spec-workflow
+DEBUG=* npx @stanleykao72/claude-code-spec-workflow-odoo
 
 # Check package version
-npx @pimzino/claude-code-spec-workflow --version
+npx @stanleykao72/claude-code-spec-workflow-odoo --version
+```
+
+## 🔧 Odoo-Specific Features
+
+### **Odoo ERP Development Support**
+- **Project Detection** - Automatic detection of Odoo modules and versions
+- **Module Management** - Create, validate, and manage custom modules
+- **Version Compatibility** - Support for Odoo 14.0-18.0
+- **Testing Integration** - pytest-odoo framework support
+- **Model Analysis** - Inheritance chain analysis and validation
+- **Multi-Environment Support** - Local, Docker, remote, and Odoo.sh
+
+### **🐛 Odoo Module Bug Reporting Workflow**
+
+#### **1. Create Bug Report**
+```bash
+/odoo-bug-fix [module-name]-[issue-description] "Detailed description"
+```
+**Example:**
+```bash
+/odoo-bug-fix inventory-stock-error "Inventory module calculation error"
+```
+
+#### **2. Complete Bug Fix Workflow**
+```bash
+# Step 1: Log the error (including module info)
+/odoo-bug-fix inventory-calculation-bug "Inventory calculation shows negative values under specific conditions"
+
+# Step 2: Analyze root cause
+/bug-analyze
+
+# Step 3: Implement solution
+/bug-fix
+
+# Step 4: Verify fix
+/bug-verify
+```
+
+#### **3. Alternative General Bug Workflow**
+```bash
+# Create bug report (specify module)
+/bug-create [module-name]-bug-name "Issue description found in [module-name] module"
+
+# Example
+/bug-create sale-order-bug "Sales order module calculation error when processing discounts"
+```
+
+#### **4. Odoo-Specific Bug Information**
+When using `/odoo-bug-fix`, the system automatically:
+- ✅ Detects related Odoo module structure
+- ✅ Analyzes module dependencies
+- ✅ Checks Odoo version compatibility
+- ✅ Provides module-specific testing suggestions
+
+**Recommended naming convention:**
+- `[module-name]-[error-type]-[short-description]`
+- Examples: `inventory-calculation-negative`, `sale-discount-error`, `account-payment-timeout`
+
+### **Odoo-Specific Commands**
+```bash
+# Specialized Odoo setup
+npx @stanleykao72/claude-code-spec-workflow-odoo odoo-setup
+
+# Command syntax
+/odoo-spec-create module-name "Module description"
+/odoo-module-test module-name "Test description for module"
+/odoo-bug-fix module-issue-name "Bug description in specific Odoo module"
+/odoo-feature-create module-feature-name "Feature description for Odoo module"
+
+# Examples
+/odoo-spec-create inventory-enhancement "Custom inventory management features"
+/odoo-module-test inventory_custom "Run tests for custom inventory module"
+/odoo-bug-fix sale-discount-error "Sales module discount calculation bug"
+/odoo-feature-create hr-attendance-tracking "Employee attendance tracking system"
+
+# Additional examples
+/odoo-spec-create pos-loyalty-program "Point of sale loyalty program integration"
+/odoo-bug-fix account-payment-timeout "Accounting module payment processing timeout"
+/odoo-module-test website_custom "Test custom website module functionality"
 ```
 
 ## 🌟 Examples
@@ -341,7 +424,7 @@ npx @pimzino/claude-code-spec-workflow --version
 ### Basic Usage
 ```bash
 cd my-awesome-project
-npx @pimzino/claude-code-spec-workflow
+npx @stanleykao72/claude-code-spec-workflow-odoo
 claude
 # Type: /spec-create user-dashboard "User profile management"
 ```
@@ -350,8 +433,14 @@ claude
 ```bash
 # Setup multiple projects
 for dir in project1 project2 project3; do
-  npx @pimzino/claude-code-spec-workflow --project $dir --yes
+  npx @stanleykao72/claude-code-spec-workflow-odoo --project $dir --yes
 done
+
+# Odoo-specific project setup
+cd odoo-custom-modules
+npx @stanleykao72/claude-code-spec-workflow-odoo odoo-setup
+claude
+# Type: /odoo-spec-create inventory-management "Custom inventory workflows"
 ```
 
 ## 🔧 TypeScript Development
@@ -516,7 +605,7 @@ See [CHANGELOG.md](https://github.com/pimzino/claude-code-spec-workflow/blob/mai
 ### **Installation**
 ```bash
 # Install globally (recommended)
-npm install -g @pimzino/claude-code-spec-workflow
+npm install -g @stanleykao72/claude-code-spec-workflow-odoo
 
 # Verify installation
 claude-code-spec-workflow --version
@@ -526,6 +615,9 @@ claude-code-spec-workflow --version
 ```bash
 # Basic setup
 claude-code-spec-workflow
+
+# Odoo-specific setup
+claude-code-spec-workflow odoo-setup
 
 # Advanced options
 claude-code-spec-workflow --project /path --force --yes
@@ -544,7 +636,7 @@ claude-code-spec-workflow --project /path --force --yes
 
 ```bash
 # 1. Install globally (one time)
-npm install -g @pimzino/claude-code-spec-workflow
+npm install -g @stanleykao72/claude-code-spec-workflow-odoo
 
 # 2. Setup project (one time)
 cd my-project
@@ -658,7 +750,7 @@ This approach **eliminates redundant loading** while ensuring each agent has exa
 **❓ "Command not found"**
 ```bash
 # Install globally first
-npm install -g @pimzino/claude-code-spec-workflow
+npm install -g @stanleykao72/claude-code-spec-workflow-odoo
 
 # Then use the command
 claude-code-spec-workflow
@@ -688,9 +780,10 @@ claude-code-spec-workflow --project ~/my-project
 
 ## 🔗 Links
 
-- **[Full Documentation](https://github.com/pimzino/claude-code-spec-workflow#readme)**
+- **[Full Documentation](https://github.com/stanleykao72/claude-code-spec-workflow-odoo#readme)**
+- **[Original Project](https://github.com/pimzino/claude-code-spec-workflow#readme)**
 - **[Claude Code Docs](https://docs.anthropic.com/claude-code)**
-- **[Report Issues](https://github.com/pimzino/claude-code-spec-workflow/issues)**
+- **[Report Issues](https://github.com/stanleykao72/claude-code-spec-workflow-odoo/issues)**
 
 ---
 

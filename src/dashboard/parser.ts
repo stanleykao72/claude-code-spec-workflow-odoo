@@ -101,7 +101,16 @@ export class SpecParser {
     // Normalize path to handle Windows/Unix separators before resolving
     const normalizedInput = projectPath.replace(/\\/g, '/');
     this.projectPath = normalize(resolve(normalizedInput));
+    
+    // Support both .claude/specs and .spec/ directory structures
     this.specsPath = join(this.projectPath, '.claude', 'specs');
+    const odooSpecsPath = join(this.projectPath, '.spec');
+    
+    // Check if Odoo-style .spec/ directory exists and prefer it
+    if (this.directoryExistsSync(odooSpecsPath)) {
+      this.specsPath = odooSpecsPath;
+    }
+    
     this.bugsPath = join(this.projectPath, '.claude', 'bugs');
     this.steeringLoader = new SteeringLoader(this.projectPath);
   }
@@ -931,6 +940,15 @@ export class SpecParser {
     try {
       await access(path, constants.F_OK);
       return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private directoryExistsSync(path: string): boolean {
+    try {
+      const fs = require('fs');
+      return fs.existsSync(path) && fs.statSync(path).isDirectory();
     } catch {
       return false;
     }

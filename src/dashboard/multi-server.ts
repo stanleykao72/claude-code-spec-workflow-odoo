@@ -542,11 +542,16 @@ export class MultiProjectDashboardServer {
         const specs = await state.parser.getAllSpecs();
         const bugs = await state.parser.getAllBugs();
         const steeringStatus = await state.parser.getProjectSteeringStatus();
+        
+        // Detect if this is an Odoo project
+        const isOdooProject = this.isOdooProject(path);
+        
         const projectData = {
           ...state.project,
           specs,
           bugs,
           steering: steeringStatus,
+          isOdooProject,
         };
         debug(`Sending project ${projectData.name} (${path}) with ${specs.length} specs, ${bugs.length} bugs`);
         return projectData;
@@ -809,7 +814,11 @@ export class MultiProjectDashboardServer {
           const specs = (await parser?.getAllSpecs()) || [];
           const bugs = (await parser?.getAllBugs()) || [];
           const steeringStatus = await parser?.getProjectSteeringStatus();
-          const projectData = { ...project, specs, bugs, steering: steeringStatus };
+          
+          // Detect if this is an Odoo project (has .spec/ directory)
+          const isOdooProject = this.isOdooProject(project.path);
+          
+          const projectData = { ...project, specs, bugs, steering: steeringStatus, isOdooProject };
 
           const message = JSON.stringify({
             type: 'new-project',
@@ -993,6 +1002,16 @@ export class MultiProjectDashboardServer {
       return username.charAt(0).toUpperCase() + username.slice(1);
     } catch {
       return 'User';
+    }
+  }
+
+  private isOdooProject(projectPath: string): boolean {
+    try {
+      const fs = require('fs');
+      const specPath = join(projectPath, '.spec');
+      return fs.existsSync(specPath) && fs.statSync(specPath).isDirectory();
+    } catch {
+      return false;
     }
   }
 }

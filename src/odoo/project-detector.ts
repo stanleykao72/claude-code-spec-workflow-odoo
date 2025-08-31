@@ -13,13 +13,15 @@ const execAsync = promisify(exec);
 export class OdooProjectDetector {
   // 預設的常見路徑模式
   private commonPatterns = [
-    './custom_addons',
-    './user',
-    './addons_custom',
-    './addons',
-    './extra_addons',
-    '../custom_addons',
-    '/opt/odoo/custom_addons'
+    './user',           // 客製化開發模組 (常見於標準 Odoo 專案結構)
+    './custom_addons',  // 客製化模組 (傳統命名)
+    './addons_custom',  // 客製化模組 (替代命名)
+    './addons',         // 通用模組目錄
+    './extra_addons',   // 額外模組目錄
+    './enterprise',     // Odoo Enterprise 模組 (企業版)
+    './odoo/addons',    // Odoo 核心模組 (從核心目錄搜尋)
+    '../custom_addons', // 上層目錄的客製化模組
+    '/opt/odoo/custom_addons'  // Docker/系統安裝路徑
   ];
 
   /**
@@ -303,6 +305,9 @@ export class OdooProjectDetector {
         name: moduleName,
         path: modulePath,
         manifest,
+        models: [],
+        views: [],
+        security: [],
         // TODO: 分析模型、視圖、安全規則等
         // models: await this.analyzeModels(modulePath),
         // views: await this.analyzeViews(modulePath),

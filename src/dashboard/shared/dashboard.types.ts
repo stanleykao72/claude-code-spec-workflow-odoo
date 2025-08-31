@@ -57,6 +57,8 @@ export interface Project {
   gitBranch?: string;
   /** Current git commit hash (if git repo) */
   gitCommit?: string;
+  /** Whether this is an Odoo project (uses .spec/ directory) */
+  isOdooProject?: boolean;
 }
 
 /**

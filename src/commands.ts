@@ -1,3 +1,5 @@
+import { OdooWorkflowManager } from './odoo/workflow-manager';
+
 /**
  * Generates the complete spec-create command markdown content.
  * This command handles the full spec workflow: Requirements → Design → Tasks → Implementation.
@@ -1135,5 +1137,449 @@ Display the current status of bug fix workflows.
 - **Fix**: Implementation of the planned solution
 - **Verification**: Testing and confirmation of resolution
 - **Complete**: Bug fully resolved and verified
+`;
+}
+
+/**
+ * Generate Odoo-specific spec creation command
+ */
+export function getOdooSpecCreateCommand(): string {
+  return `# Odoo Spec Create Command
+
+Create a new Odoo module specification following the complete spec-driven workflow optimized for ERP development.
+
+## Usage
+\`\`\`
+/odoo-spec-create <module-name> [description]
+\`\`\`
+
+## Odoo-Specific Workflow Philosophy
+
+You are an AI assistant specializing in Odoo ERP development. Your role is to guide users through systematic Odoo module development with enterprise-grade quality.
+
+### Odoo Core Principles
+- **ERP-First Design**: Consider business processes and data flow
+- **Module Dependency**: Understand Odoo module ecosystem and dependencies
+- **Security & Permissions**: Implement proper access controls and record rules
+- **Multi-Company Support**: Consider multi-company environments
+- **Localization Ready**: Design for internationalization and localization
+
+## Complete Odoo Workflow Sequence
+
+**CRITICAL**: Follow this exact sequence for Odoo development:
+
+1. **Requirements Phase** (Phase 1)
+   - Create requirements.md using Odoo template
+   - Include business process flows with Mermaid diagrams
+   - Define module dependencies and integration points
+   - Specify user roles and permission matrix
+   - Get user approval
+
+2. **Design Phase** (Phase 2)
+   - Create design.md using Odoo template
+   - Define model inheritance strategy
+   - Design view architecture (form, tree, kanban, etc.)
+   - Plan security rules and access rights
+   - Include database schema changes
+   - Get user approval
+
+3. **Tasks Phase** (Phase 3)
+   - Create tasks.md using Odoo template
+   - Follow Odoo development order: Models → Security → Views → Business Logic → Reports → Tests
+   - Include manifest.py updates
+   - Reference specific Odoo patterns and existing modules
+   - Get user approval
+
+4. **Implementation Phase** (Phase 4)
+   - Use Odoo-specific task commands
+   - Leverage existing Odoo code patterns
+   - Follow OCA coding standards
+
+## Odoo Context Loading
+
+Before starting, load complete Odoo project context:
+
+\`\`\`bash
+# Load Odoo steering documents
+@stanleykao72/claude-code-spec-workflow-odoo get-steering-context
+
+# Load Odoo templates
+@stanleykao72/claude-code-spec-workflow-odoo get-template-context odoo
+
+# Analyze existing module structure
+@stanleykao72/claude-code-spec-workflow-odoo odoo-detect
+\`\`\`
+
+## Odoo Requirements Template Usage
+
+\`\`\`bash
+# Load Odoo requirements template
+@stanleykao72/claude-code-spec-workflow-odoo get-content ".claude/templates/odoo-requirements-template.md"
+\`\`\`
+
+**Template Sections to Include**:
+- Business Background and Process Flow
+- Functional Requirements with User Stories
+- Odoo Integration Requirements (dependencies, models to extend)
+- Permission Matrix for different user roles
+- Multi-company considerations
+- Technical Constraints (Odoo version compatibility)
+
+## Odoo Design Template Usage
+
+\`\`\`bash
+# Load Odoo design template  
+@stanleykao72/claude-code-spec-workflow-odoo get-content ".claude/templates/odoo-design-template.md"
+\`\`\`
+
+**Template Sections to Include**:
+- Model Design (inheritance, fields, methods)
+- View Architecture (XML structure)
+- Security Design (access rights, record rules)
+- Business Logic Design
+- Integration Points with existing modules
+- Database Migration considerations
+
+## Example Usage
+\`\`\`
+/odoo-spec-create inventory_management "Advanced inventory tracking with serial numbers and lot management"
+\`\`\`
+
+## Implementation Phase
+After completing all phases:
+1. **Use Odoo task commands**: \`/inventory-management-task-1\`, etc.
+2. **Or use odoo-spec-execute**: Execute tasks with Odoo context
+3. **Track progress**: Use \`/spec-status inventory-management\`
+4. **Test module**: Use \`/odoo-module-test inventory-management\`
+`;
+}
+
+/**
+ * Generate Odoo module testing command
+ */
+export function getOdooModuleTestCommand(): string {
+  return `# Odoo Module Test Command
+
+Run comprehensive tests for an Odoo module including unit tests, integration tests, and validation.
+
+## Usage
+\`\`\`
+/odoo-module-test <module-name> [test-type] [options]
+\`\`\`
+
+## Test Types
+- **unit**: Unit tests only
+- **integration**: Integration tests only  
+- **all**: All tests (default)
+- **validation**: Module structure validation only
+
+## Options
+- **--coverage**: Generate test coverage reports
+- **--verbose**: Detailed test output
+- **--odoo-version**: Target Odoo version (default: auto-detect)
+
+## Instructions
+
+You are an Odoo testing specialist. Your role is to ensure module quality through comprehensive testing.
+
+### Testing Sequence
+
+1. **Module Structure Validation**
+   - Validate __manifest__.py structure
+   - Check required directories (models, views, security)
+   - Verify Python syntax
+   - Check XML view syntax
+   - Validate security rules format
+
+2. **Unit Tests Execution**
+   - Run pytest-odoo with unit test markers
+   - Test model methods and computed fields
+   - Validate business logic
+   - Check constraint enforcement
+
+3. **Integration Tests**
+   - Test module interactions with dependencies
+   - Validate view rendering
+   - Test wizard and action workflows
+   - Check security rule enforcement
+
+4. **Performance Tests**
+   - Database query analysis
+   - Memory usage profiling
+   - Large dataset handling
+
+### Test Context Loading
+
+\`\`\`bash
+# Load module context for testing
+@stanleykao72/claude-code-spec-workflow-odoo get-spec-context {module-name}
+
+# Analyze module dependencies
+@stanleykao72/claude-code-spec-workflow-odoo odoo-detect --module {module-name}
+\`\`\`
+
+### Test Execution Process
+
+1. **Validate Environment**
+   - Check Odoo installation
+   - Verify test database availability
+   - Confirm pytest-odoo installation
+
+2. **Run Tests**
+   \`\`\`bash
+   # Execute Odoo integration tests
+   python3 -m pytest --odoo-database=test_db --odoo-modules={module-name} -v
+   \`\`\`
+
+3. **Generate Reports**
+   - Test coverage report (HTML)
+   - Performance metrics
+   - Code quality analysis
+
+## Example Usage
+\`\`\`
+/odoo-module-test inventory_management integration --coverage
+\`\`\`
+
+## Test Output Format
+- ✅ **Passed tests**: Green checkmarks
+- ❌ **Failed tests**: Red X with details
+- ⚠️ **Warnings**: Yellow warnings for code quality
+- 📊 **Coverage**: Percentage with detailed report link
+`;
+}
+
+/**
+ * Generate Odoo bug fix command
+ */
+export function getOdooBugFixCommand(): string {
+  return `# Odoo Bug Fix Command
+
+Structured bug fixing workflow for Odoo modules with comprehensive analysis and verification.
+
+## Usage
+\`\`\`
+/odoo-bug-fix <bug-id> [module-name]
+\`\`\`
+
+## Odoo Bug Fix Workflow
+
+You are an Odoo debugging specialist. Follow this systematic approach to identify, fix, and verify bug resolutions in ERP environments.
+
+### Phase 1: Bug Report Analysis
+
+1. **Load Bug Context**
+   \`\`\`bash
+   # Load bug report
+   @stanleykao72/claude-code-spec-workflow-odoo get-content ".spec/bugs/{bug-id}/report.md"
+   
+   # Load affected module context
+   @stanleykao72/claude-code-spec-workflow-odoo get-spec-context {module-name}
+   \`\`\`
+
+2. **Odoo-Specific Analysis**
+   - Check Odoo server logs: \`/var/log/odoo/odoo-server.log\`
+   - Analyze database constraints and triggers
+   - Review related model inheritance chains
+   - Check view XML for syntax errors
+   - Validate security rules and access rights
+
+### Phase 2: Root Cause Investigation
+
+1. **Model Analysis**
+   - Examine model definitions and computed fields
+   - Check @api decorators and dependencies
+   - Validate constraint methods
+   - Review onchange and compute methods
+
+2. **View Analysis**  
+   - Check XML syntax and field references
+   - Validate view inheritance and XPath expressions
+   - Review JavaScript widget configurations
+   - Check CSS styling conflicts
+
+3. **Business Logic Analysis**
+   - Trace workflow state transitions
+   - Analyze automated actions and scheduled actions  
+   - Check report generation logic
+   - Review email template configurations
+
+### Phase 3: Fix Implementation
+
+1. **Code Changes**
+   - Follow OCA coding standards
+   - Implement minimal, targeted fixes
+   - Add proper error handling
+   - Update docstrings and comments
+
+2. **Database Migrations** 
+   - Create migration scripts if needed
+   - Update module version in __manifest__.py
+   - Add data files for configuration changes
+
+3. **Security Updates**
+   - Update access rights if needed
+   - Modify record rules
+   - Review user group assignments
+
+### Phase 4: Testing and Verification
+
+1. **Unit Tests**
+   \`\`\`bash
+   # Run module-specific tests
+   @stanleykao72/claude-code-spec-workflow-odoo odoo-module-test {module-name} unit
+   \`\`\`
+
+2. **Integration Tests**
+   - Test with dependent modules
+   - Verify multi-company scenarios
+   - Check workflow transitions
+
+3. **User Acceptance Testing**
+   - Verify fix resolves original issue
+   - Test edge cases and related functionality
+   - Confirm no regression in existing features
+
+## Bug Categories
+
+### Performance Issues
+- Database query optimization
+- Memory usage reduction
+- Caching implementation
+
+### Data Integrity Issues  
+- Constraint violations
+- Incorrect computed fields
+- Missing validation rules
+
+### UI/UX Issues
+- View rendering problems
+- JavaScript errors
+- Mobile responsiveness
+
+### Security Issues
+- Access control bypasses
+- Data exposure
+- Permission escalation
+
+## Example Usage
+\`\`\`
+/odoo-bug-fix INV-001 inventory_management
+\`\`\`
+`;
+}
+
+/**
+ * Generate Odoo feature request command
+ */
+export function getOdooFeatureCommand(): string {
+  return `# Odoo Feature Request Command
+
+Handle new feature requests for existing Odoo modules with proper impact analysis and implementation planning.
+
+## Usage
+\`\`\`
+/odoo-feature <feature-id> <module-name> [priority]
+\`\`\`
+
+## Odoo Feature Development Workflow
+
+You are an Odoo feature development specialist. Your role is to analyze, plan, and implement new features while maintaining ERP system integrity.
+
+### Phase 1: Feature Request Analysis
+
+1. **Business Impact Assessment**
+   - Analyze business process changes
+   - Identify affected user workflows
+   - Assess integration impact with existing modules
+   - Consider multi-company implications
+
+2. **Technical Feasibility**  
+   - Review existing module architecture
+   - Identify required model extensions
+   - Assess view modifications needed
+   - Check Odoo version compatibility
+
+### Phase 2: Architecture Planning
+
+1. **Model Design**
+   - Plan new fields and methods
+   - Design inheritance strategy
+   - Consider computed field dependencies
+   - Plan constraint validations
+
+2. **View Architecture**
+   - Design new views or modify existing
+   - Plan wizard interfaces if needed
+   - Consider mobile compatibility
+   - Design report modifications
+
+3. **Security Planning**
+   - Define new access rights
+   - Plan record rule modifications
+   - Consider user group changes
+
+### Phase 3: Implementation Strategy
+
+1. **Development Phases**
+   - Phase 1: Core model changes
+   - Phase 2: View modifications  
+   - Phase 3: Business logic implementation
+   - Phase 4: Security and permissions
+   - Phase 5: Testing and validation
+
+2. **Migration Considerations**
+   - Database schema changes
+   - Data migration scripts
+   - Configuration updates
+   - User training materials
+
+### Phase 4: Testing and Validation
+
+1. **Comprehensive Testing**
+   \`\`\`bash
+   # Test new feature functionality
+   @stanleykao72/claude-code-spec-workflow-odoo odoo-module-test {module-name} all --coverage
+   \`\`\`
+
+2. **Integration Testing**
+   - Test with dependent modules
+   - Verify existing functionality unaffected
+   - Check performance impact
+
+## Feature Categories
+
+### Core ERP Features
+- New business objects and workflows
+- Enhanced reporting capabilities
+- Advanced search and filtering
+
+### Integration Features
+- Third-party system connections
+- API enhancements
+- Data synchronization
+
+### User Experience Features
+- Dashboard improvements
+- Mobile interface enhancements
+- Automation features
+
+### Compliance Features
+- Regulatory compliance updates
+- Audit trail enhancements
+- Data privacy features
+
+## Example Usage
+\`\`\`
+/odoo-feature FEAT-001 inventory_management high
+\`\`\`
+
+## Implementation Output
+After feature implementation:
+1. **Updated module specification**
+2. **Implementation tasks completed**
+3. **Test results and coverage**
+4. **Documentation updates**
+5. **Migration scripts (if needed)**
 `;
 }

@@ -28,6 +28,9 @@
     "dev:dashboard:tauri": "CLAUDE_SPEC_DEBUG=true ts-node src/dashboard/cli.ts --port 8247",
     "test": "jest",
     "test:patterns": "jest tests/pattern-consistency.test.ts",
+    "test:odoo": "jest tests/odoo --verbose",
+    "test:integration": "jest tests/integration --verbose",
+    "validate:odoo": "ts-node scripts/validate-odoo-modules.ts",
     "lint": "eslint src --ext .ts --fix",
     "format": "prettier --write src"
   },
@@ -80,6 +83,7 @@
     "open": "^8.4.2",
     "ora": "^5.4.1",
     "simple-git": "^3.28.0",
+    "xml2js": "^0.6.2",
     "yaml": "^2.3.4"
   },
   "devDependencies": {
@@ -88,6 +92,7 @@
     "@types/jest": "^29.5.14",
     "@types/node": "^22.10.1",
     "@types/ws": "^8.5.13",
+    "@types/xml2js": "^0.4.14",
     "@typescript-eslint/eslint-plugin": "^8.18.0",
     "@typescript-eslint/parser": "^8.18.0",
     "concurrently": "^9.2.0",

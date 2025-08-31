@@ -133,17 +133,36 @@ export class ProjectDiscovery {
           debug(`Checking phenix-related path: ${fullPath} (depth: ${depth})`);
         }
 
-        // Check if this directory has a .claude folder
+        // Check if this directory has a .claude folder or .spec folder (Odoo style)
         const claudePath = join(fullPath, '.claude');
+        const specPath = join(fullPath, '.spec');
+        
+        let foundProject = false;
+        
         try {
           const claudeStat = await fs.stat(claudePath);
           if (claudeStat.isDirectory()) {
             const project = await this.analyzeProject(fullPath, claudePath, activeSessions);
             projects.push(project);
             debug(`Found project with .claude dir: ${fullPath}`);
+            foundProject = true;
           }
         } catch {
-          // No .claude directory
+          // No .claude directory, check for .spec
+        }
+        
+        // Check for Odoo-style .spec directory if .claude wasn't found
+        if (!foundProject) {
+          try {
+            const specStat = await fs.stat(specPath);
+            if (specStat.isDirectory()) {
+              const project = await this.analyzeOdooProject(fullPath, specPath, activeSessions);
+              projects.push(project);
+              debug(`Found Odoo project with .spec dir: ${fullPath}`);
+            }
+          } catch {
+            // No .spec directory either
+          }
         }
 
         // Always check subdirectories if we haven't reached max depth
@@ -262,6 +281,106 @@ export class ProjectDiscovery {
     };
     
     debug(`Returning project ${name} with result:`, {
+      path: projectPath,
+      specCount,
+      bugCount,
+      hasGitInfo: !!(result.gitBranch || result.gitCommit),
+      gitBranch: result.gitBranch,
+      gitCommit: result.gitCommit
+    });
+    
+    return result;
+  }
+
+  private async analyzeOdooProject(
+    projectPath: string,
+    specPath: string,
+    activeSessions: string[]
+  ): Promise<DiscoveredProject> {
+    debug(`Analyzing Odoo project: ${projectPath}`);
+    // Just use the last segment of the path as the name
+    const name = projectPath.split('/').pop() || 'Unknown';
+
+    // Check if any active Claude session is in this project directory
+    const hasActiveSession = activeSessions.some((session) => {
+      // Normalize paths for comparison
+      const normalizedSession = session.replace(/\/$/, '');
+      const normalizedProject = projectPath.replace(/\/$/, '');
+      
+      // Only match if the session is exactly this project, not a subdirectory
+      const isMatch = normalizedSession === normalizedProject;
+      if (isMatch) {
+        debug(`Found active session match: ${session} matches ${projectPath}`);
+      }
+      return isMatch;
+    });
+
+    // Get git info
+    const gitInfo = await this.getGitInfo(projectPath);
+
+    // Get last activity by checking file modification times in .spec/ directory
+    let lastActivity: Date | undefined;
+    let specCount = 0;
+    const bugCount = 0; // Odoo projects use .spec/ instead of .claude/bugs
+    
+    try {
+      // In Odoo projects, specs are directly in .spec/ directory
+      const specDirs = await fs.readdir(specPath);
+
+      let mostRecent = 0;
+      for (const specDir of specDirs) {
+        if (specDir.startsWith('.')) continue;
+        const fullSpecPath = join(specPath, specDir);
+        const stat = await fs.stat(fullSpecPath);
+        
+        // Check if this is a directory (spec folder) or file
+        if (stat.isDirectory() || specDir.endsWith('.md')) {
+          if (stat.mtime.getTime() > mostRecent) {
+            mostRecent = stat.mtime.getTime();
+          }
+        }
+      }
+
+      if (mostRecent > 0) {
+        lastActivity = new Date(mostRecent);
+      }
+      
+      // Count spec directories and markdown files
+      let validSpecs = 0;
+      for (const d of specDirs) {
+        if (d.startsWith('.')) continue;
+        
+        if (d.endsWith('.md')) {
+          validSpecs++;
+        } else {
+          try {
+            const stat = await fs.stat(join(specPath, d));
+            if (stat.isDirectory()) {
+              validSpecs++;
+            }
+          } catch {
+            // Ignore errors
+          }
+        }
+      }
+      specCount = validSpecs;
+      debug(`Found ${specCount} specs in Odoo project ${projectPath}`);
+    } catch (error) {
+      debug(`Could not read .spec directory for ${projectPath}: ${error}`);
+      specCount = 0;
+    }
+
+    const result = {
+      path: projectPath,
+      name,
+      hasActiveSession,
+      lastActivity,
+      specCount,
+      bugCount,
+      ...gitInfo,
+    };
+    
+    debug(`Returning Odoo project ${name} with result:`, {
       path: projectPath,
       specCount,
       bugCount,

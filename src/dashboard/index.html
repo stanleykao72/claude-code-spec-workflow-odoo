@@ -774,6 +774,15 @@
                 <span :class="project.level > 0 ? 'text-sm' : ''">
                   {{ project.name }}
                 </span>
+                
+                <!-- Odoo project indicator -->
+                <span
+                  v-if="project.isOdooProject"
+                  class="text-xs px-1.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 ml-1"
+                  title="Odoo ERP Project"
+                >
+                  Odoo
+                </span>
               </button>
               
               <!-- Counts badge - clickable for bugs -->

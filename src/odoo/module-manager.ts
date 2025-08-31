@@ -298,7 +298,9 @@ export class OdooModuleManager {
       specPath: path.join(module.path, '.spec'),
       version: newVersion,
       odooVersion: this.config.project.odooVersion,
-      lastUpdated: new Date().toISOString()
+      lastUpdated: new Date().toISOString(),
+      status: 'development',
+      dependencies: []
     };
     
     await this.saveConfig();
