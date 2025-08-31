@@ -36,11 +36,36 @@ claude-code-spec-workflow
 ```bash
 npx @stanleykao72/claude-code-spec-workflow-odoo odoo-setup
 ```
+
 **That's it, you are ready to go!**
+
+### 🎯 For Odoo ERP Development
+
+If you're working on Odoo projects, you get additional powerful features:
+
+- **📊 Version Detection** - Automatic detection of Odoo 14.0-18.0 installations
+- **🏗️ Module Management** - Create, validate, and manage custom modules  
+- **🔄 Environment Support** - Local, Docker, remote, and Odoo.sh environments
+- **🧪 Testing Integration** - pytest-odoo framework with coverage reporting
+- **🔗 Model Analysis** - Inheritance chain analysis and validation
+- **⚙️ Command Lifecycle** - Automatic cleanup and archiving of expired commands
+
+**Next steps for Odoo development:**
+```bash
+# Detect your Odoo version
+npx @stanleykao72/claude-code-spec-workflow-odoo odoo-detect
+
+# Generate steering documents for your Odoo project
+claude  # Then use: /odoo-steering
+
+# Start creating Odoo-specific specifications
+claude  # Then use: /odoo-spec-create module-name "Module description"
+```
 ---
 
-## ✨ What You Get
+## ✨ What You Get - Core Features + Odoo ERP Integration
 
+### 🚀 Core Workflow Features
 - **📁 Complete .claude/ structure** - All files and directories
 - **📝 10 slash commands** - 5 spec workflow + 5 bug fix workflow
 - **🎯 Intelligent task execution** - Automated implementation
@@ -50,6 +75,15 @@ npx @stanleykao72/claude-code-spec-workflow-odoo odoo-setup
 - **📋 Document templates** - Professional spec documents
 - **⚙️ Project steering** - Persistent context and standards
 - **⚡ Smart optimization** - Intelligent context sharing and caching
+
+### 🎯 Odoo ERP Exclusive Features
+- **📊 Multi-version support** - Odoo 14.0 through 18.0 compatibility
+- **🏗️ Advanced module management** - Create, validate, scaffold custom modules
+- **🔄 Multi-environment deployment** - Local, Docker, remote, and Odoo.sh
+- **🧪 pytest-odoo integration** - Comprehensive testing with coverage
+- **🔗 Model inheritance analysis** - Deep ORM relationship mapping
+- **⚙️ Smart command lifecycle** - Automatic cleanup and archiving
+- **📋 Odoo-specific templates** - ERP-focused document generation
 
 ---
 

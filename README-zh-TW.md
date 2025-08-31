@@ -36,12 +36,37 @@ claude-code-spec-workflow
 ```bash
 npx @stanleykao72/claude-code-spec-workflow-odoo odoo-setup
 ```
+
 **就這樣，您已經準備好了！**
+
+### 🎯 Odoo ERP 開發專用功能
+
+如果您在開發 Odoo 專案，您將獲得額外的強大功能：
+
+- **📊 版本檢測** - 自動檢測 Odoo 14.0-18.0 安裝版本
+- **🏗️ 模組管理** - 建立、驗證和管理客製化模組
+- **🔄 環境支援** - 支援本地、Docker、遠程和 Odoo.sh 環境
+- **🧪 測試整合** - pytest-odoo 框架與覆蓋率報告
+- **🔗 模型分析** - 繼承鏈分析和驗證
+- **⚙️ 命令生命週期** - 自動清理和歸檔過期命令
+
+**Odoo 開發下一步：**
+```bash
+# 檢測您的 Odoo 版本
+npx @stanleykao72/claude-code-spec-workflow-odoo odoo-detect
+
+# 為您的 Odoo 專案生成指導文件
+claude  # 然後使用: /odoo-steering
+
+# 開始建立 Odoo 專用規格
+claude  # 然後使用: /odoo-spec-create module-name "模組描述"
+```
 
 ---
 
-## ✨ 您將獲得什麼
+## ✨ 您將獲得什麼 - 核心功能 + Odoo ERP 整合
 
+### 🚀 核心工作流程功能
 - **📁 完整 .claude/ 結構** - 所有檔案和目錄
 - **📝 10 個斜線命令** - 5 個規格工作流程 + 5 個錯誤修復工作流程
 - **🎯 智能任務執行** - 自動化實作
@@ -51,6 +76,15 @@ npx @stanleykao72/claude-code-spec-workflow-odoo odoo-setup
 - **📋 文件範本** - 專業規格文件
 - **⚙️ 專案指導** - 持久性內容和標準
 - **⚡ 智能優化** - 智能內容共享和快取
+
+### 🎯 Odoo ERP 專屬功能
+- **📊 多版本支援** - 相容 Odoo 14.0 至 18.0 版本
+- **🏗️ 進階模組管理** - 建立、驗證、腳手架客製化模組
+- **🔄 多環境部署** - 本地、Docker、遠程和 Odoo.sh
+- **🧪 pytest-odoo 整合** - 全面測試與覆蓋率報告
+- **🔗 模型繼承分析** - 深度 ORM 關係對映
+- **⚙️ 智能命令生命週期** - 自動清理和歸檔
+- **📋 Odoo 專用範本** - ERP 專屬文件生成
 
 ---
 

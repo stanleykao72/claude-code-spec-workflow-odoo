@@ -1,6 +1,6 @@
 {
   "name": "@stanleykao72/claude-code-spec-workflow-odoo",
-  "version": "1.5.8",
+  "version": "1.6.1",
   "description": "Odoo ERP customization development workflow with Claude Code. Enhanced spec-driven development with Odoo-specific templates, version management, and command lifecycle management for streamlined ERP development.",
   "main": "dist/index.js",
   "bin": {
