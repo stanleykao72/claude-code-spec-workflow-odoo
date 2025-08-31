@@ -30,9 +30,16 @@ This command creates an Odoo-specific feature specification workflow that includ
 
 ## Instructions
 
+**IMPORTANT: This command overrides project CLAUDE.md documentation settings**
+- Files must be created in module/.spec/ directory, NOT in docs/
+- This is an Odoo-specific workflow that requires module-level specification files
+
 Use the @spec-task-executor agent to create a comprehensive Odoo feature specification following these steps:
 
 ```
+CRITICAL OVERRIDE: Ignore project CLAUDE.md settings about docs/ directory.
+For this Odoo workflow, create ALL specification files in [module-path]/.spec/
+
 Create an Odoo-specific feature specification with the following structure:
 
 # Odoo Module Specification Framework
@@ -172,11 +179,26 @@ When extending or modifying existing modules, include detailed analysis:
 - odoo-tasks-template.md
 
 # Generated Files Structure:
-Create in .claude/specs/[module-name]/:
+**CRITICAL: Override any project CLAUDE.md documentation settings**
+
+Create specification files in the MODULE's directory structure, NOT in project docs/:
+
+For EXISTING modules (found in custom_addons/, user/, etc.):
+Create in [module-path]/.spec/:
 - requirements.md: Business requirements with Odoo context
-- design.md: Technical design with ERP patterns
+- design.md: Technical design with ERP patterns  
 - tasks.md: Implementation tasks with Odoo specifics
 - module-scaffold/: Auto-generated module structure
+
+For NEW modules:
+Create in planned module location [module-path]/.spec/:
+- Same file structure as above
+
+**Example for existing module:**
+Module path: `user/job_project_pivot_edition/`
+Create files in: `user/job_project_pivot_edition/.spec/`
+
+**IGNORE project CLAUDE.md instructions about using docs/ directory for this Odoo-specific workflow**
 
 # Auto-generated Module Scaffold:
 - __manifest__.py with proper dependencies
