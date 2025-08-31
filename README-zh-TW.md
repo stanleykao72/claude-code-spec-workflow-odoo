@@ -30,10 +30,16 @@ npm i -g @stanleykao72/claude-code-spec-workflow-odoo
 ```
 2. 在專案目錄中執行設置命令
 ```bash
-claude-code-spec-workflow
+# 安裝具有 Odoo 整合的 Claude Code 工作流程
+claude-code-spec-workflow-odoo setup
+# 或使用 npx
+npx @stanleykao72/claude-code-spec-workflow-odoo setup
 ```
-3. 對於 Odoo 專案，執行專用設置
+
+3. 對於 Odoo 專案，也執行專用的 Odoo 環境設置
 ```bash
+claude-code-spec-workflow-odoo odoo-setup
+# 或使用 npx
 npx @stanleykao72/claude-code-spec-workflow-odoo odoo-setup
 ```
 

@@ -185,7 +185,13 @@ export class SpecWorkflowSetup {
       'bug-analyze',
       'bug-fix',
       'bug-verify',
-      'bug-status'
+      'bug-status',
+      // Odoo-specific commands
+      'odoo-spec-create',
+      'odoo-bug-fix',
+      'odoo-feature-create',
+      'odoo-module-test',
+      'odoo-steering'
     ];
 
     for (const commandName of commandNames) {

@@ -30,10 +30,16 @@ npm i -g @stanleykao72/claude-code-spec-workflow-odoo
 ```
 2. Run the setup command in your project directory
 ```bash
-claude-code-spec-workflow
+# Install the Claude Code workflow with Odoo integration
+claude-code-spec-workflow-odoo setup
+# or using npx
+npx @stanleykao72/claude-code-spec-workflow-odoo setup
 ```
-3. For Odoo projects, run the specialized setup
+
+3. For Odoo projects, also run the specialized Odoo environment setup
 ```bash
+claude-code-spec-workflow-odoo odoo-setup
+# or using npx
 npx @stanleykao72/claude-code-spec-workflow-odoo odoo-setup
 ```
 

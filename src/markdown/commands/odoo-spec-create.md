@@ -38,6 +38,41 @@ Create an Odoo-specific feature specification with the following structure:
 # Odoo Module Specification Framework
 
 ## 1. Module Context Analysis
+
+### For Existing Modules (Comprehensive Odoo Module Analysis):
+If the specified module already exists in custom_addons/, perform detailed Odoo module analysis:
+
+#### A. Module Structure Analysis
+- **__manifest__.py Analysis**: Module metadata, dependencies, data files
+- **Directory Structure**: Models, views, controllers, security, data files
+- **File Organization**: Naming conventions and Odoo structure compliance
+
+#### B. Database Schema Analysis  
+- **Model Discovery**: Scan all Python model files and inheritance chains
+- **Field Mapping**: Document fields, types, constraints, relationships
+- **Inheritance Analysis**: _inherit vs _inherits patterns and dependencies
+- **Computed Fields**: @api.depends methods and business logic
+- **Database Constraints**: SQL and Python validation rules
+
+#### C. User Interface Analysis
+- **View Structure**: Form, tree, kanban, search views analysis
+- **Menu Hierarchy**: Navigation structure and action definitions
+- **Wizard Workflows**: Transient model processes
+- **Report Templates**: QWeb reports and PDF generation
+
+#### D. Security Framework Analysis
+- **Access Rights**: ir.model.access.csv permissions matrix
+- **Record Rules**: Domain-based data filtering rules  
+- **User Groups**: Permission inheritance and field-level security
+- **Menu Access**: Visibility and action restrictions
+
+#### E. Business Logic Analysis
+- **Method Implementations**: CRUD overrides and custom business logic
+- **Workflow States**: State transitions and approval processes
+- **API Integration**: Controller endpoints and external API calls
+- **Background Jobs**: Scheduled actions and automated processes
+
+### For New Modules:
 - **Existing Module Scan**: Analyze current custom_addons/ structure
 - **Dependency Analysis**: Identify required core Odoo modules
 - **Version Compatibility**: Ensure compatibility with target Odoo version (14.0-18.0)
@@ -67,6 +102,42 @@ Create an Odoo-specific feature specification with the following structure:
   - Record rules for data filtering
   - Groups and categories
   - API access permissions
+
+### Odoo Code Reuse Analysis (For Existing Modules)
+When extending or modifying existing modules, include detailed analysis:
+
+#### Existing Odoo Models to Leverage
+- **[Model Name] (model.technical.name)**:
+  - Fields to reuse: [field_name: field_type, relationships]
+  - Methods to extend: [method_name: functionality description]
+  - Inheritance strategy: _inherit vs _inherits approach
+  - Constraints to consider: [validation rules, SQL constraints]
+
+#### Existing Views to Extend
+- **[View Type] ([view_name])**:
+  - XPath modifications: [specific element locations to modify]
+  - Fields to add/hide: [field addition/removal strategy]  
+  - Action buttons: [workflow button integrations]
+  - Menu integration: [parent menu placement]
+
+#### Security Rules Integration
+- **Access Rights**: Existing ir.model.access groups to extend
+- **Record Rules**: Domain filters to modify or inherit from
+- **Field Security**: Group-based visibility patterns to follow
+- **User Groups**: Inheritance chain for permission structure
+
+#### Workflow Integration Points  
+- **State Management**: Existing selection fields and state transitions
+- **Approval Processes**: Integration with current approval workflows
+- **Notification Systems**: Mail templates and automated messaging
+- **Scheduled Actions**: Background job integration and timing
+- **Reporting Integration**: Existing report structures to extend
+
+#### Database Integration Strategy
+- **Foreign Key Relationships**: Connections to existing model structures
+- **Data Migration**: Strategy for updating existing records
+- **Index Optimization**: Performance considerations with current schema
+- **Constraint Compatibility**: Ensuring new rules don't conflict
 
 ## 4. Data Integration
 - **Migration Scripts**: Data import/export requirements
