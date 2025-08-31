@@ -61,6 +61,10 @@ export class OdooVersionDetector {
    */
   async detectInstalledVersion(): Promise<string | null> {
     const commands = [
+      // 檢查本地專案的 Odoo 安裝
+      './odoo/odoo-bin --version',
+      'python3 ./odoo/odoo-bin --version',
+      // 檢查全域安裝的 Odoo
       'odoo-bin --version',
       'odoo --version',
       'python3 -m odoo --version',
@@ -73,7 +77,9 @@ export class OdooVersionDetector {
         const version = this.parseVersionFromOutput(stdout);
         
         if (version) {
-          console.log(chalk.green(`✓ 偵測到 Odoo ${version}`));
+          const isLocal = command.includes('./odoo/');
+          const location = isLocal ? '（本地專案）' : '（全域安裝）';
+          console.log(chalk.green(`✓ 偵測到 Odoo ${version} ${location}`));
           this.displayVersionInfo(version);
           return version;
         }
