@@ -89,7 +89,23 @@ claude  # Then use: /odoo-spec-create module-name "Module description"
 - **🧪 pytest-odoo integration** - Comprehensive testing with coverage
 - **🔗 Model inheritance analysis** - Deep ORM relationship mapping
 - **⚙️ Smart command lifecycle** - Automatic cleanup and archiving
-- **📋 Odoo-specific templates** - ERP-focused document generation
+- **📋 Odoo-specific templates** - ERP-focused document generation with auto-copy to `.odoo-dev/templates/`
+
+#### 🎯 Odoo Template Auto-Copy Feature (v1.6.11+)
+
+After running `odoo-setup`, the system automatically copies 5 Odoo-specific templates to `.odoo-dev/templates/` directory:
+
+- **`odoo-requirements-template.md`** - Odoo requirements document template
+- **`odoo-design-template.md`** - Odoo design document template  
+- **`odoo-tasks-template.md`** - Odoo tasks document template
+- **`odoo-product-template.md`** - Odoo product document template
+- **`odoo-cleanup-policy.yaml`** - Odoo cleanup policy configuration
+
+**Commands correctly reference templates:**
+- `/odoo-spec-create` - Uses templates from `.odoo-dev/templates/`
+- `/odoo-feature-create` - Uses templates from `.odoo-dev/templates/`
+- `/odoo-steering` - Uses templates from `.odoo-dev/templates/`
+- `get-template-context odoo` - Lists all Odoo templates from correct directory
 
 ---
 
@@ -325,15 +341,31 @@ Run `/spec-steering-setup` to create these documents. Claude will analyze your p
 
 ## 🏗️ Project Structure After Setup
 
+### General Claude Code Projects
 ```
 your-project/
 ├── .claude/
 │   ├── commands/           # 14 slash commands + auto-generated
 │   ├── steering/          # product.md, tech.md, structure.md
-│   ├── templates/         # Document templates
+│   ├── templates/         # General document templates
 │   ├── specs/            # Generated specifications
 │   ├── bugs/             # Bug fix workflows
 │   └── agents/           # AI agents (enabled by default)
+```
+
+### Odoo ERP Projects (Additional Structure)
+```
+your-odoo-project/
+├── .claude/              # General Claude Code structure (same as above)
+└── .odoo-dev/           # Odoo-specific structure
+    ├── templates/       # 🆕 Odoo-specific templates (v1.6.11+ auto-copied)
+    │   ├── odoo-requirements-template.md
+    │   ├── odoo-design-template.md
+    │   ├── odoo-tasks-template.md
+    │   ├── odoo-product-template.md
+    │   └── odoo-cleanup-policy.yaml
+    ├── steering/        # Odoo guidance documents
+    └── config.json      # Odoo configuration file
 ```
 
 ## 🧪 Testing
@@ -743,6 +775,7 @@ claude-code-spec-workflow get-template-context
 claude-code-spec-workflow get-template-context spec    # Spec templates
 claude-code-spec-workflow get-template-context bug     # Bug templates
 claude-code-spec-workflow get-template-context steering # Steering templates
+claude-code-spec-workflow get-template-context odoo    # Odoo templates (from .odoo-dev/templates/)
 ```
 **Output**: Formatted markdown with requested templates
 

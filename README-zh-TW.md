@@ -90,7 +90,23 @@ claude  # 然後使用: /odoo-spec-create module-name "模組描述"
 - **🧪 pytest-odoo 整合** - 全面測試與覆蓋率報告
 - **🔗 模型繼承分析** - 深度 ORM 關係對映
 - **⚙️ 智能命令生命週期** - 自動清理和歸檔
-- **📋 Odoo 專用範本** - ERP 專屬文件生成
+- **📋 Odoo 專用範本** - ERP 專屬文件生成，自動複製至 `.odoo-dev/templates/`
+
+#### 🎯 Odoo 範本自動複製功能 (v1.6.11+)
+
+執行 `odoo-setup` 後，系統會自動複製 5 個 Odoo 專用範本到 `.odoo-dev/templates/` 目錄：
+
+- **`odoo-requirements-template.md`** - Odoo 需求文件範本
+- **`odoo-design-template.md`** - Odoo 設計文件範本  
+- **`odoo-tasks-template.md`** - Odoo 任務文件範本
+- **`odoo-product-template.md`** - Odoo 產品文件範本
+- **`odoo-cleanup-policy.yaml`** - Odoo 清理政策設定
+
+**相關命令正確引用範本：**
+- `/odoo-spec-create` - 使用 `.odoo-dev/templates/` 中的範本
+- `/odoo-feature-create` - 使用 `.odoo-dev/templates/` 中的範本
+- `/odoo-steering` - 使用 `.odoo-dev/templates/` 中的範本
+- `get-template-context odoo` - 列出所有來自正確目錄的 Odoo 範本
 
 ---
 
