@@ -1,5 +1,8 @@
 # Claude Code 規格工作流程 - Odoo ERP 版本
 
+**Language / 語言:**
+[🇺🇸 English](README.md) | 🇹🇼 繁體中文
+
 > **🎉 ODOO ERP 客製化版本：** 這是原始 Claude Code Spec Workflow 的增強版本，專門針對 Odoo ERP 客製化開發進行調整。包含所有原始功能，並新增全面的 Odoo 專用工具和工作流程。
 > 
 > **📚 [原始專案由 Pimzino 開發 →](https://github.com/Pimzino/claude-code-spec-workflow)**

@@ -1,5 +1,8 @@
 # Claude Code Spec Workflow - Odoo ERP Edition
 
+**Language / 語言:**
+🇺🇸 English | [🇹🇼 繁體中文](README-zh-TW.md)
+
 > **🎉 ODOO ERP CUSTOMIZATION VERSION:** This is an enhanced version of the original Claude Code Spec Workflow, specifically adapted for Odoo ERP customization development. It includes all original features plus comprehensive Odoo-specific tools and workflows.
 > 
 > **📚 [Original Project by Pimzino →](https://github.com/Pimzino/claude-code-spec-workflow)**
