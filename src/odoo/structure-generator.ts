@@ -269,6 +269,9 @@ export class OdooStructureGenerator {
 
     // 創建清理策略檔案
     await this.createCleanupPolicy();
+    
+    // 複製 Odoo 模板文件
+    await this.copyOdooTemplates();
   }
 
   /**
@@ -350,6 +353,45 @@ cleanup_policies:
 `;
 
     await fs.writeFile('.odoo-dev/cleanup-policy.yaml', policyContent, 'utf-8');
+  }
+
+  /**
+   * 複製 Odoo 模板文件到 .odoo-dev/templates
+   */
+  private async copyOdooTemplates(): Promise<void> {
+    const sourceTemplatesDir = path.join(__dirname, '..', 'markdown', 'templates');
+    const destTemplatesDir = '.odoo-dev/templates';
+    
+    // 確保目標目錄存在
+    await this.ensureDirectory(destTemplatesDir);
+    
+    const odooTemplateFiles = [
+      'odoo-requirements-template.md',
+      'odoo-design-template.md',
+      'odoo-tasks-template.md',
+      'odoo-product-template.md',
+      'odoo-cleanup-policy.yaml'
+    ];
+
+    for (const templateFile of odooTemplateFiles) {
+      const sourceFile = path.join(sourceTemplatesDir, templateFile);
+      const destFile = path.join(destTemplatesDir, templateFile);
+
+      try {
+        // 刪除現有文件以確保乾淨的替換
+        try {
+          await fs.unlink(destFile);
+        } catch {
+          // 文件可能不存在，這是正常的
+        }
+
+        const templateContent = await fs.readFile(sourceFile, 'utf-8');
+        await fs.writeFile(destFile, templateContent, 'utf-8');
+      } catch (error) {
+        console.error(`Failed to copy Odoo template ${templateFile}:`, error);
+        throw error;
+      }
+    }
   }
 
   /**

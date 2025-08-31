@@ -1214,7 +1214,7 @@ Before starting, load complete Odoo project context:
 
 \`\`\`bash
 # Load Odoo requirements template
-@stanleykao72/claude-code-spec-workflow-odoo get-content ".claude/templates/odoo-requirements-template.md"
+@stanleykao72/claude-code-spec-workflow-odoo get-content ".odoo-dev/templates/odoo-requirements-template.md"
 \`\`\`
 
 **Template Sections to Include**:
@@ -1229,7 +1229,7 @@ Before starting, load complete Odoo project context:
 
 \`\`\`bash
 # Load Odoo design template  
-@stanleykao72/claude-code-spec-workflow-odoo get-content ".claude/templates/odoo-design-template.md"
+@stanleykao72/claude-code-spec-workflow-odoo get-content ".odoo-dev/templates/odoo-design-template.md"
 \`\`\`
 
 **Template Sections to Include**:

@@ -11,9 +11,13 @@ export async function getTemplateContext(templateType?: string, projectPath?: st
 
     // Path to templates directory
     const templatesDir = path.join(workingDir, '.claude', 'templates');
+    const odooTemplatesDir = path.join(workingDir, '.odoo-dev', 'templates');
 
     // Check if templates directory exists
-    if (!cachedFileExists(templatesDir)) {
+    const hasClaudeTemplates = cachedFileExists(templatesDir);
+    const hasOdooTemplates = cachedFileExists(odooTemplatesDir);
+    
+    if (!hasClaudeTemplates && !hasOdooTemplates) {
       console.log('## Template Context\n\nNo templates directory found.');
       return;
     }
@@ -61,7 +65,10 @@ export async function getTemplateContext(templateType?: string, projectPath?: st
     let hasContent = false;
 
     for (const template of templatesToLoad) {
-      const filePath = path.join(templatesDir, template.name);
+      // Determine the correct templates directory based on template name
+      const isOdooTemplate = template.name.startsWith('odoo-');
+      const targetTemplatesDir = isOdooTemplate ? odooTemplatesDir : templatesDir;
+      const filePath = path.join(targetTemplatesDir, template.name);
 
       if (cachedFileExists(filePath)) {
         const content = getCachedFileContent(filePath);
