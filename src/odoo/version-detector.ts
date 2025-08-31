@@ -1,5 +1,7 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { readFileSync, existsSync } from 'fs';
+import { join } from 'path';
 import chalk from 'chalk';
 import { VersionRecommendations } from './types';
 
@@ -57,6 +59,39 @@ export const ODOO_VERSIONS = {
 export class OdooVersionDetector {
   
   /**
+   * 從檔案系統偵測 Odoo 版本（當命令執行失敗時使用）
+   */
+  private detectVersionFromFiles(): string | null {
+    const possiblePaths = [
+      'odoo/odoo/release.py',
+      './odoo/odoo/release.py',
+      'odoo/release.py',
+      './odoo/release.py',
+      '../odoo/odoo/release.py'
+    ];
+
+    for (const path of possiblePaths) {
+      try {
+        if (existsSync(path)) {
+          const content = readFileSync(path, 'utf-8');
+          const versionMatch = content.match(/version_info\s*=\s*\(\s*(\d+),\s*(\d+)/);
+          if (versionMatch) {
+            const version = `${versionMatch[1]}.${versionMatch[2]}`;
+            console.log(chalk.green(`✓ 從檔案偵測到 Odoo ${version} （檔案系統）`));
+            console.log(chalk.gray(`  檔案位置: ${path}`));
+            return version;
+          }
+        }
+      } catch (error) {
+        // 繼續嘗試下一個路徑
+        continue;
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * 偵測系統中安裝的 Odoo 版本
    */
   async detectInstalledVersion(): Promise<string | null> {
@@ -91,6 +126,15 @@ export class OdooVersionDetector {
         // 繼續嘗試下一個命令
         continue;
       }
+    }
+
+    // 如果命令執行都失敗，嘗試從檔案系統偵測
+    console.log(chalk.yellow('⚠️ 命令偵測失敗，嘗試從檔案系統偵測...'));
+    const fileVersion = this.detectVersionFromFiles();
+    
+    if (fileVersion) {
+      this.displayVersionInfo(fileVersion);
+      return fileVersion;
     }
 
     console.log(chalk.yellow('⚠️ 無法自動偵測 Odoo 版本，請手動選擇'));
