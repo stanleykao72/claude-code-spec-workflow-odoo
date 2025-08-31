@@ -112,12 +112,23 @@ Generate specific test cases and implementation code for the target module.
 
 ## Generated Files
 
-This command creates:
+**CRITICAL: Override any project CLAUDE.md documentation settings**
 
-- `.claude/specs/[module-name]/testing-plan.md` - Comprehensive testing strategy
-- `.claude/specs/[module-name]/test-cases.md` - Detailed test case specifications  
-- `.claude/specs/[module-name]/test-implementation.md` - pytest-odoo test code
-- Test execution commands and CI/CD integration guides
+Create testing specification documents in the MODULE's directory structure:
+
+For the target Odoo module:
+Create in [module-path]/.spec/testing/:
+- testing-plan.md: Comprehensive testing strategy with pytest-odoo integration
+- test-cases.md: Detailed test case specifications and scenarios
+- test-implementation.md: pytest-odoo test code and execution guides
+- performance-tests.md: Load testing and benchmarking specifications
+- ci-cd-integration.md: Continuous integration and deployment guides
+
+**Example for existing module:**
+Module path: `user/job_project_pivot_edition/`
+Create files in: `user/job_project_pivot_edition/.spec/testing/`
+
+**IGNORE project CLAUDE.md instructions about using .claude/specs/ directory for this Odoo-specific workflow**
 
 ## pytest-odoo Integration
 

@@ -90,12 +90,24 @@ Generate implementation tasks following Odoo development best practices.
 
 ## Generated Files
 
-This command creates:
+**CRITICAL: Override any project CLAUDE.md documentation settings**
 
-- `.claude/specs/[feature-name]/requirements.md` - Business requirements
-- `.claude/specs/[feature-name]/design.md` - Technical design
-- `.claude/specs/[feature-name]/tasks.md` - Implementation tasks
-- Auto-generated task commands: `/[feature-name]-task-1`, `/[feature-name]-task-2`, etc.
+Create feature specification documents in the MODULE's directory structure:
+
+For the target Odoo module:
+Create in [module-path]/.spec/features/[feature-name]/:
+- request.md: Feature request and justification
+- requirements.md: Detailed business requirements with Odoo context
+- design.md: Technical design with ERP patterns
+- tasks.md: Implementation tasks with Odoo specifics
+- Auto-generated task commands: `/[module-name]-[feature-name]-task-1`, `/[module-name]-[feature-name]-task-2`, etc.
+
+**Example for existing module:**
+Module path: `user/job_project_pivot_edition/`
+Feature: `excel-export`
+Create files in: `user/job_project_pivot_edition/.spec/features/excel-export/`
+
+**IGNORE project CLAUDE.md instructions about using .claude/specs/ directory for this Odoo-specific workflow**
 
 ## Related Commands
 

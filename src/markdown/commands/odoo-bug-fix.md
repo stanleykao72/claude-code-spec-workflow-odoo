@@ -85,11 +85,22 @@ Create an Odoo-specific bug fix workflow with the following structure:
 - **APIs**: Check external API integrations and webhooks
 
 # Documentation Requirements
-Create the following documents in .claude/bugs/[bug-name]/:
-- bug-analysis.md: Detailed analysis and reproduction steps
-- fix-implementation.md: Technical implementation details
-- testing-plan.md: Comprehensive testing strategy
-- deployment-guide.md: Step-by-step deployment instructions
+**CRITICAL: Override any project CLAUDE.md documentation settings**
+
+Create bug fix documents in the MODULE's directory structure:
+
+For the target Odoo module:
+Create in [module-path]/.spec/bugs/[bug-name]/:
+- report.md: Bug report and initial analysis
+- analysis.md: Detailed root cause analysis and reproduction steps
+- fix.md: Technical implementation details and solution
+- verification.md: Testing strategy and deployment validation
+
+**Example for existing module:**
+Module path: `user/job_project_pivot_edition/`
+Create files in: `user/job_project_pivot_edition/.spec/bugs/BUG-YYYY-MM-DD-001/`
+
+**IGNORE project CLAUDE.md instructions about using .claude/bugs/ directory for this Odoo-specific workflow**
 
 Use Odoo-specific templates and include version compatibility notes.
 ```
