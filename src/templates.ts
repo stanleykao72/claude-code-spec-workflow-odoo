@@ -893,3 +893,451 @@ export function getBugVerificationTemplate(): string {
 [Any additional observations, lessons learned, or follow-up actions needed]
 `;
 }
+
+// Odoo-specific templates
+
+/**
+ * Generates Odoo requirements document template with ERP-specific elements.
+ * Includes business process alignment, module compatibility, and data migration needs.
+ * 
+ * @param options Configuration options for the template
+ * @returns Markdown template string for Odoo requirements documents
+ */
+export function getOdooRequirementsTemplate(options: {
+  moduleName?: string;
+  odooVersion?: string;
+  author?: string;
+  category?: string;
+} = {}): string {
+  const {
+    moduleName = '{{MODULE_NAME}}',
+    odooVersion = '{{ODOO_VERSION}}',
+    author = '{{AUTHOR}}',
+    category = '{{CATEGORY}}'
+  } = options;
+
+  return `# Odoo 模組需求文件 - ${moduleName}
+
+## 模組概況
+
+**模組名稱：** ${moduleName}  
+**Odoo 版本：** ${odooVersion}  
+**模組版本：** 1.0.0  
+**開發者：** ${author}  
+**類別：** ${category}  
+
+## 商業需求對齊
+
+### 商業流程影響
+[說明此模組如何改善或支援現有的商業流程]
+
+### ROI 評估
+- **預期效益：** [量化的商業效益]
+- **實施成本：** [開發和維護成本預估]
+- **回收期：** [預期投資回收時間]
+
+## 功能需求
+
+### 主要功能 1
+
+**使用者故事：** 身為 [角色]，我希望 [功能]，以便 [效益]
+
+#### 驗收條件
+1. 當 [事件] 時，系統應該 [回應]
+2. 如果 [前置條件]，則系統應該 [回應]  
+3. 當 [事件] 且 [條件] 時，系統應該 [回應]
+
+#### Odoo 特定需求
+- **模型需求：** [需要建立或修改的模型]
+- **視圖需求：** [Form/Tree/Kanban 等視圖需求]
+- **權限需求：** [存取控制和安全性需求]
+- **工作流程：** [狀態流轉和核准流程]
+
+## 非功能性需求
+
+### 效能需求
+- **資料量：** 預期處理 [數量] 筆記錄
+- **並發用戶：** 支援 [數量] 位同時使用者
+- **回應時間：** [具體時間要求]
+
+### 安全性需求
+- **資料保護：** [敏感資料保護措施]
+- **存取控制：** [用戶權限分級]
+- **稽核追蹤：** [操作記錄需求]
+
+### 相容性需求
+- **Odoo 版本：** ${odooVersion} 及後續版本
+- **瀏覽器支援：** [支援的瀏覽器版本]
+- **行動裝置：** [行動端支援需求]
+
+## 整合需求
+
+### 與核心模組整合
+- **Sales (sale)：** [整合方式和資料交換]
+- **Purchase (purchase)：** [整合方式和資料交換]
+- **Inventory (stock)：** [整合方式和資料交換]
+- **Accounting (account)：** [整合方式和資料交換]
+
+### 資料模型需求
+\`\`\`python
+# 範例資料模型結構
+class ${moduleName.replace(/_/g, '').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}(models.Model):
+    _name = '${moduleName}.main'
+    _description = '${moduleName} 主記錄'
+    
+    name = fields.Char('名稱', required=True)
+    description = fields.Text('說明')
+    state = fields.Selection([
+        ('draft', '草稿'),
+        ('confirmed', '確認'),
+        ('done', '完成'),
+    ], default='draft')
+\`\`\`
+
+## 驗證和測試需求
+
+### 單元測試
+- **模型測試：** [資料模型驗證]
+- **方法測試：** [商業邏輯驗證]
+- **計算欄位測試：** [計算邏輯驗證]
+
+### 整合測試
+- **模組間測試：** [跨模組功能測試]
+- **工作流程測試：** [完整業務流程測試]
+- **權限測試：** [角色權限驗證]
+
+## 部署和維護需求
+
+### 部署需求
+- **部署環境：** [開發/測試/生產環境需求]
+- **資料庫變更：** [資料庫遷移指令]
+- **相依性：** [依賴的其他模組]
+
+### 維護需求
+- **監控：** [系統監控指標]
+- **備份：** [資料備份策略]
+- **更新：** [模組更新流程]
+
+## 風險評估
+
+### 技術風險
+1. **風險：** [技術風險描述]
+   - **影響：** [風險影響評估]
+   - **緩解措施：** [風險控制方法]
+
+### 商業風險
+1. **風險：** [商業風險描述]
+   - **影響：** [風險影響評估]
+   - **緩解措施：** [風險控制方法]
+
+## 成功指標
+
+### 關鍵績效指標 (KPI)
+- **使用率：** [用戶採用率目標]
+- **效率提升：** [作業效率改善目標]
+- **錯誤率：** [系統錯誤率控制]
+- **滿意度：** [用戶滿意度目標]
+`;
+}
+
+/**
+ * Generates Odoo design document template with ERP architecture patterns.
+ * Includes model relationships, view hierarchies, and Odoo-specific patterns.
+ */
+export function getOdooDesignTemplate(options: {
+  moduleName?: string;
+  odooVersion?: string;
+  pythonVersion?: string;
+} = {}): string {
+  const {
+    moduleName = '{{MODULE_NAME}}',
+    odooVersion = '{{ODOO_VERSION}}',
+    pythonVersion = '{{PYTHON_VERSION}}'
+  } = options;
+
+  return `# Odoo 模組設計文件 - ${moduleName}
+
+## 模組概覽
+
+**模組名稱：** ${moduleName}  
+**技術堆疊：** Python ${pythonVersion} + Odoo ${odooVersion}  
+**資料庫：** PostgreSQL  
+**架構模式：** MVC (Model-View-Controller)
+
+## Steering Documents 對齊
+
+### 技術標準 (technical-stack.md)
+- **Python 版本：** 遵循 ${pythonVersion} 標準
+- **程式碼風格：** 遵循 PEP 8 和 Odoo 編碼規範
+- **資料庫設計：** 遵循 PostgreSQL 最佳實務
+
+### 模組標準 (module-standards.md)
+- **模組結構：** 遵循 Odoo 標準模組架構
+- **檔案命名：** 遵循 Odoo 命名慣例
+- **版本控制：** 遵循語義版本控制
+
+## 系統架構
+
+### 整體架構圖
+\`\`\`mermaid
+graph TB
+    UI[前端介面] --> Controller[控制器層]
+    Controller --> Model[模型層]
+    Model --> DB[(PostgreSQL)]
+    
+    Model --> |繼承| BaseModel[Odoo BaseModel]
+    Controller --> |使用| ORM[Odoo ORM]
+    
+    subgraph "Odoo Framework"
+        BaseModel
+        ORM
+        Security[安全框架]
+        Workflow[工作流引擎]
+    end
+    
+    Model --> Security
+    Controller --> Workflow
+\`\`\`
+
+## 資料模型設計
+
+### 主要模型
+\`\`\`python
+class ${moduleName.replace(/_/g, '').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}(models.Model):
+    _name = '${moduleName}.main'
+    _description = '${moduleName} 主記錄'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _order = 'create_date desc'
+    
+    # 基礎欄位
+    name = fields.Char('名稱', required=True, tracking=True)
+    description = fields.Text('說明')
+    
+    # 狀態管理
+    state = fields.Selection([
+        ('draft', '草稿'),
+        ('confirmed', '確認'),
+        ('done', '完成'),
+        ('cancelled', '取消'),
+    ], default='draft', string='狀態', tracking=True)
+    
+    # 關聯欄位
+    partner_id = fields.Many2one('res.partner', string='合作夥伴')
+    company_id = fields.Many2one('res.company', string='公司', 
+                                default=lambda self: self.env.company)
+    
+    # 計算欄位
+    total_amount = fields.Float('總金額', compute='_compute_total_amount',
+                               store=True)
+\`\`\`
+
+## 商業邏輯設計
+
+### 狀態管理
+\`\`\`python
+def action_confirm(self):
+    \"\"\"確認功能\"\"\"
+    for record in self:
+        if record.state != 'draft':
+            raise UserError('只有草稿狀態可以確認')
+        record.state = 'confirmed'
+
+@api.depends('line_ids.subtotal')
+def _compute_total_amount(self):
+    \"\"\"計算總金額\"\"\"
+    for record in self:
+        record.total_amount = sum(record.line_ids.mapped('subtotal'))
+\`\`\`
+
+## 用戶介面設計
+
+### Form View (表單視圖)
+\`\`\`xml
+<record id="${moduleName}_main_view_form" model="ir.ui.view">
+    <field name="name">${moduleName}.main.view.form</field>
+    <field name="model">${moduleName}.main</field>
+    <field name="arch" type="xml">
+        <form>
+            <header>
+                <button name="action_confirm" type="object" 
+                        string="確認" class="oe_highlight"
+                        attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                <field name="state" widget="statusbar"/>
+            </header>
+            <sheet>
+                <group>
+                    <field name="name"/>
+                    <field name="partner_id"/>
+                    <field name="description"/>
+                </group>
+            </sheet>
+            <div class="oe_chatter">
+                <field name="message_follower_ids"/>
+                <field name="message_ids"/>
+            </div>
+        </form>
+    </field>
+</record>
+\`\`\`
+
+## 測試策略
+
+### 單元測試
+\`\`\`python
+from odoo.tests import TransactionCase
+from odoo.exceptions import UserError
+
+class Test${moduleName.replace(/_/g, '').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}(TransactionCase):
+    
+    def setUp(self):
+        super().setUp()
+        self.main_model = self.env['${moduleName}.main']
+        self.partner = self.env.ref('base.res_partner_1')
+    
+    def test_create_main(self):
+        \"\"\"測試建立主記錄\"\"\"
+        main = self.main_model.create({
+            'name': 'Test Record',
+            'partner_id': self.partner.id,
+        })
+        self.assertEqual(main.state, 'draft')
+        self.assertEqual(main.name, 'Test Record')
+\`\`\`
+
+## 版本升級和相容性
+
+### 版本相容性
+- **${odooVersion}：** 主要支援版本
+- **向後相容：** 支援前一個 LTS 版本
+- **向前相容：** 考慮下一個版本的變更
+`;
+}
+
+/**
+ * Generates Odoo tasks document template with ERP development workflow.
+ * Includes phase-based development with Odoo-specific atomic tasks.
+ */
+export function getOdooTasksTemplate(options: {
+  moduleName?: string;
+  odooVersion?: string;
+} = {}): string {
+  const {
+    moduleName = '{{MODULE_NAME}}',
+    odooVersion = '{{ODOO_VERSION}}'
+  } = options;
+
+  return `# Odoo 模組實施計畫 - ${moduleName}
+
+## 任務概覽
+基於 Odoo ${odooVersion} 框架的模組開發，遵循 MVC 架構和 Odoo 最佳實務。
+
+## Steering Documents 合規性
+- **模組標準：** 遵循 module-standards.md 中的結構規範
+- **技術堆疊：** 符合 technical-stack.md 的技術選擇
+- **商業規則：** 實現 business-rules.md 定義的業務邏輯
+
+## 原子任務需求 (Odoo 特化)
+**每個任務必須符合以下 Odoo 開發最佳實務：**
+- **檔案範圍：** 每次最多修改 1-2 個相關的 Python/XML 檔案
+- **時間限制：** 15-30 分鐘內可完成的 Odoo 開發任務
+- **單一目的：** 一個可測試的 Odoo 功能或元件
+- **明確檔案：** 指定確切的 Python 模型、XML 視圖或配置檔案
+- **Odoo 相容：** 符合 Odoo 編碼標準和框架慣例
+
+## 實施任務
+
+### Phase 1: 模組基礎架構
+
+- [ ] 1. 建立模組基礎結構和 manifest 檔案
+  - 檔案: \`${moduleName}/__manifest__.py\`, \`${moduleName}/__init__.py\`
+  - 建立模組目錄結構 (models/, views/, security/, data/, static/)
+  - 定義模組 manifest 包含名稱、版本、依賴、資料檔案
+  - 設定模組初始化檔案導入所有子模組
+  - 目的: 建立 Odoo 模組的基礎架構
+  - _需求: 1.1_
+
+- [ ] 2. 建立主要資料模型 ${moduleName}_main.py
+  - 檔案: \`${moduleName}/models/${moduleName}_main.py\`
+  - 定義主要模型類別繼承 models.Model 和 mail.thread
+  - 新增基礎欄位 (name, description, state, partner_id, company_id)
+  - 實作狀態管理選項 (draft, confirmed, done, cancelled)
+  - 新增計算欄位 total_amount 和相關的 @api.depends 方法
+  - 目的: 建立模組的核心資料模型
+  - _利用: odoo/models.py, mail/thread.py_
+  - _需求: 2.1, 2.2_
+
+### Phase 2: 用戶介面開發
+
+- [ ] 3. 建立主要表單視圖 (Form View)
+  - 檔案: \`${moduleName}/views/${moduleName}_views.xml\`
+  - 建立 ir.ui.view 記錄定義表單視圖架構
+  - 新增 header 區域包含狀態按鈕和 statusbar
+  - 建立 sheet 包含基本欄位的群組布局
+  - 整合 chatter (message_follower_ids, message_ids) 
+  - 目的: 建立用戶資料輸入和查看的主要介面
+  - _需求: 4.1_
+
+- [ ] 4. 建立列表視圖 (Tree View)
+  - 檔案: \`${moduleName}/views/${moduleName}_views.xml\` (續前一任務)
+  - 新增 ir.ui.view 記錄定義樹狀列表視圖
+  - 顯示關鍵欄位: name, partner_id, total_amount, state, create_date
+  - 設定欄位寬度和對齊方式最佳化
+  - 目的: 提供記錄的總覽列表介面
+  - _需求: 4.2_
+
+### Phase 3: 商業邏輯實作
+
+- [ ] 5. 實作狀態轉換方法
+  - 檔案: \`${moduleName}/models/${moduleName}_main.py\` (續任務 2)
+  - 新增 action_confirm() 方法處理草稿到確認狀態轉換
+  - 新增 action_done() 方法處理確認到完成狀態轉換  
+  - 新增 action_cancel() 方法處理取消邏輯
+  - 加入狀態驗證和錯誤處理 UserError
+  - 目的: 實作模組的核心業務流程控制
+  - _需求: 5.1_
+
+- [ ] 6. 設定模型存取權限
+  - 檔案: \`${moduleName}/security/ir.model.access.csv\`
+  - 為主模型建立存取權限記錄
+  - 設定一般用戶 (group_user) 的讀寫權限
+  - 設定管理員 (group_system) 的完整權限
+  - 目的: 確保資料安全和權限控制
+  - _需求: 3.1_
+
+### Phase 4: 測試和最佳化
+
+- [ ] 7. 建立單元測試
+  - 檔案: \`${moduleName}/tests/__init__.py\`, \`${moduleName}/tests/test_${moduleName}.py\`
+  - 建立 TransactionCase 測試類別
+  - 測試模型建立、狀態轉換、計算欄位功能
+  - 測試資料驗證約束和錯誤處理
+  - 目的: 確保程式碼品質和功能正確性
+  - _利用: odoo.tests.TransactionCase_
+  - _需求: 8.1_
+
+- [ ] 8. 新增示範資料
+  - 檔案: \`${moduleName}/demo/${moduleName}_demo.xml\`
+  - 建立示範的主記錄資料
+  - 包含不同狀態的範例記錄
+  - 關聯到系統預設的合作夥伴
+  - 目的: 提供模組功能展示和測試資料
+  - _需求: 8.2_
+
+## 版本相容性考量
+
+### Odoo ${odooVersion} 特定功能
+- 使用新的 ORM API (@api.model, @api.depends, @api.constrains)
+- 利用改進的 mail.thread 整合功能
+- 採用最新的 QWeb 報表引擎
+- 遵循 ${odooVersion} 的安全框架升級
+
+### 部署檢查清單
+
+#### 生產部署前確認
+- [ ] 所有測試通過
+- [ ] 權限設定正確
+- [ ] 示範資料僅在開發環境載入
+- [ ] 效能指標符合預期
+- [ ] 安全掃描無高風險問題
+`;
+}

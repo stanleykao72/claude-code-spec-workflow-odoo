@@ -79,7 +79,8 @@
     "inquirer": "^8.2.6",
     "open": "^8.4.2",
     "ora": "^5.4.1",
-    "simple-git": "^3.28.0"
+    "simple-git": "^3.28.0",
+    "yaml": "^2.3.4"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.7.1",
@@ -101,7 +102,7 @@
     "rimraf": "^6.0.1",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
-    "typescript": "^5.7.2"
+    "typescript": "^5.8.3"
   },
   "publishConfig": {
     "access": "public"

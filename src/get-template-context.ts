@@ -35,6 +35,12 @@ export async function getTemplateContext(templateType?: string, projectPath?: st
         { name: 'bug-analysis-template.md', title: 'Bug Analysis Template' },
         { name: 'bug-verification-template.md', title: 'Bug Verification Template' }
       ],
+      'odoo': [
+        { name: 'odoo-requirements-template.md', title: 'Odoo Requirements Template' },
+        { name: 'odoo-design-template.md', title: 'Odoo Design Template' },
+        { name: 'odoo-tasks-template.md', title: 'Odoo Tasks Template' },
+        { name: 'odoo-product-template.md', title: 'Odoo Product Template' }
+      ],
       'all': [] as { name: string; title: string; }[] // Will be populated with all templates
     };
 
@@ -42,7 +48,8 @@ export async function getTemplateContext(templateType?: string, projectPath?: st
     templateCategories.all = [
       ...templateCategories.spec,
       ...templateCategories.steering,
-      ...templateCategories.bug
+      ...templateCategories.bug,
+      ...templateCategories.odoo
     ];
 
     // Determine which templates to load
