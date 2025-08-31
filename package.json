@@ -1,7 +1,7 @@
 {
-  "name": "@pimzino/claude-code-spec-workflow",
+  "name": "@stanleykao72/claude-code-spec-workflow-odoo",
   "version": "1.5.8",
-  "description": "Automated workflows for Claude Code. Includes spec-driven development (Requirements → Design → Tasks → Implementation) with intelligent task execution, optional steering documents and streamlined bug fix workflow (Report → Analyze → Fix → Verify). We have a bonus and option real time dashboard to monitor your specs and tasks.",
+  "description": "Odoo ERP customization development workflow with Claude Code. Enhanced spec-driven development with Odoo-specific templates, version management, and command lifecycle management for streamlined ERP development.",
   "main": "dist/index.js",
   "bin": {
     "claude-code-spec-workflow": "dist/cli.js",
@@ -46,16 +46,16 @@
     "bug-tracking",
     "issue-resolution"
   ],
-  "author": "Pimzino",
+  "author": "Stanley Kao",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pimzino/claude-code-spec-workflow.git"
+    "url": "git+https://github.com/stanleykao72/claude-code-spec-workflow-odoo.git"
   },
   "bugs": {
-    "url": "https://github.com/pimzino/claude-code-spec-workflow/issues"
+    "url": "https://github.com/stanleykao72/claude-code-spec-workflow-odoo/issues"
   },
-  "homepage": "https://github.com/pimzino/claude-code-spec-workflow#readme",
+  "homepage": "https://github.com/stanleykao72/claude-code-spec-workflow-odoo#readme",
   "files": [
     "dist",
     "README.md",

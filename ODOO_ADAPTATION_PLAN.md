@@ -167,7 +167,7 @@ your-odoo-project/
 ### 互動式初始化流程
 
 ```bash
-$ npx @pimzino/odoo-code-workflow setup
+$ npx @stanleykao72/claude-code-spec-workflow-odoo odoo-setup
 
 🔧 Odoo 開發環境設定
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -790,11 +790,26 @@ cleanup_policies:
   - 修改 `src/get-template-context.ts` 支援 `odoo` 模板類別
   - 動態模板生成支援
 
-### 🔄 第三階段（版本和命令管理）- 待實施
-- Task 4: 實作版本管理
-- Task 5: 開發命令生命週期
-- Task 11: 版本管理系統程式
-- Task 12: 命令生命週期程式
+### ✅ 第三階段（版本和命令管理）- 已完成
+- ✅ **Task 4: 實作版本管理和迭代系統**
+  - 完成 `src/odoo/version-manager.ts` - 版本升級和遷移管理
+  - 完成 `src/odoo/environment-manager.ts` - 多環境支援系統
+  - 支援版本化管理結構、Bug 追蹤和 Feature 追蹤
+
+- ✅ **Task 5: 開發命令生命週期管理系統**
+  - 完成 `src/odoo/command-lifecycle.ts` - 完整的命令生命週期管理
+  - 創建 `src/markdown/templates/odoo-cleanup-policy.yaml` - YAML 清理策略配置
+  - 建立三層命令分類：permanent、module-specific、temporary
+  - 實現歸檔組織和自動化清理功能
+
+- ✅ **Task 11: 實作版本管理系統程式**
+  - 整合版本管理到核心工作流程
+  - 支援模組版本升級和遷移建議
+
+- ✅ **Task 12: 實作命令生命週期管理程式**
+  - CLI 整合 `odoo-cleanup` 命令
+  - 互動式清理選單和統計報告
+  - 支援 YAML 設定檔和安全清理策略
 
 ### 🔄 第四階段（整合和測試）- 待實施
 - Task 6: 整合 Odoo 工具
@@ -808,9 +823,9 @@ cleanup_policies:
 
 ## 十、實施完成摘要
 
-### 🎉 第一和第二階段完成總結 (2025-08-31)
+### 🎉 第一、二、三階段完成總結 (2025-08-31)
 
-已成功完成 ODOO_ADAPTATION_PLAN.md 第一和第二階段的所有核心任務，為 Claude Code Spec Workflow 建立了完整的 Odoo ERP 客製化開發支援！
+已成功完成 ODOO_ADAPTATION_PLAN.md 第一、二、三階段的所有核心任務，為 Claude Code Spec Workflow 建立了完整的 Odoo ERP 客製化開發支援，包含版本管理和命令生命週期管理系統！
 
 #### ✅ 完成的核心功能
 
@@ -851,6 +866,19 @@ cleanup_policies:
 - 存取權限和選單配置生成
 - 工作流程管理和命令生命週期控制
 
+**7. 版本管理系統**
+- 完整支援 Odoo 14.0-18.0 版本升級
+- 多環境管理（local, Docker, remote, Odoo.sh）
+- 模組相依性分析和升級建議
+- 版本相容性檢查和遷移路徑規劃
+
+**8. 命令生命週期管理**
+- 智能命令分類和元數據追蹤
+- YAML 設定檔案的清理策略
+- 自動化歸檔組織（按年/季/類型）
+- 互動式清理界面和統計報告
+- 三層保留政策（permanent, module-specific, temporary）
+
 #### 📁 已創建的關鍵檔案
 
 **核心類別檔案:**
@@ -860,6 +888,11 @@ cleanup_policies:
 - `src/odoo/project-detector.ts` - 專案和模組偵測
 - `src/odoo/odoo-tools.ts` - Odoo 開發工具集
 - `src/odoo/workflow-manager.ts` - 工作流程管理器
+- `src/odoo/version-manager.ts` - 版本升級和遷移管理
+- `src/odoo/environment-manager.ts` - 多環境支援系統
+- `src/odoo/module-manager.ts` - 模組管理和相依性檢查
+- `src/odoo/command-executor.ts` - 命令執行和歷史追蹤
+- `src/odoo/command-lifecycle.ts` - 命令生命週期管理系統
 - `src/odoo/types.d.ts` - TypeScript 類型定義
 
 **模板檔案:**
@@ -867,11 +900,13 @@ cleanup_policies:
 - `src/markdown/templates/odoo-design-template.md`
 - `src/markdown/templates/odoo-tasks-template.md`
 - `src/markdown/templates/odoo-product-template.md`
+- `src/markdown/templates/odoo-cleanup-policy.yaml`
 
 **系統整合:**
-- 修改 `src/cli.ts` 新增 Odoo 命令
+- 修改 `src/cli.ts` 新增 Odoo 命令（包含 `odoo-cleanup`）
 - 修改 `src/templates.ts` 新增 Odoo 模板函數
 - 修改 `src/get-template-context.ts` 支援 Odoo 模板
+- 修改 `package.json` 新增 yaml 相依套件
 
 #### 🚀 使用方式
 
@@ -879,32 +914,37 @@ cleanup_policies:
 
 ```bash
 # 設定 Odoo 開發環境
-npx claude-code-spec-workflow odoo-setup
+npx @stanleykao72/claude-code-spec-workflow-odoo odoo-setup
 
 # 檢測 Odoo 版本和相容性
-npx claude-code-spec-workflow odoo-detect
+npx @stanleykao72/claude-code-spec-workflow-odoo odoo-detect
 
 # 生成 Steering Documents
-npx claude-code-spec-workflow odoo-steering
+npx @stanleykao72/claude-code-spec-workflow-odoo odoo-steering
 
 # 使用 Odoo 特定模板
-claude-code-spec-workflow get-template-context odoo
+@stanleykao72/claude-code-spec-workflow-odoo get-template-context odoo
+
+# 管理 Odoo 命令生命週期
+npx @stanleykao72/claude-code-spec-workflow-odoo odoo-cleanup --stats
+npx @stanleykao72/claude-code-spec-workflow-odoo odoo-cleanup --run
+npx @stanleykao72/claude-code-spec-workflow-odoo odoo-cleanup --policy
 ```
 
 #### 📊 完成度統計
 
-- ✅ **已完成任務**: 6/16 任務 (37.5%)
+- ✅ **已完成任務**: 10/16 任務 (62.5%)
 - ✅ **第一階段**: 完成 100% (3/3)
 - ✅ **第二階段**: 完成 100% (3/3)
-- 🔄 **剩餘階段**: 3-5 階段待實施 (10/16)
+- ✅ **第三階段**: 完成 100% (4/4)
+- 🔄 **剩餘階段**: 4-5 階段待實施 (6/16)
 
 #### 🎯 下一步建議
 
-基於當前完成的基礎建設，建議按以下順序繼續實施：
+基於當前完成的三個階段建設，建議按以下順序繼續實施：
 
-1. **第三階段優先**：版本管理和命令生命週期 (Task 4, 5, 11, 12)
-2. **第四階段**：整合測試和 Dashboard (Task 6, 13, 14)
-3. **第五階段**：最終優化和配置 (Task 9, 15, 16)
+1. **第四階段優先**：整合測試和 Dashboard (Task 6, 13, 14)
+2. **第五階段**：最終優化和配置 (Task 9, 15, 16)
 
 這個實施為 Odoo 開發團隊提供了標準化的工作流程和強大的自動化工具支援！
 
@@ -964,7 +1004,7 @@ claude-code-spec-workflow get-template-context odoo
 
 ## 十五、變更記錄
 
-### v1.2.0 (2025-08-31) - 第一、二階段實施完成
+### v1.3.0 (2025-08-31) - 第一、二、三階段實施完成
 - 🎉 **完成第一階段（基礎建設）**：
   - ✅ Task 1: 建立 Odoo 目錄結構生成器
   - ✅ Task 3: 創建 Steering Documents 生成器  
@@ -975,15 +1015,23 @@ claude-code-spec-workflow get-template-context odoo
   - ✅ Task 8: 開發 Odoo 特定工具模組
   - ✅ Task 10: 修改模板系統
 
+- 🎉 **完成第三階段（版本和命令管理）**：
+  - ✅ Task 4: 實作版本管理和迭代系統
+  - ✅ Task 5: 開發命令生命週期管理系統
+  - ✅ Task 11: 版本管理系統程式
+  - ✅ Task 12: 命令生命週期管理程式
+
 - 🔧 **新增核心功能**：
   - 完整的 Odoo 版本支援（14.0-18.0）
   - 自定義模組路徑配置（./user/ 等）
   - 互動式專案設定和模組偵測
   - Odoo 特定的模板系統和工具集
-  - CLI 命令集成（odoo-setup、odoo-detect、odoo-steering）
+  - CLI 命令集成（odoo-setup、odoo-detect、odoo-steering、odoo-cleanup）
+  - 版本管理和多環境支援系統
+  - 智能命令生命週期管理和 YAML 清理策略
 
-- 📁 **創建檔案**: 7個核心類別檔案 + 4個模板檔案 + 系統整合修改
-- 📊 **完成進度**: 6/16 任務完成（37.5%），前兩階段 100% 完成
+- 📁 **創建檔案**: 11個核心類別檔案 + 5個模板檔案 + 系統整合修改
+- 📊 **完成進度**: 10/16 任務完成（62.5%），前三階段 100% 完成
 
 ### v1.1.0 (2025-08-31)
 - ✅ 新增 Odoo 18.0 最新版本支援
@@ -1265,14 +1313,14 @@ export class BilingualDocumentGenerator {
 **使用範例**：
 ```bash
 # 生成繁體中文雙語需求文檔
-npx claude-code-spec-workflow odoo-spec-create my_module -l zh-TW -b
+npx @stanleykao72/claude-code-spec-workflow-odoo odoo-spec-create my_module -l zh-TW -b
 
 # 專門生成雙語產品文檔
-npx claude-code-spec-workflow odoo-doc-bilingual my_module zh-TW -t product
+npx @stanleykao72/claude-code-spec-workflow-odoo odoo-doc-bilingual my_module zh-TW -t product
 
 # 批量生成多語言文檔
-npx claude-code-spec-workflow odoo-spec-create my_module -l zh-CN -b
-npx claude-code-spec-workflow odoo-spec-create my_module -l ja -b
+npx @stanleykao72/claude-code-spec-workflow-odoo odoo-spec-create my_module -l zh-CN -b
+npx @stanleykao72/claude-code-spec-workflow-odoo odoo-spec-create my_module -l ja -b
 ```
 
 **適用場景**：
@@ -1372,4 +1420,4 @@ src/i18n/
 **文檔版本**: 1.3.0  
 **最後更新**: 2025-08-31  
 **負責人**: Development Team  
-**狀態**: 🚀 第一、二階段已完成實施，雙語支援方法已規劃完成！
+**狀態**: 🚀 第一、二、三階段已完成實施！版本管理和命令生命週期系統已就緒！
