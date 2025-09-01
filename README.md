@@ -154,6 +154,7 @@ After running `odoo-setup`, the system automatically copies 5 Odoo-specific temp
 <details>
 <summary><strong>📊 Spec Workflow Commands</strong></summary>
 
+#### General Commands
 | Command | Purpose |
 |---------|---------|
 | `/spec-steering-setup` | Create project context documents |
@@ -163,11 +164,23 @@ After running `odoo-setup`, the system automatically copies 5 Odoo-specific temp
 | `/spec-status` | Show progress |
 | `/spec-list` | List all specs |
 
+#### Odoo ERP Commands
+| Command | Purpose |
+|---------|---------|
+| `/odoo-steering` | Create Odoo-specific steering documents |
+| `/odoo-spec-create <name>` | Create Odoo module specifications |
+| `/odoo-spec-execute <task-id> <spec>` | Execute Odoo module tasks |
+| `/odoo-spec-status [module] [type] [spec]` | Show Odoo module spec status |
+| `/odoo-spec-list` | List all Odoo module specifications |
+| `/odoo-feature-create <name>` | Create Odoo feature specifications |
+| `/odoo-module-test <name>` | Test Odoo modules |
+
 </details>
 
 <details>
 <summary><strong>🐛 Bug Fix Commands</strong></summary>
 
+#### General Commands
 | Command | Purpose |
 |---------|---------|
 | `/bug-create <name>` | Document bug with structured format |
@@ -175,6 +188,15 @@ After running `odoo-setup`, the system automatically copies 5 Odoo-specific temp
 | `/bug-fix` | Implement targeted solution |
 | `/bug-verify` | Verify resolution |
 | `/bug-status` | Show bug fix progress |
+
+#### Odoo ERP Bug Commands
+| Command | Purpose |
+|---------|---------|
+| `/odoo-bug-create <name>` | Create Odoo module bug reports |
+| `/odoo-bug-analyze` | Analyze Odoo module bug root causes |
+| `/odoo-bug-fix <name>` | Fix Odoo-specific module bugs |
+| `/odoo-bug-verify <name>` | Verify Odoo module bug fixes |
+| `/odoo-bug-status` | Show Odoo module bug status |
 
 </details>
 
@@ -188,9 +210,11 @@ After running `odoo-setup`, the system automatically copies 5 Odoo-specific temp
 - **Agent-based** implementation with spec-task-executor
 
 ### 🧠 **Specialized Agents** (Optional)
-4 AI agents for enhanced automation:
+8 AI agents for enhanced automation:
 
-**Core Workflow:** `spec-task-executor`, `spec-requirements-validator`, `spec-design-validator`, `spec-task-validator`
+**Core Workflow Agents:** `spec-task-executor`, `spec-requirements-validator`, `spec-design-validator`, `spec-task-validator`
+
+**Odoo ERP Agents:** `odoo-spec-task-executor`, `odoo-spec-requirements-validator`, `odoo-spec-design-validator`, `odoo-spec-task-validator`
 
 
 > **Note:** Agents are optional - everything works with built-in fallbacks.
@@ -471,21 +495,46 @@ When using `/odoo-bug-fix`, the system automatically:
 - `[module-name]-[error-type]-[short-description]`
 - Examples: `inventory-calculation-negative`, `sale-discount-error`, `account-payment-timeout`
 
-### **Odoo-Specific Commands**
+### **Complete Odoo Command Reference**
+
+#### **Setup and Environment Commands**
 ```bash
 # Specialized Odoo setup
 npx @stanleykao72/claude-code-spec-workflow-odoo odoo-setup
 
-# Command syntax
-/odoo-spec-create module-name "Module description"
-/odoo-module-test module-name "Test description for module"
-/odoo-bug-fix module-issue-name "Bug description in specific Odoo module"
-/odoo-feature-create module-feature-name "Feature description for Odoo module"
+# Environment detection and management
+npx @stanleykao72/claude-code-spec-workflow-odoo odoo-detect
+npx @stanleykao72/claude-code-spec-workflow-odoo odoo-version
+npx @stanleykao72/claude-code-spec-workflow-odoo odoo-env
+npx @stanleykao72/claude-code-spec-workflow-odoo odoo-modules
+npx @stanleykao72/claude-code-spec-workflow-odoo odoo-cmd
+npx @stanleykao72/claude-code-spec-workflow-odoo odoo-cleanup
+```
 
-# NEW: Module-level specification management (v1.6.13+)
+#### **Specification Commands**
+```bash
+# Steering and project setup
+/odoo-steering                                   # Generate Odoo steering documents
+
+# Feature specification workflow
+/odoo-spec-create module-name "Module description"
+/odoo-feature-create module-feature-name "Feature description for Odoo module"
+/odoo-module-test module-name "Test description for module"
+
+# Module specification management (v1.6.13+)
 /odoo-spec-list                              # List all module specifications
-/odoo-spec-status [module] [type] [spec]     # Show detailed status
+/odoo-spec-status [module] [type] [spec]     # Show detailed status  
 /odoo-spec-execute <task-id> <spec> [module] # Execute specification tasks
+```
+
+#### **Bug Fix Commands**
+```bash
+# Complete Odoo bug workflow
+/odoo-bug-create module-bug-name "Bug description"    # Create bug report
+/odoo-bug-analyze                                      # Analyze root cause
+/odoo-bug-fix module-issue-name "Bug description"     # Fix bug with ERP context
+/odoo-bug-verify module-bug-name                      # Verify fix with integration testing
+/odoo-bug-status                                       # Show bug status
 
 # Examples
 /odoo-spec-create inventory-enhancement "Custom inventory management features"

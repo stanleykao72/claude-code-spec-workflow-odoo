@@ -155,6 +155,7 @@ claude  # 然後使用: /odoo-spec-create module-name "模組描述"
 <details>
 <summary><strong>📊 規格工作流程命令</strong></summary>
 
+#### 一般命令
 | 命令 | 用途 |
 |------|------|
 | `/spec-steering-setup` | 建立專案內容文件 |
@@ -164,11 +165,23 @@ claude  # 然後使用: /odoo-spec-create module-name "模組描述"
 | `/spec-status` | 顯示進度 |
 | `/spec-list` | 列出所有規格 |
 
+#### Odoo ERP 命令
+| 命令 | 用途 |
+|------|------|
+| `/odoo-steering` | 建立 Odoo 專用指導文件 |
+| `/odoo-spec-create <名稱>` | 建立 Odoo 模組規格 |
+| `/odoo-spec-execute <任務-id> <規格>` | 執行 Odoo 模組任務 |
+| `/odoo-spec-status [模組] [類型] [規格]` | 顯示 Odoo 模組規格狀態 |
+| `/odoo-spec-list` | 列出所有 Odoo 模組規格 |
+| `/odoo-feature-create <名稱>` | 建立 Odoo 功能規格 |
+| `/odoo-module-test <名稱>` | 測試 Odoo 模組 |
+
 </details>
 
 <details>
 <summary><strong>🐛 錯誤修復命令</strong></summary>
 
+#### 一般命令
 | 命令 | 用途 |
 |------|------|
 | `/bug-create <名稱>` | 使用結構化格式記錄錯誤 |
@@ -176,6 +189,15 @@ claude  # 然後使用: /odoo-spec-create module-name "模組描述"
 | `/bug-fix` | 實作目標解決方案 |
 | `/bug-verify` | 驗證解決方案 |
 | `/bug-status` | 顯示錯誤修復進度 |
+
+#### Odoo ERP 錯誤命令
+| 命令 | 用途 |
+|------|------|
+| `/odoo-bug-create <名稱>` | 建立 Odoo 模組錯誤報告 |
+| `/odoo-bug-analyze` | 分析 Odoo 模組錯誤根本原因 |
+| `/odoo-bug-fix <名稱>` | 修復 Odoo 專用模組錯誤 |
+| `/odoo-bug-verify <名稱>` | 驗證 Odoo 模組錯誤修復 |
+| `/odoo-bug-status` | 顯示 Odoo 模組錯誤狀態 |
 
 </details>
 
