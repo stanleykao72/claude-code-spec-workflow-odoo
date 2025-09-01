@@ -557,4 +557,344 @@ export class OdooModuleManager {
   private async saveConfig(): Promise<void> {
     await fs.writeFile(this.configPath, JSON.stringify(this.config, null, 2), 'utf-8');
   }
+
+  /**
+   * 掃描模組規格 - 為 odoo-spec-list 命令
+   */
+  async scanModuleSpecs(): Promise<void> {
+    console.log(chalk.blue('🔍 掃描模組規格...'));
+    
+    const modules = await this.scanModules();
+    let totalFeatures = 0;
+    let totalBugs = 0;
+    let totalTests = 0;
+
+    console.log(chalk.cyan('📋 Odoo 專案規格總覽\n'));
+
+    for (const module of modules) {
+      console.log(chalk.bold(`🏗️ 模組: ${module.name}`));
+      console.log(chalk.gray(`   路徑: ${module.path}`));
+      
+      const specPath = path.join(module.path, '.spec');
+      
+      try {
+        await fs.access(specPath);
+        
+        // 檢查 features
+        const featuresPath = path.join(specPath, 'features');
+        try {
+          const featureDirs = await fs.readdir(featuresPath, { withFileTypes: true });
+          const features = featureDirs.filter(d => d.isDirectory());
+          totalFeatures += features.length;
+          
+          if (features.length > 0) {
+            console.log(chalk.green(`   🚀 功能 (${features.length}):`));
+            for (const feature of features.slice(0, 3)) { // 只顯示前3個
+              console.log(chalk.gray(`      • ${feature.name}`));
+            }
+            if (features.length > 3) {
+              console.log(chalk.gray(`      ... 和其他 ${features.length - 3} 個`));
+            }
+          }
+        } catch {
+          // features 目錄不存在
+        }
+
+        // 檢查 bugs
+        const bugsPath = path.join(specPath, 'bugs');
+        try {
+          const bugDirs = await fs.readdir(bugsPath, { withFileTypes: true });
+          const bugs = bugDirs.filter(d => d.isDirectory());
+          totalBugs += bugs.length;
+          
+          if (bugs.length > 0) {
+            console.log(chalk.yellow(`   🐛 錯誤修復 (${bugs.length}):`));
+            for (const bug of bugs.slice(0, 2)) {
+              console.log(chalk.gray(`      • ${bug.name}`));
+            }
+            if (bugs.length > 2) {
+              console.log(chalk.gray(`      ... 和其他 ${bugs.length - 2} 個`));
+            }
+          }
+        } catch {
+          // bugs 目錄不存在
+        }
+
+        // 檢查 testing
+        const testingPath = path.join(specPath, 'testing');
+        try {
+          await fs.access(testingPath);
+          totalTests += 1;
+          console.log(chalk.blue('   🧪 測試: 已設定'));
+        } catch {
+          // testing 目錄不存在
+        }
+
+      } catch {
+        console.log(chalk.gray('   (尚無規格文件)'));
+      }
+      
+      console.log(); // 空行分隔
+    }
+
+    // 顯示總結
+    console.log(chalk.cyan('📊 專案摘要:'));
+    console.log(chalk.gray(`   • 總模組: ${modules.length}`));
+    console.log(chalk.gray(`   • 總功能: ${totalFeatures}`));
+    console.log(chalk.gray(`   • 總錯誤修復: ${totalBugs}`));
+    console.log(chalk.gray(`   • 有測試的模組: ${totalTests}`));
+  }
+
+  /**
+   * 顯示規格狀態 - 為 odoo-spec-status 命令
+   */
+  async showSpecStatus(moduleName?: string, specType?: string, specName?: string): Promise<void> {
+    console.log(chalk.blue('📊 檢查規格狀態...'));
+    
+    if (!moduleName) {
+      // 顯示所有模組的狀態摘要
+      await this.showProjectWideStatus();
+      return;
+    }
+
+    // 顯示特定模組的狀態
+    const modules = await this.scanModules();
+    const module = modules.find(m => m.name === moduleName);
+    
+    if (!module) {
+      console.log(chalk.red(`❌ 找不到模組: ${moduleName}`));
+      console.log(chalk.gray('可用模組:'));
+      modules.forEach(m => console.log(chalk.gray(`   • ${m.name}`)));
+      return;
+    }
+
+    await this.showModuleStatus(module, specType, specName);
+  }
+
+  /**
+   * 執行規格任務 - 為 odoo-spec-execute 命令
+   */
+  async executeSpecTask(taskId: number, specName: string, moduleName?: string): Promise<void> {
+    console.log(chalk.blue(`🚀 執行任務 ${taskId}: ${specName}`));
+    
+    // 尋找規格位置
+    const specLocation = await this.findSpecification(specName, moduleName);
+    
+    if (!specLocation) {
+      console.log(chalk.red(`❌ 找不到規格: ${specName}`));
+      if (moduleName) {
+        console.log(chalk.gray(`   在模組 ${moduleName} 中未找到`));
+      } else {
+        console.log(chalk.gray('   建議指定模組名稱或檢查規格名稱'));
+      }
+      return;
+    }
+
+    console.log(chalk.green(`✅ 找到規格: ${specLocation.module.name}/${specLocation.specType}/${specName}`));
+    console.log(chalk.gray(`   路徑: ${specLocation.specPath}`));
+    
+    // 檢查任務文件
+    const tasksPath = path.join(specLocation.specPath, 'tasks.md');
+    try {
+      await fs.access(tasksPath);
+      console.log(chalk.green('✅ 任務文件存在'));
+      console.log(chalk.yellow('💡 請使用 Claude Code 的 /spec-execute 命令執行任務:'));
+      console.log(chalk.cyan(`   /spec-execute ${taskId} ${specName}`));
+      console.log();
+      console.log(chalk.gray('注意: 在執行前請確保 Claude 能找到模組路徑中的規格文件'));
+      
+    } catch {
+      console.log(chalk.red('❌ 任務文件不存在'));
+      console.log(chalk.gray('   請先建立完整的規格文件'));
+    }
+  }
+
+  /**
+   * 尋找規格位置的輔助方法
+   */
+  private async findSpecification(specName: string, moduleName?: string): Promise<{
+    module: OdooModule;
+    specType: 'features' | 'bugs' | 'testing';
+    specPath: string;
+  } | null> {
+    const modules = await this.scanModules();
+    
+    // 如果指定了模組名稱，只在該模組中搜尋
+    const searchModules = moduleName ? 
+      modules.filter(m => m.name === moduleName) : 
+      modules;
+
+    for (const module of searchModules) {
+      const specTypes = ['features', 'bugs', 'testing'] as const;
+      
+      for (const specType of specTypes) {
+        let specPath: string;
+        
+        if (specType === 'testing') {
+          // testing 是直接在 .spec/testing/ 下
+          specPath = path.join(module.path, '.spec', 'testing');
+        } else {
+          // features 和 bugs 在子目錄中
+          specPath = path.join(module.path, '.spec', specType, specName);
+        }
+        
+        try {
+          await fs.access(specPath);
+          return { module, specType, specPath };
+        } catch {
+          // 繼續搜尋
+        }
+      }
+    }
+    
+    return null;
+  }
+
+  /**
+   * 顯示專案範圍的狀態摘要
+   */
+  private async showProjectWideStatus(): Promise<void> {
+    console.log(chalk.cyan.bold('📊 Odoo 專案開發狀態\n'));
+    
+    const modules = await this.scanModules();
+    let activeModules = 0;
+    let totalFeatures = 0;
+    let totalBugs = 0;
+    let totalTests = 0;
+
+    for (const module of modules) {
+      const specPath = path.join(module.path, '.spec');
+      
+      try {
+        await fs.access(specPath);
+        activeModules++;
+        
+        // 統計各類型規格
+        const stats = await this.getModuleSpecStats(module);
+        totalFeatures += stats.features;
+        totalBugs += stats.bugs;
+        totalTests += stats.testing ? 1 : 0;
+        
+      } catch {
+        // 模組沒有規格
+      }
+    }
+
+    console.log(chalk.white('🎯 整體健康狀況: ') + 
+      (activeModules > 0 ? chalk.green('良好') : chalk.yellow('需要關注')));
+    console.log(chalk.gray(`   • 活躍模組: ${activeModules}/${modules.length}`));
+    console.log(chalk.gray(`   • 進行中功能: ${totalFeatures}`));
+    console.log(chalk.gray(`   • 開放錯誤修復: ${totalBugs}`));
+    console.log(chalk.gray(`   • 測試覆蓋: ${totalTests} 模組`));
+    
+    console.log();
+    console.log(chalk.yellow('📈 建議的下一步行動:'));
+    console.log(chalk.gray('   1. 使用 /odoo-spec-list 查看詳細清單'));
+    console.log(chalk.gray('   2. 使用 /odoo-spec-execute 執行任務'));
+    console.log(chalk.gray('   3. 使用 /odoo-feature-create 建立新功能'));
+  }
+
+  /**
+   * 顯示特定模組的狀態
+   */
+  private async showModuleStatus(module: OdooModule, specType?: string, specName?: string): Promise<void> {
+    console.log(chalk.cyan.bold(`🏗️ 模組: ${module.name}\n`));
+    console.log(chalk.gray(`路徑: ${module.path}`));
+    console.log(chalk.gray(`版本: ${module.manifest.version || '未知'}`));
+    
+    const stats = await this.getModuleSpecStats(module);
+    
+    console.log();
+    console.log(chalk.white('🚀 功能 ') + chalk.gray(`(${stats.features}):`));
+    if (stats.features > 0) {
+      await this.listSpecs(module, 'features');
+    } else {
+      console.log(chalk.gray('   (尚無功能規格)'));
+    }
+    
+    console.log();
+    console.log(chalk.white('🐛 錯誤修復 ') + chalk.gray(`(${stats.bugs}):`));
+    if (stats.bugs > 0) {
+      await this.listSpecs(module, 'bugs');
+    } else {
+      console.log(chalk.gray('   (尚無錯誤修復)'));
+    }
+    
+    console.log();
+    console.log(chalk.white('🧪 測試:'));
+    if (stats.testing) {
+      console.log(chalk.green('   ✅ 測試已設定'));
+    } else {
+      console.log(chalk.gray('   (尚未設定測試)'));
+    }
+  }
+
+  /**
+   * 獲取模組規格統計
+   */
+  private async getModuleSpecStats(module: OdooModule): Promise<{
+    features: number;
+    bugs: number;
+    testing: boolean;
+  }> {
+    const specPath = path.join(module.path, '.spec');
+    const stats = { features: 0, bugs: 0, testing: false };
+
+    try {
+      // 統計 features
+      const featuresPath = path.join(specPath, 'features');
+      try {
+        const featureDirs = await fs.readdir(featuresPath, { withFileTypes: true });
+        stats.features = featureDirs.filter(d => d.isDirectory()).length;
+      } catch {
+        // features 目錄不存在
+      }
+
+      // 統計 bugs
+      const bugsPath = path.join(specPath, 'bugs');
+      try {
+        const bugDirs = await fs.readdir(bugsPath, { withFileTypes: true });
+        stats.bugs = bugDirs.filter(d => d.isDirectory()).length;
+      } catch {
+        // bugs 目錄不存在
+      }
+
+      // 檢查 testing
+      const testingPath = path.join(specPath, 'testing');
+      try {
+        await fs.access(testingPath);
+        stats.testing = true;
+      } catch {
+        // testing 目錄不存在
+      }
+
+    } catch {
+      // .spec 目錄不存在
+    }
+
+    return stats;
+  }
+
+  /**
+   * 列出指定類型的規格
+   */
+  private async listSpecs(module: OdooModule, specType: 'features' | 'bugs'): Promise<void> {
+    const specsPath = path.join(module.path, '.spec', specType);
+    
+    try {
+      const specDirs = await fs.readdir(specsPath, { withFileTypes: true });
+      const specs = specDirs.filter(d => d.isDirectory());
+      
+      for (const spec of specs.slice(0, 5)) { // 只顯示前5個
+        console.log(chalk.gray(`   • ${spec.name}`));
+      }
+      
+      if (specs.length > 5) {
+        console.log(chalk.gray(`   ... 和其他 ${specs.length - 5} 個`));
+      }
+      
+    } catch {
+      // 目錄不存在或無法讀取
+    }
+  }
 }

@@ -225,6 +225,43 @@ npx -p @stanleykao72/claude-code-spec-workflow-odoo claude-spec-dashboard
 - **模型分析** - 繼承鏈分析和驗證
 - **多環境支援** - 本地、Docker、遠端和 Odoo.sh
 
+### **🆕 模組層級規格管理 (v1.6.13+)**
+
+新增專門用於 Odoo 模組規格管理的命令，解決模組內規格無法被傳統 `/spec-list` 找到的問題：
+
+```bash
+# 列出所有模組的規格
+/odoo-spec-list
+
+# 顯示模組規格狀態
+/odoo-spec-status                              # 所有模組狀態
+/odoo-spec-status inventory_custom             # 特定模組狀態
+/odoo-spec-status inventory_custom features    # 模組功能狀態
+/odoo-spec-status inventory_custom features stock-tracking  # 特定規格狀態
+
+# 執行模組規格任務
+/odoo-spec-execute 1 inventory-tracking        # 執行任務 1
+/odoo-spec-execute 2 stock-enhancement inventory_custom  # 指定模組執行任務
+```
+
+**完整的 Odoo 開發工作流程：**
+```bash
+# 1. 建立功能規格
+/odoo-feature-create inventory-enhancement "自訂庫存管理功能"
+
+# 2. 查看所有模組規格 (新！)
+/odoo-spec-list
+
+# 3. 檢查特定模組狀態 (新！)
+/odoo-spec-status inventory_custom
+
+# 4. 執行任務 (新！)
+/odoo-spec-execute 1 inventory-enhancement
+
+# 5. 監控進度 (新！)
+/odoo-spec-status inventory_custom features inventory-enhancement
+```
+
 ### **🐛 Odoo 模組錯誤回報流程**
 
 #### **1. 建立錯誤報告**

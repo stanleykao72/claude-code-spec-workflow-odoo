@@ -191,7 +191,10 @@ export class SpecWorkflowSetup {
       'odoo-bug-fix',
       'odoo-feature-create',
       'odoo-module-test',
-      'odoo-steering'
+      'odoo-steering',
+      'odoo-spec-list',
+      'odoo-spec-status',
+      'odoo-spec-execute'
     ];
 
     for (const commandName of commandNames) {

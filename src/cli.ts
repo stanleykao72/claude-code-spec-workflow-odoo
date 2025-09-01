@@ -502,6 +502,116 @@ program
     }
   });
 
+// Add Odoo spec list command
+program
+  .command('odoo-spec-list')
+  .description('List all specifications across Odoo modules')
+  .option('-p, --project <path>', 'Project directory', process.cwd())
+  .action(async (options) => {
+    console.log(chalk.cyan.bold('📋 Odoo 模組規格清單'));
+    console.log(chalk.gray('列出所有 Odoo 模組的規格、功能、錯誤修復和測試'));
+    console.log();
+
+    try {
+      // 檢查是否為 Odoo 專案
+      const structureGenerator = new OdooStructureGenerator();
+      const config = await structureGenerator.loadOdooConfig();
+      
+      if (!config) {
+        console.log(chalk.yellow('⚠️ 未找到 Odoo 配置，請先執行 odoo-setup'));
+        console.log(chalk.gray('建議: npx claude-code-spec-workflow-odoo odoo-setup'));
+        return;
+      }
+
+      // 執行模組規格掃描
+      const moduleManager = new OdooModuleManager(config);
+      await moduleManager.scanModuleSpecs();
+      
+      console.log();
+      console.log(chalk.green('✓ 模組規格掃描完成！'));
+      console.log(chalk.gray('使用 /odoo-spec-list 命令查看詳細清單'));
+      
+    } catch (error) {
+      console.error(chalk.red('模組規格清單失敗:'), error instanceof Error ? error.message : error);
+      process.exit(1);
+    }
+  });
+
+// Add Odoo spec status command
+program
+  .command('odoo-spec-status')
+  .description('Show detailed status of Odoo module specifications')
+  .argument('[module-name]', 'Specific module to check')
+  .argument('[spec-type]', 'Type of spec (features, bugs, testing)')
+  .argument('[spec-name]', 'Specific specification name')
+  .option('-p, --project <path>', 'Project directory', process.cwd())
+  .action(async (moduleName, specType, specName, options) => {
+    console.log(chalk.cyan.bold('📊 Odoo 模組規格狀態'));
+    console.log(chalk.gray('顯示模組規格的詳細進度和狀態'));
+    console.log();
+
+    try {
+      // 檢查是否為 Odoo 專案
+      const structureGenerator = new OdooStructureGenerator();
+      const config = await structureGenerator.loadOdooConfig();
+      
+      if (!config) {
+        console.log(chalk.yellow('⚠️ 未找到 Odoo 配置，請先執行 odoo-setup'));
+        console.log(chalk.gray('建議: npx claude-code-spec-workflow-odoo odoo-setup'));
+        return;
+      }
+
+      // 執行狀態檢查
+      const moduleManager = new OdooModuleManager(config);
+      await moduleManager.showSpecStatus(moduleName, specType, specName);
+      
+      console.log();
+      console.log(chalk.gray('使用 /odoo-spec-status 命令查看詳細狀態'));
+      
+    } catch (error) {
+      console.error(chalk.red('模組規格狀態檢查失敗:'), error instanceof Error ? error.message : error);
+      process.exit(1);
+    }
+  });
+
+// Add Odoo spec execute command
+program
+  .command('odoo-spec-execute')
+  .description('Execute Odoo module specification tasks')
+  .argument('<task-id>', 'Task number to execute')
+  .argument('<spec-name>', 'Name of the specification')
+  .argument('[module-name]', 'Specific module name if spec name is ambiguous')
+  .option('-p, --project <path>', 'Project directory', process.cwd())
+  .action(async (taskId, specName, moduleName, options) => {
+    console.log(chalk.cyan.bold('🚀 Odoo 模組規格任務執行'));
+    console.log(chalk.gray(`執行任務 ${taskId}: ${specName}${moduleName ? ` (模組: ${moduleName})` : ''}`));
+    console.log();
+
+    try {
+      // 檢查是否為 Odoo 專案
+      const structureGenerator = new OdooStructureGenerator();
+      const config = await structureGenerator.loadOdooConfig();
+      
+      if (!config) {
+        console.log(chalk.yellow('⚠️ 未找到 Odoo 配置，請先執行 odoo-setup'));
+        console.log(chalk.gray('建議: npx claude-code-spec-workflow-odoo odoo-setup'));
+        return;
+      }
+
+      // 執行任務
+      const moduleManager = new OdooModuleManager(config);
+      await moduleManager.executeSpecTask(parseInt(taskId), specName, moduleName);
+      
+      console.log();
+      console.log(chalk.green('✓ 任務執行完成！'));
+      console.log(chalk.gray('使用 /odoo-spec-status 檢查進度'));
+      
+    } catch (error) {
+      console.error(chalk.red('模組規格任務執行失敗:'), error instanceof Error ? error.message : error);
+      process.exit(1);
+    }
+  });
+
 // Add Odoo version management command
 program
   .command('odoo-version')

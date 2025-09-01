@@ -482,11 +482,23 @@ npx @stanleykao72/claude-code-spec-workflow-odoo odoo-setup
 /odoo-bug-fix module-issue-name "Bug description in specific Odoo module"
 /odoo-feature-create module-feature-name "Feature description for Odoo module"
 
+# NEW: Module-level specification management (v1.6.13+)
+/odoo-spec-list                              # List all module specifications
+/odoo-spec-status [module] [type] [spec]     # Show detailed status
+/odoo-spec-execute <task-id> <spec> [module] # Execute specification tasks
+
 # Examples
 /odoo-spec-create inventory-enhancement "Custom inventory management features"
 /odoo-module-test inventory_custom "Run tests for custom inventory module"
 /odoo-bug-fix sale-discount-error "Sales module discount calculation bug"
 /odoo-feature-create hr-attendance-tracking "Employee attendance tracking system"
+
+# NEW: Module-aware workflow examples
+/odoo-spec-list                                    # See all module specs
+/odoo-spec-status inventory_custom                 # Check specific module
+/odoo-spec-status inventory_custom features        # Check module features
+/odoo-spec-execute 1 inventory-tracking           # Execute task 1
+/odoo-spec-execute 2 stock-enhancement inventory_custom  # Execute with module context
 
 # Additional examples
 /odoo-spec-create pos-loyalty-program "Point of sale loyalty program integration"
