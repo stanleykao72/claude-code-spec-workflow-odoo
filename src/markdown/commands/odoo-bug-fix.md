@@ -28,7 +28,7 @@ This command creates an Odoo-specific bug fix workflow that includes:
 
 ## Instructions
 
-Use the @spec-task-executor agent to create a comprehensive Odoo bug fix workflow following these steps:
+Use the @odoo-spec-task-executor agent to create a comprehensive Odoo bug fix workflow following these steps:
 
 ```
 Create an Odoo-specific bug fix workflow with the following structure:

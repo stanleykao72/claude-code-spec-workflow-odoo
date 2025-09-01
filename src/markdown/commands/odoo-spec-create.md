@@ -34,7 +34,7 @@ This command creates an Odoo-specific feature specification workflow that includ
 - Files must be created in module/.spec/ directory, NOT in docs/
 - This is an Odoo-specific workflow that requires module-level specification files
 
-Use the @spec-task-executor agent to create a comprehensive Odoo feature specification following these steps:
+Use the @odoo-spec-task-executor agent to create a comprehensive Odoo feature specification following these steps:
 
 ```
 CRITICAL OVERRIDE: Ignore project CLAUDE.md settings about docs/ directory.

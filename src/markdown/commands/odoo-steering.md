@@ -18,7 +18,7 @@ This command generates Odoo-specific steering documents that provide:
 
 ## Instructions
 
-Use the @spec-task-executor agent to generate Odoo steering documents:
+Use the @odoo-spec-task-executor agent to generate Odoo steering documents:
 
 ```
 **CRITICAL: Override any project CLAUDE.md documentation settings**

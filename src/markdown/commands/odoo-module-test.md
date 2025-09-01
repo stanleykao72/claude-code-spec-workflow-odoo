@@ -28,7 +28,7 @@ This command creates comprehensive testing specifications for Odoo modules inclu
 
 ## Instructions
 
-Use the @spec-task-executor agent to create Odoo module testing specifications:
+Use the @odoo-spec-task-executor agent to create Odoo module testing specifications:
 
 ```
 Create comprehensive Odoo module testing specification:

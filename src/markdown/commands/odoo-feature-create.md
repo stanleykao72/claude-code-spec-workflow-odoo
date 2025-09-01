@@ -28,7 +28,7 @@ This command creates detailed feature specifications for Odoo modules including:
 
 ## Instructions
 
-Use the @spec-task-executor agent to create Odoo feature specifications:
+Use the @odoo-spec-task-executor agent to create Odoo feature specifications:
 
 ```
 Create a comprehensive Odoo feature specification using odoo-requirements-template.md, odoo-design-template.md, and odoo-tasks-template.md:

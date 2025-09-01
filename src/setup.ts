@@ -139,6 +139,10 @@ export class SpecWorkflowSetup {
         'spec-design-validator.md',
         'spec-task-validator.md',
         'spec-task-executor.md',
+        'odoo-spec-requirements-validator.md',
+        'odoo-spec-design-validator.md',
+        'odoo-spec-task-validator.md',
+        'odoo-spec-task-executor.md',
       ];
 
       for (const agentFile of requiredAgents) {
@@ -194,7 +198,11 @@ export class SpecWorkflowSetup {
       'odoo-steering',
       'odoo-spec-list',
       'odoo-spec-status',
-      'odoo-spec-execute'
+      'odoo-spec-execute',
+      'odoo-bug-analyze',
+      'odoo-bug-create',
+      'odoo-bug-status',
+      'odoo-bug-verify'
     ];
 
     for (const commandName of commandNames) {
@@ -261,6 +269,10 @@ export class SpecWorkflowSetup {
       'spec-design-validator.md',
       'spec-task-validator.md',
       'spec-task-executor.md',
+      'odoo-spec-requirements-validator.md',
+      'odoo-spec-design-validator.md',
+      'odoo-spec-task-validator.md',
+      'odoo-spec-task-executor.md',
     ];
 
     for (const agentFile of agentFiles) {
