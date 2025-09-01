@@ -411,16 +411,32 @@ program
     console.log();
 
     try {
+      // Step 1: 先設置一般的 Claude Code 工作流程
+      console.log(chalk.yellow('📦 設置 Claude Code 工作流程...'));
+      const setup = new SpecWorkflowSetup(options.project);
+      await setup.runSetup();
+      console.log(chalk.green('✓ Claude Code 工作流程設置完成'));
+      console.log();
+
+      // Step 2: 設置 Odoo 專用環境
+      console.log(chalk.yellow('🔧 設置 Odoo 開發環境...'));
       const generator = new OdooStructureGenerator();
       const config = await generator.setupOdooProject();
+      console.log(chalk.green('✓ Odoo 開發環境設置完成'));
       
       console.log();
-      console.log(chalk.green('✓ Odoo 開發環境設定完成！'));
+      console.log(chalk.green.bold('🎉 完整的 Odoo 開發環境設置完成！'));
+      console.log();
+      console.log(chalk.cyan('您現在擁有：'));
+      console.log(chalk.gray('  • .claude/ - 完整工作流程（22 個命令 + 8 個 agents）'));
+      console.log(chalk.gray('  • .odoo-dev/ - Odoo 專用配置和模板'));
+      console.log(chalk.gray('  • 12 個 odoo-* 專用命令'));
+      console.log(chalk.gray('  • 4 個 odoo-spec-* 專用 agents'));
       console.log();
       console.log(chalk.cyan('下一步：'));
       console.log(chalk.gray('1. 執行 /odoo-steering 建立專案指導文件'));
-      console.log(chalk.gray('2. 開始使用 /spec-create 建立功能規格'));
-      console.log(chalk.gray('3. 開始使用 /bug-create 建立問題修復規格'));
+      console.log(chalk.gray('2. 開始使用 /odoo-spec-create 建立 Odoo 功能規格'));
+      console.log(chalk.gray('3. 開始使用 /odoo-bug-create 建立 Odoo 問題修復規格'));
       
     } catch (error) {
       console.error(chalk.red('Odoo 環境設定失敗:'), error instanceof Error ? error.message : error);
