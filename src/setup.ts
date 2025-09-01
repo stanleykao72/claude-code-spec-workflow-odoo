@@ -122,7 +122,13 @@ export class SpecWorkflowSetup {
         'structure-template.md',
         'bug-report-template.md',
         'bug-analysis-template.md',
-        'bug-verification-template.md'
+        'bug-verification-template.md',
+        // Odoo-specific templates
+        'odoo-requirements-template.md',
+        'odoo-design-template.md',
+        'odoo-tasks-template.md',
+        'odoo-product-template.md',
+        'odoo-cleanup-policy.yaml'
       ];
 
       for (const templateFile of requiredTemplates) {
@@ -236,7 +242,13 @@ export class SpecWorkflowSetup {
       'structure-template.md',
       'bug-report-template.md',
       'bug-analysis-template.md',
-      'bug-verification-template.md'
+      'bug-verification-template.md',
+      // Odoo-specific templates
+      'odoo-requirements-template.md',
+      'odoo-design-template.md',
+      'odoo-tasks-template.md',
+      'odoo-product-template.md',
+      'odoo-cleanup-policy.yaml'
     ];
 
     for (const templateName of templateNames) {
