@@ -65,10 +65,14 @@ export async function getTemplateContext(templateType?: string, projectPath?: st
     let hasContent = false;
 
     for (const template of templatesToLoad) {
-      // Determine the correct templates directory based on template name
-      const isOdooTemplate = template.name.startsWith('odoo-');
-      const targetTemplatesDir = isOdooTemplate ? odooTemplatesDir : templatesDir;
-      const filePath = path.join(targetTemplatesDir, template.name);
+      // All templates are now in .claude/templates/ (including odoo-* templates as of v1.7.4)
+      // Check .claude/templates/ first, then fallback to .odoo-dev/templates/ for compatibility
+      let filePath = path.join(templatesDir, template.name);
+      
+      // If not found in .claude/templates/, try .odoo-dev/templates/ for odoo templates
+      if (!cachedFileExists(filePath) && template.name.startsWith('odoo-')) {
+        filePath = path.join(odooTemplatesDir, template.name);
+      }
 
       if (cachedFileExists(filePath)) {
         const content = getCachedFileContent(filePath);
