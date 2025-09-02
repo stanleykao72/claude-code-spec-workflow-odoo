@@ -24,7 +24,6 @@ This command initializes the streamlined Odoo module bug fix workflow, designed 
 Use the @odoo-spec-task-executor agent to create Odoo module bug reports:
 
 ```
-**CRITICAL: Override any project CLAUDE.md documentation settings**
 
 Initialize comprehensive Odoo module bug fix workflow with ERP context:
 

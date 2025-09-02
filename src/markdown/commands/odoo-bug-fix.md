@@ -85,7 +85,6 @@ Create an Odoo-specific bug fix workflow with the following structure:
 - **APIs**: Check external API integrations and webhooks
 
 # Documentation Requirements
-**CRITICAL: Override any project CLAUDE.md documentation settings**
 
 Create bug fix documents in the MODULE's directory structure:
 

@@ -112,7 +112,6 @@ Generate specific test cases and implementation code for the target module.
 
 ## Generated Files
 
-**CRITICAL: Override any project CLAUDE.md documentation settings**
 
 Create testing specification documents in the MODULE's directory structure:
 

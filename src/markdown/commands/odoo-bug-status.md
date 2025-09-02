@@ -24,7 +24,6 @@ This command displays comprehensive status information for Odoo module bug fixes
 Use the @odoo-spec-task-executor agent to show Odoo module bug status:
 
 ```
-**CRITICAL: Override any project CLAUDE.md documentation settings**
 
 Display comprehensive Odoo module bug status with ERP context:
 

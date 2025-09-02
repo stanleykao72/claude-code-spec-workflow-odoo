@@ -915,6 +915,120 @@ claude-code-spec-workflow --project ~/my-project
 
 ---
 
+## 🔧 Odoo File Placement Configuration
+
+When working with Odoo projects, specification files are organized using a **module-level structure** rather than a centralized documentation approach. This design aligns with Odoo's modular architecture and enables better module isolation.
+
+### 📁 File Structure Overview
+
+**For Odoo Projects:**
+```
+your-odoo-project/
+├── custom_addons/
+│   └── inventory_custom/
+│       ├── .spec/                    # Module-specific specifications
+│       │   ├── features/
+│       │   │   └── stock-tracking/
+│       │   │       ├── request.md
+│       │   │       ├── requirements.md
+│       │   │       ├── design.md
+│       │   │       └── tasks.md
+│       │   ├── bugs/
+│       │   │   └── negative-stock/
+│       │   │       ├── report.md
+│       │   │       ├── analysis.md
+│       │   │       ├── fix.md
+│       │   │       └── verification.md
+│       │   └── testing/
+│       │       ├── testing-plan.md
+│       │       ├── test-cases.md
+│       │       └── test-implementation.md
+│       ├── models/
+│       ├── views/
+│       └── __manifest__.py
+└── .odoo-dev/
+    ├── steering/                     # Project-level guidance
+    │   ├── business-rules.md
+    │   ├── technical-stack.md
+    │   └── module-standards.md
+    └── templates/                    # Odoo-specific templates
+        ├── odoo-requirements-template.md
+        ├── odoo-design-template.md
+        ├── odoo-tasks-template.md
+        ├── odoo-product-template.md
+        └── odoo-cleanup-policy.yaml
+```
+
+### 🎯 Why Module-Level Structure?
+
+1. **Module Isolation**: Each module maintains its own specifications, making it easier to manage large Odoo projects with multiple custom modules
+2. **Version Control**: Module-specific specifications can be versioned and managed alongside the module code
+3. **Team Collaboration**: Different teams can work on different modules without conflicts
+4. **Deployment Flexibility**: Modules can be deployed independently with their specifications
+5. **Odoo Best Practices**: Aligns with Odoo's modular architecture and development patterns
+
+### 📋 CLAUDE.md Configuration
+
+If you want to customize how Claude Code handles Odoo specifications in your project, add this section to your project's `.claude/CLAUDE.md` file:
+
+```markdown
+## Odoo Development Guidelines
+
+### File Organization
+- **Module Specifications**: Store all specification files within each module's `.spec/` directory
+- **Feature Specifications**: `[module-path]/.spec/features/[feature-name]/`
+- **Bug Fix Workflows**: `[module-path]/.spec/bugs/[bug-name]/`  
+- **Module Testing**: `[module-path]/.spec/testing/`
+- **Project Steering**: `.odoo-dev/steering/` (project-level guidance documents)
+
+### Specification Structure
+- **Features**: request.md → requirements.md → design.md → tasks.md
+- **Bug Fixes**: report.md → analysis.md → fix.md → verification.md
+- **Testing**: testing-plan.md → test-cases.md → test-implementation.md
+
+### Development Workflow
+1. Use `/odoo-steering` to create project-level guidance documents
+2. Use `/odoo-spec-create module-name "description"` for new features
+3. Use `/odoo-bug-fix module-issue "description"` for bug fixes
+4. Use `/odoo-spec-execute task-id spec-name` for implementation
+5. Use `/odoo-spec-status` and `/odoo-spec-list` for progress tracking
+
+### Module Context
+- All Odoo commands automatically detect module structure and dependencies
+- Specifications include Odoo version compatibility and inheritance analysis
+- Integration with pytest-odoo testing framework
+- Multi-company and localization considerations built-in
+```
+
+### 🚀 Getting Started with Odoo File Structure
+
+1. **Initialize Odoo Environment:**
+   ```bash
+   npx @stanleykao72/claude-code-spec-workflow-odoo odoo-setup
+   ```
+
+2. **Create Project Steering Documents:**
+   ```bash
+   claude
+   /odoo-steering
+   ```
+
+3. **Start Module Development:**
+   ```bash
+   # Creates specifications in module-path/.spec/
+   /odoo-spec-create inventory-enhancement "Custom inventory features"
+   ```
+
+4. **Track Progress:**
+   ```bash
+   /odoo-spec-list                    # All modules overview
+   /odoo-spec-status inventory_custom # Specific module status
+   ```
+
+This module-level approach ensures that your Odoo specifications are organized, maintainable, and aligned with Odoo's development best practices.
+
+---
+
 ## 🔗 Links
 
 - **[Full Documentation](https://github.com/stanleykao72/claude-code-spec-workflow-odoo#readme)**

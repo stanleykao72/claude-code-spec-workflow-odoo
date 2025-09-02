@@ -90,7 +90,6 @@ Generate implementation tasks following Odoo development best practices.
 
 ## Generated Files
 
-**CRITICAL: Override any project CLAUDE.md documentation settings**
 
 Create feature specification documents in the MODULE's directory structure:
 

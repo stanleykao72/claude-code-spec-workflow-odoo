@@ -17,7 +17,6 @@ This command scans all detected Odoo modules and lists their specifications, pro
 Use the @odoo-spec-task-executor agent to list Odoo module specifications:
 
 ```
-**CRITICAL: Override any project CLAUDE.md documentation settings**
 
 Scan and list all Odoo module specifications across the entire project:
 

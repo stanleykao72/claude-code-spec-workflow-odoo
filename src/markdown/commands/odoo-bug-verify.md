@@ -24,7 +24,6 @@ This command performs comprehensive verification of Odoo module bug fixes, inclu
 Use the @odoo-spec-task-executor agent to verify Odoo module bug fixes:
 
 ```
-**CRITICAL: Override any project CLAUDE.md documentation settings**
 
 Perform comprehensive Odoo module bug fix verification with ERP integration testing:
 

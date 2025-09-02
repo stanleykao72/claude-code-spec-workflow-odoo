@@ -179,7 +179,6 @@ When extending or modifying existing modules, include detailed analysis:
 - odoo-tasks-template.md
 
 # Generated Files Structure:
-**CRITICAL: Override any project CLAUDE.md documentation settings**
 
 Create specification files in the MODULE's directory structure, NOT in project docs/:
 

@@ -716,6 +716,120 @@ claude-code-spec-workflow --project ~/my-project
 
 ---
 
+## 🔧 Odoo 檔案放置配置
+
+在使用 Odoo 專案時，規格檔案採用**模組層級結構**而非集中式文件管理。此設計符合 Odoo 的模組化架構，並能更好地實現模組隔離。
+
+### 📁 檔案結構概述
+
+**Odoo 專案：**
+```
+your-odoo-project/
+├── custom_addons/
+│   └── inventory_custom/
+│       ├── .spec/                    # 模組專用規格
+│       │   ├── features/
+│       │   │   └── stock-tracking/
+│       │   │       ├── request.md
+│       │   │       ├── requirements.md
+│       │   │       ├── design.md
+│       │   │       └── tasks.md
+│       │   ├── bugs/
+│       │   │   └── negative-stock/
+│       │   │       ├── report.md
+│       │   │       ├── analysis.md
+│       │   │       ├── fix.md
+│       │   │       └── verification.md
+│       │   └── testing/
+│       │       ├── testing-plan.md
+│       │       ├── test-cases.md
+│       │       └── test-implementation.md
+│       ├── models/
+│       ├── views/
+│       └── __manifest__.py
+└── .odoo-dev/
+    ├── steering/                     # 專案層級指導
+    │   ├── business-rules.md
+    │   ├── technical-stack.md
+    │   └── module-standards.md
+    └── templates/                    # Odoo 專用範本
+        ├── odoo-requirements-template.md
+        ├── odoo-design-template.md
+        ├── odoo-tasks-template.md
+        ├── odoo-product-template.md
+        └── odoo-cleanup-policy.yaml
+```
+
+### 🎯 為什麼採用模組層級結構？
+
+1. **模組隔離**：每個模組維護自己的規格，使大型 Odoo 專案更容易管理多個客製化模組
+2. **版本控制**：模組專用規格可與模組程式碼一起進行版本控制和管理
+3. **團隊協作**：不同團隊可以在不同模組上工作而不產生衝突
+4. **部署彈性**：模組可以與其規格獨立部署
+5. **Odoo 最佳實務**：符合 Odoo 的模組化架構和開發模式
+
+### 📋 CLAUDE.md 配置
+
+如果您想要自訂 Claude Code 在專案中如何處理 Odoo 規格，請將此節新增到您專案的 `.claude/CLAUDE.md` 檔案中：
+
+```markdown
+## Odoo 開發指導原則
+
+### 檔案組織
+- **模組規格**：將所有規格檔案儲存在每個模組的 `.spec/` 目錄內
+- **功能規格**：`[module-path]/.spec/features/[feature-name]/`
+- **錯誤修復工作流程**：`[module-path]/.spec/bugs/[bug-name]/`  
+- **模組測試**：`[module-path]/.spec/testing/`
+- **專案指導**：`.odoo-dev/steering/`（專案層級指導文件）
+
+### 規格結構
+- **功能**：request.md → requirements.md → design.md → tasks.md
+- **錯誤修復**：report.md → analysis.md → fix.md → verification.md
+- **測試**：testing-plan.md → test-cases.md → test-implementation.md
+
+### 開發工作流程
+1. 使用 `/odoo-steering` 建立專案層級指導文件
+2. 使用 `/odoo-spec-create module-name "描述"` 開發新功能
+3. 使用 `/odoo-bug-fix module-issue "描述"` 修復錯誤
+4. 使用 `/odoo-spec-execute task-id spec-name` 進行實作
+5. 使用 `/odoo-spec-status` 和 `/odoo-spec-list` 追蹤進度
+
+### 模組內容
+- 所有 Odoo 命令自動檢測模組結構和相依性
+- 規格包含 Odoo 版本相容性和繼承分析
+- 與 pytest-odoo 測試框架整合
+- 內建多公司和本地化考量
+```
+
+### 🚀 Odoo 檔案結構入門
+
+1. **初始化 Odoo 環境：**
+   ```bash
+   npx @stanleykao72/claude-code-spec-workflow-odoo odoo-setup
+   ```
+
+2. **建立專案指導文件：**
+   ```bash
+   claude
+   /odoo-steering
+   ```
+
+3. **開始模組開發：**
+   ```bash
+   # 在 module-path/.spec/ 中建立規格
+   /odoo-spec-create inventory-enhancement "客製化庫存功能"
+   ```
+
+4. **追蹤進度：**
+   ```bash
+   /odoo-spec-list                    # 所有模組概述
+   /odoo-spec-status inventory_custom # 特定模組狀態
+   ```
+
+此模組層級方法確保您的 Odoo 規格組織良好、易於維護，並符合 Odoo 的開發最佳實務。
+
+---
+
 ## 🔗 連結
 
 - **[完整文件](https://github.com/stanleykao72/claude-code-spec-workflow-odoo#readme)**

@@ -30,7 +30,6 @@ This command provides detailed status information for Odoo module specifications
 Use the @odoo-spec-task-executor agent to show Odoo specification status:
 
 ```
-**CRITICAL: Override any project CLAUDE.md documentation settings**
 
 Display detailed Odoo specification status with module-aware analysis:
 

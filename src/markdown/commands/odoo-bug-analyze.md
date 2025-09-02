@@ -17,7 +17,6 @@ This command performs deep analysis of Odoo module bugs, considering ERP-specifi
 Use the @odoo-spec-task-executor agent to analyze Odoo module bugs:
 
 ```
-**CRITICAL: Override any project CLAUDE.md documentation settings**
 
 Perform comprehensive Odoo module bug analysis with ERP-specific context:
 

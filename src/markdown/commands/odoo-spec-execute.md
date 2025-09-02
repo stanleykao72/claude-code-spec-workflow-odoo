@@ -29,7 +29,6 @@ This command executes specific tasks within Odoo module specifications, providin
 Use the @odoo-spec-task-executor agent to execute Odoo module specification tasks:
 
 ```
-**CRITICAL: Override any project CLAUDE.md documentation settings**
 
 Execute Odoo module specification task with complete module context:
 
